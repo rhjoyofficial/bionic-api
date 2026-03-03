@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Domains\Category\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Domains\Category\Models\Category;
+use App\Domains\Category\Services\CategoryService;
+use App\Domains\Category\Requests\StoreCategoryRequest;
+use App\Domains\Category\Requests\UpdateCategoryRequest;
+use App\Domains\Category\Resources\CategoryResource;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Log;
+use Exception;
+
+class AdminCategoryController extends Controller
+{
+    use AuthorizesRequests;
+
+    public function __construct(private CategoryService $service) {}
+
+    public function index()
+    {
+        try {
+            $this->authorize('category.view');
+
+            return CategoryResource::collection(
+                Category::latest()->paginate(10)
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse($e, 'Failed to retrieve categories');
+        }
+    }
+
+    public function store(StoreCategoryRequest $request)
+    {
+        try {
+            $category = $this->service->create($request->validated());
+
+            return (new CategoryResource($category))
+                ->additional(['success' => true, 'message' => 'Category created successfully'])
+                ->response()
+                ->setStatusCode(201);
+        } catch (Exception $e) {
+            return $this->errorResponse($e, 'Failed to create category');
+        }
+    }
+
+    public function update(UpdateCategoryRequest $request, Category $category)
+    {
+        try {
+            $this->authorize('category.update');
+
+            $updatedCategory = $this->service->update($category, $request->validated());
+
+            return (new CategoryResource($updatedCategory))
+                ->additional(['success' => true, 'message' => 'Category updated successfully']);
+        } catch (Exception $e) {
+            return $this->errorResponse($e, 'Failed to update category');
+        }
+    }
+
+    public function destroy(Category $category)
+    {
+        try {
+            $this->authorize('category.delete');
+
+            $this->service->delete($category);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Deleted successfully'
+            ]);
+        } catch (Exception $e) {
+            return $this->errorResponse($e, 'Failed to delete category');
+        }
+    }
+
+    /**
+     * Unified error response handler
+     */
+    private function errorResponse(Exception $e, string $message)
+    {
+        Log::error($message . ': ' . $e->getMessage(), [
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'error'   => config('app.debug') ? $e->getMessage() : 'Server Error'
+        ], 500);
+    }
+}

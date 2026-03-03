@@ -14,9 +14,7 @@ return new class extends Migration
         Schema::create('product_tier_prices', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('variant_id')
-                ->constrained('product_variants')
-                ->cascadeOnDelete();
+            $table->foreignId('variant_id')->constrained('product_variants')->cascadeOnDelete();
 
             $table->integer('min_quantity');
             $table->enum('discount_type', ['percentage', 'fixed']);

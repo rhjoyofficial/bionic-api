@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-use Spatie\Permission\Traits\HasRoles;
+use App\Domains\Order\Models\Order;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
@@ -31,6 +32,6 @@ class User extends Authenticatable
 
     public function orders()
     {
-        return $this->hasMany(\App\Domains\Order\Models\Order::class);
+        return $this->hasMany(Order::class);
     }
 }

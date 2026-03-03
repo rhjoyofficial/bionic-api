@@ -2,7 +2,6 @@
 
 namespace App\Domains\Category\Models;
 
-use App\Domains\Product\Models\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
@@ -16,8 +15,14 @@ class Category extends Model
         'sort_order'
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean'
+    ];
+
     public function products()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(
+            \App\Domains\Product\Models\Product::class
+        );
     }
 }

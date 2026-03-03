@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Domains\Auth\Requests\RegisterRequest;
 use App\Domains\Auth\Requests\LoginRequest;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -36,7 +37,12 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $user = User::where('phone', $request->phone)->first();
+        $login = $request->input('login');
+
+        $user = User::where(function ($query) use ($login) {
+            $query->where('email', $login)
+                ->orWhere('phone', $login);
+        })->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
@@ -45,7 +51,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if (!$user->is_active ?? true) {
+        if (!($user->is_active ?? true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Account disabled'
@@ -79,7 +85,7 @@ class AuthController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => auth()->user()
+            'data' => Auth::user(),
         ]);
     }
 }
