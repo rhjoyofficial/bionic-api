@@ -4,6 +4,7 @@ namespace App\Domains\Product\Controllers;
 
 use App\Domains\Product\Models\ProductVariant;
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse; // Import your helper
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -24,13 +25,17 @@ class ProductTierPriceController extends Controller
                 'discount_value' => 'required|numeric|min:0'
             ]);
 
-            $tierPrice = $variant->tierPrices()->create($validated);
+            // Check if a tier for this quantity already exists to avoid confusion
+            $tierPrice = $variant->tierPrices()->updateOrCreate(
+                ['min_quantity' => $validated['min_quantity']],
+                $validated
+            );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Tier price added successfully',
-                'data' => $tierPrice
-            ], 201);
+            return ApiResponse::success(
+                $tierPrice,
+                'Tier price added successfully',
+                201
+            );
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to add tier price');
         }
@@ -44,31 +49,26 @@ class ProductTierPriceController extends Controller
             $tier = $variant->tierPrices()->findOrFail($tierId);
             $tier->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Tier price deleted successfully'
-            ]);
+            return ApiResponse::success(null, 'Tier price deleted successfully');
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to delete tier price');
         }
     }
 
     /**
-     * Standardized error handler
+     * Updated to use standard ApiResponse
      */
     private function handleError(Exception $e, string $customMessage)
     {
-        // Log the error for internal debugging
         Log::error($customMessage . ': ' . $e->getMessage(), [
             'file' => $e->getFile(),
             'line' => $e->getLine()
         ]);
 
-        return response()->json([
-            'success' => false,
-            'message' => $customMessage,
-            // Only show detailed error message if debug mode is on
-            'error'   => config('app.debug') ? $e->getMessage() : 'Internal Server Error'
-        ], 500);
+        return ApiResponse::error(
+            $customMessage,
+            config('app.debug') ? $e->getMessage() : null,
+            500
+        );
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Domains\Order\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Domains\Order\Models\Order;
 use App\Domains\Product\Models\ProductVariant;
@@ -10,6 +11,8 @@ use App\Domains\Product\Services\PricingService;
 use App\Domains\Shipping\Models\ShippingZone;
 use App\Domains\Shipping\Services\ShippingCalculator;
 use App\Domains\Coupon\Services\CouponValidationService;
+use App\Events\OrderCreated; // Triggered Event
+use Exception;
 
 class OrderService
 {
@@ -20,94 +23,92 @@ class OrderService
 
     public function create(array $data): Order
     {
-        return DB::transaction(function () use ($data) {
+        try {
+            return DB::transaction(function () use ($data) {
+                $subtotal = 0;
+                $discountTotal = 0;
 
-            $subtotal = 0;
-            $discountTotal = 0;
+                $items = $data['items'];
+                unset($data['items']);
 
-            $items = $data['items'];
-            unset($data['items']);
+                $zone = ShippingZone::findOrFail($data['zone_id']);
 
-            $zone = ShippingZone::findOrFail($data['zone_id']);
-
-            $order = Order::create([
-                ...$data,
-                'order_number' => 'BNC-' . strtoupper(Str::random(8)),
-                'subtotal' => 0,
-                'discount_total' => 0,
-                'shipping_cost' => 0,
-                'grand_total' => 0,
-                'payment_method' => 'cod',
-                'payment_status' => 'unpaid',
-                'order_status' => 'pending'
-            ]);
-
-            foreach ($items as $item) {
-
-                $variant = ProductVariant::with('product')
-                    ->findOrFail($item['variant_id']);
-
-                $pricing = $this->pricingService
-                    ->calculate($variant, $item['quantity']);
-
-                $subtotal += $variant->price * $item['quantity'];
-                $discountTotal += $pricing['discount'];
-
-                $order->items()->create([
-                    'product_id' => $variant->product->id,
-                    'variant_id' => $variant->id,
-                    'product_name_snapshot' => $variant->product->name,
-                    'variant_title_snapshot' => $variant->title,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $variant->price,
-                    'total_price' => $pricing['total']
+                $order = Order::create([
+                    ...$data,
+                    'order_number' => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6)),
+                    'subtotal' => 0,
+                    'discount_total' => 0,
+                    'shipping_cost' => 0,
+                    'grand_total' => 0,
+                    'payment_method' => 'cod',
+                    'payment_status' => 'unpaid',
+                    'order_status' => 'pending'
                 ]);
-            }
 
-            $couponDiscount = 0;
-            $couponId = null;
+                foreach ($items as $item) {
+                    $variant = ProductVariant::with('product')->findOrFail($item['variant_id']);
+                    $pricing = $this->pricingService->calculate($variant, $item['quantity']);
 
-            if (!empty($data['coupon_code'])) {
+                    $subtotal += $variant->price * $item['quantity'];
+                    $discountTotal += $pricing['discount'];
 
-                $couponResult = $this->couponService->validate(
-                    $data['coupon_code'],
-                    $subtotal - $discountTotal
-                );
+                    $order->items()->create([
+                        'product_id' => $variant->product->id,
+                        'variant_id' => $variant->id,
+                        'product_name_snapshot' => $variant->product->name,
+                        'variant_title_snapshot' => $variant->title,
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $variant->price,
+                        'total_price' => $pricing['total']
+                    ]);
+                }
 
-                $coupon = $couponResult['coupon'];
-                $couponDiscount = $couponResult['discount'];
+                $couponDiscount = 0;
+                $couponId = null;
 
-                $couponId = $coupon->id;
+                if (!empty($data['coupon_code'])) {
+                    $couponResult = $this->couponService->validate(
+                        $data['coupon_code'],
+                        $subtotal - $discountTotal
+                    );
+                    $coupon = $couponResult['coupon'];
+                    $couponDiscount = $couponResult['discount'];
+                    $couponId = $coupon->id;
+                    $coupon->increment('used_count');
+                }
 
-                $coupon->increment('used_count');
-            }
+                $calculator = new ShippingCalculator();
+                $shippingCost = $calculator->calculate($zone, $subtotal - $discountTotal);
 
-            $calculator = new ShippingCalculator();
+                if ($zone->free_shipping_threshold && ($subtotal - $discountTotal) >= $zone->free_shipping_threshold) {
+                    $shippingCost = 0;
+                }
 
-            $shippingCost = $calculator->calculate($zone, $subtotal - $discountTotal);
+                $totalAfterProductDiscount = $subtotal - $discountTotal;
+                $totalAfterCoupon = $totalAfterProductDiscount - $couponDiscount;
+                $grandTotal = $totalAfterCoupon + $shippingCost;
 
-            if (
-                $zone->free_shipping_threshold &&
-                ($subtotal - $discountTotal) >= $zone->free_shipping_threshold
-            ) {
-                $shippingCost = 0;
-            }
+                $order->update([
+                    'subtotal' => $subtotal,
+                    'discount_total' => $discountTotal + $couponDiscount,
+                    'shipping_cost' => $shippingCost,
+                    'grand_total' => $grandTotal,
+                    'coupon_id' => $couponId
+                ]);
 
-            $totalAfterProductDiscount = $subtotal - $discountTotal;
+                $order->load('items');
 
-            $totalAfterCoupon = $totalAfterProductDiscount - $couponDiscount;
+                // Trigger the Event
+                event(new OrderCreated($order));
 
-            $grandTotal = $totalAfterCoupon + $shippingCost;
-
-            $order->update([
-                'subtotal' => $subtotal,
-                'discount_total' => $discountTotal + $couponDiscount,
-                'shipping_cost' => $shippingCost,
-                'grand_total' => $grandTotal,
-                'coupon_id' => $couponId
+                return $order;
+            });
+        } catch (Exception $e) {
+            Log::error('Order Service Error: ' . $e->getMessage(), [
+                'request_data' => $data,
+                'trace' => $e->getTraceAsString()
             ]);
-
-            return $order->load('items');
-        });
+            throw $e;
+        }
     }
 }

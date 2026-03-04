@@ -20,7 +20,10 @@ class Product extends Model
         'is_active',
         'is_featured',
         'meta_title',
-        'meta_description'
+        'meta_description',
+        'meta_keywords',
+        'landing_slug',
+        'is_landing_enabled',
     ];
 
     protected $casts = [
@@ -42,5 +45,25 @@ class Product extends Model
     public function relations()
     {
         return $this->hasMany(ProductRelation::class);
+    }
+
+    public function upsells()
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'product_relations',
+            'product_id',
+            'related_product_id'
+        )->wherePivot('type', 'upsell');
+    }
+
+    public function crossSells()
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'product_relations',
+            'product_id',
+            'related_product_id'
+        )->wherePivot('type', 'cross_sell');
     }
 }

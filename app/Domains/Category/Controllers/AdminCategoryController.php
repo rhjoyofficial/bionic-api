@@ -8,6 +8,7 @@ use App\Domains\Category\Services\CategoryService;
 use App\Domains\Category\Requests\StoreCategoryRequest;
 use App\Domains\Category\Requests\UpdateCategoryRequest;
 use App\Domains\Category\Resources\CategoryResource;
+use App\Support\ApiResponse; // Import your new helper
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -23,11 +24,12 @@ class AdminCategoryController extends Controller
         try {
             $this->authorize('category.view');
 
-            return CategoryResource::collection(
-                Category::latest()->paginate(10)
-            );
+            $categories = Category::latest()->paginate(10);
+
+            // Use the paginated helper for consistent meta data
+            return ApiResponse::paginated(CategoryResource::collection($categories));
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to retrieve categories');
+            return $this->handleError($e, 'Failed to retrieve categories');
         }
     }
 
@@ -36,12 +38,13 @@ class AdminCategoryController extends Controller
         try {
             $category = $this->service->create($request->validated());
 
-            return (new CategoryResource($category))
-                ->additional(['success' => true, 'message' => 'Category created successfully'])
-                ->response()
-                ->setStatusCode(201);
+            return ApiResponse::success(
+                new CategoryResource($category),
+                'Category created successfully',
+                201
+            );
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to create category');
+            return $this->handleError($e, 'Failed to create category');
         }
     }
 
@@ -52,10 +55,12 @@ class AdminCategoryController extends Controller
 
             $updatedCategory = $this->service->update($category, $request->validated());
 
-            return (new CategoryResource($updatedCategory))
-                ->additional(['success' => true, 'message' => 'Category updated successfully']);
+            return ApiResponse::success(
+                new CategoryResource($updatedCategory),
+                'Category updated successfully'
+            );
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to update category');
+            return $this->handleError($e, 'Failed to update category');
         }
     }
 
@@ -66,29 +71,26 @@ class AdminCategoryController extends Controller
 
             $this->service->delete($category);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Deleted successfully'
-            ]);
+            return ApiResponse::success(null, 'Category deleted successfully');
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to delete category');
+            return $this->handleError($e, 'Failed to delete category');
         }
     }
 
     /**
-     * Unified error response handler
+     * Unified error response handler using ApiResponse
      */
-    private function errorResponse(Exception $e, string $message)
+    private function handleError(Exception $e, string $message)
     {
         Log::error($message . ': ' . $e->getMessage(), [
             'file' => $e->getFile(),
             'line' => $e->getLine()
         ]);
 
-        return response()->json([
-            'success' => false,
-            'message' => $message,
-            'error'   => config('app.debug') ? $e->getMessage() : 'Server Error'
-        ], 500);
+        return ApiResponse::error(
+            $message,
+            config('app.debug') ? $e->getMessage() : null,
+            500
+        );
     }
 }

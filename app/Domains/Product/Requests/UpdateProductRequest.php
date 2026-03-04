@@ -30,7 +30,13 @@ class UpdateProductRequest extends FormRequest
             'variants.*.sku' => 'required|string|unique:product_variants,sku',
             'variants.*.price' => 'required|numeric|min:0',
             'variants.*.stock' => 'nullable|integer|min:0',
-            'variants.*.weight_grams' => 'nullable|integer|min:0'
+            'variants.*.weight_grams' => 'nullable|integer|min:0',
+
+            'landing_slug' => 'nullable|string|unique:products,landing_slug',
+            'is_landing_enabled' => 'boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string',
         ];
     }
 }

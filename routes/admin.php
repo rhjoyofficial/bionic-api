@@ -6,6 +6,7 @@ use App\Domains\Product\Controllers\ProductTierPriceController;
 use App\Domains\Shipping\Controllers\AdminShippingZoneController;
 use App\Domains\Coupon\Controllers\AdminCouponController;
 use App\Domains\Order\Controllers\AdminOrderController;
+use App\Domains\Product\Controllers\ProductRelationController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +44,9 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(functi
     Route::get('orders/{order}', [AdminOrderController::class, 'show']);
 
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus']);
+    // Product Relation
+    Route::post('/product-relations', [ProductRelationController::class, 'store']);
+    Route::delete('/product-relations', [ProductRelationController::class, 'destroy']);
 });
 
 

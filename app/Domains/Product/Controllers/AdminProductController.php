@@ -8,6 +8,7 @@ use App\Domains\Product\Requests\UpdateProductRequest;
 use App\Domains\Product\Resources\ProductResource;
 use App\Domains\Product\Services\ProductService;
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse; // Import your new helper
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;
@@ -15,22 +16,29 @@ use Illuminate\Support\Facades\Log;
 class AdminProductController extends Controller
 {
     use AuthorizesRequests;
+
     public function __construct(private ProductService $service) {}
 
     public function index()
     {
-        return ProductResource::collection(
-            Product::with('variants')->latest()->paginate(10)
-        );
+        $this->authorize('product.view');
+
+        $products = Product::with('variants')->latest()->paginate(10);
+
+        // Standardized Paginated Response
+        return ApiResponse::paginated(ProductResource::collection($products));
     }
 
     public function store(StoreProductRequest $request)
     {
         try {
             $product = $this->service->create($request->validated());
-            return (new ProductResource($product))
-                ->additional(['success' => true, 'message' => 'Product created successfully'])
-                ->response()->setStatusCode(201);
+
+            return ApiResponse::success(
+                new ProductResource($product),
+                'Product created successfully',
+                201
+            );
         } catch (Exception $e) {
             return $this->handleError($e, 'Product creation failed');
         }
@@ -40,9 +48,13 @@ class AdminProductController extends Controller
     {
         try {
             $this->authorize('product.update');
+
             $updated = $this->service->update($product, $request->validated());
-            return (new ProductResource($updated))
-                ->additional(['success' => true, 'message' => 'Product updated successfully']);
+
+            return ApiResponse::success(
+                new ProductResource($updated),
+                'Product updated successfully'
+            );
         } catch (Exception $e) {
             return $this->handleError($e, 'Product update failed');
         }
@@ -50,20 +62,31 @@ class AdminProductController extends Controller
 
     public function destroy(Product $product)
     {
-        $this->authorize('product.delete');
+        try {
+            $this->authorize('product.delete');
 
-        $this->service->delete($product);
+            $this->service->delete($product);
 
-        return response()->json(['message' => 'Deleted successfully']);
+            return ApiResponse::success(null, 'Product deleted successfully');
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Product deletion failed');
+        }
     }
 
+    /**
+     * Updated to use standard ApiResponse
+     */
     private function handleError(Exception $e, string $msg)
     {
-        Log::error($msg . ': ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => $msg,
-            'error' => config('app.debug') ? $e->getMessage() : 'Server Error'
-        ], 500);
+        Log::error($msg . ': ' . $e->getMessage(), [
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+
+        return ApiResponse::error(
+            $msg,
+            config('app.debug') ? $e->getMessage() : null,
+            500
+        );
     }
 }

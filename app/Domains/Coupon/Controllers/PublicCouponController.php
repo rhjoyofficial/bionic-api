@@ -4,10 +4,15 @@ namespace App\Domains\Coupon\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Domains\Coupon\Services\CouponValidationService;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
+use Exception;
 
 class PublicCouponController extends Controller
 {
+    /**
+     * Validate a coupon code and return the calculated discount.
+     */
     public function validateCoupon(
         Request $request,
         CouponValidationService $service
@@ -23,15 +28,20 @@ class PublicCouponController extends Controller
                 $request->order_amount
             );
 
-            return response()->json([
+            // Using our standard success envelope
+            return ApiResponse::success([
                 'valid' => true,
-                'discount' => $result['discount']
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'valid' => false,
-                'message' => $e->getMessage()
-            ], 422);
+                'discount' => $result['discount'],
+                'coupon_id' => $result['coupon']->id, // Useful for the checkout payload
+            ], 'Coupon validated successfully');
+        } catch (Exception $e) {
+            // We use 422 (Unprocessable Entity) for logical validation failures
+            // Like "Coupon expired" or "Amount too low"
+            return ApiResponse::error(
+                $e->getMessage(),
+                ['valid' => false],
+                422
+            );
         }
     }
 }

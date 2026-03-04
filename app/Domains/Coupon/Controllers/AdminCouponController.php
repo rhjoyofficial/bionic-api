@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Requests\StoreCouponRequest;
 use App\Domains\Coupon\Requests\UpdateCouponRequest;
+use App\Support\ApiResponse; // Import your helper
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -14,7 +15,9 @@ class AdminCouponController extends Controller
     public function index()
     {
         try {
-            return Coupon::latest()->paginate(10);
+            $coupons = Coupon::latest()->paginate(10);
+
+            return ApiResponse::paginated($coupons);
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to retrieve coupons');
         }
@@ -24,14 +27,15 @@ class AdminCouponController extends Controller
     {
         try {
             $data = $request->validated();
-            $data['code'] = strtoupper($data['code']);
+            $data['code'] = strtoupper($data['code']); // Keep the logic to force uppercase
+
             $coupon = Coupon::create($data);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Coupon created successfully',
-                'data' => $coupon
-            ], 201);
+            return ApiResponse::success(
+                $coupon,
+                'Coupon created successfully',
+                201
+            );
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to create coupon');
         }
@@ -42,11 +46,10 @@ class AdminCouponController extends Controller
         try {
             $coupon->update($request->validated());
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Coupon updated successfully',
-                'data' => $coupon
-            ]);
+            return ApiResponse::success(
+                $coupon,
+                'Coupon updated successfully'
+            );
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to update coupon');
         }
@@ -57,17 +60,14 @@ class AdminCouponController extends Controller
         try {
             $coupon->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Coupon deleted successfully'
-            ]);
+            return ApiResponse::success(null, 'Coupon deleted successfully');
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to delete coupon');
         }
     }
 
     /**
-     * Common error response handler
+     * Unified error response handler using ApiResponse
      */
     private function handleError(Exception $e, string $msg)
     {
@@ -76,10 +76,10 @@ class AdminCouponController extends Controller
             'line' => $e->getLine()
         ]);
 
-        return response()->json([
-            'success' => false,
-            'message' => $msg,
-            'error'   => config('app.debug') ? $e->getMessage() : 'Server Error'
-        ], 500);
+        return ApiResponse::error(
+            $msg,
+            config('app.debug') ? $e->getMessage() : null,
+            500
+        );
     }
 }
