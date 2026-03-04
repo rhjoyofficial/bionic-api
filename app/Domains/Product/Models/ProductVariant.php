@@ -23,6 +23,7 @@ class ProductVariant extends Model
 
     public function tierPrices()
     {
-        return $this->hasMany(ProductTierPrice::class, 'variant_id');
+        return $this->hasMany(ProductTierPrice::class, 'variant_id')
+            ->orderByDesc('min_quantity');
     }
 }

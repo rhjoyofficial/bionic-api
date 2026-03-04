@@ -15,6 +15,12 @@ class ShippingZone extends Model
         'is_active'
     ];
 
+    protected $casts = [
+        'base_charge' => 'float',
+        'free_shipping_threshold' => 'float',
+        'is_active' => 'boolean'
+    ];
+
     public function orders()
     {
         return $this->hasMany(Order::class, 'zone_id');

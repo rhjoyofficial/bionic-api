@@ -29,12 +29,18 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('is_featured')->default(false);
 
+            $table->string('landing_slug')->nullable()->unique();
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
+            $table->string('meta_keywords')->nullable();
+            $table->boolean('is_landing_enabled')->default(false);
 
             $table->timestamps();
 
             $table->index(['category_id', 'is_active']);
+            $table->index('base_price');
+            $table->index('is_featured');
+            $table->index('name');
         });
     }
 
