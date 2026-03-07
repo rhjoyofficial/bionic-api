@@ -7,7 +7,7 @@ use App\Domains\Shipping\Controllers\AdminShippingZoneController;
 use App\Domains\Coupon\Controllers\AdminCouponController;
 use App\Domains\Order\Controllers\AdminOrderController;
 use App\Domains\Product\Controllers\ProductRelationController;
-
+use App\Domains\Webhook\Controllers\AdminWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
@@ -47,6 +47,12 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(functi
     // Product Relation
     Route::post('/product-relations', [ProductRelationController::class, 'store']);
     Route::delete('/product-relations', [ProductRelationController::class, 'destroy']);
+
+    Route::get('/webhooks', [AdminWebhookController::class, 'index']);
+
+    Route::post('/webhooks', [AdminWebhookController::class, 'store']);
+
+    Route::delete('/webhooks/{webhook}', [AdminWebhookController::class, 'destroy']);
 });
 
 

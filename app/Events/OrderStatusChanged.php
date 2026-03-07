@@ -10,6 +10,8 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Domains\Order\Models\Order;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\OrderStatusPushNotification;
 
 class OrderStatusChanged
 {
@@ -27,6 +29,10 @@ class OrderStatusChanged
         $this->order = $order;
         $this->oldStatus = $oldStatus;
         $this->newStatus = $newStatus;
+        Notification::send(
+            $order->user,
+            new OrderStatusPushNotification($order)
+        );
     }
 
     /**
