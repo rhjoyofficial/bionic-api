@@ -1,16 +1,16 @@
 <section class="bg-[#246E231A] py-8 px-4 md:px-8">
     <div class="max-w-8xl mx-auto">
         {{-- Grid Layout --}}
-        <div class="grid grid-cols-1 md:grid-cols-12 grid-rows-none md:grid-rows-6 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-12 grid-rows-none md:grid-rows-4 gap-4">
 
             {{-- Main Hero Swiper --}}
-            <div class="col-span-12 md:col-span-9 md:row-span-3 bg-white rounded-3xl overflow-hidden relative group">
+            <div class="col-span-12 md:col-span-9 md:row-span-3 bg-white rounded-3xl overflow-hidden relative">
                 <div class="swiper mainHeroSwiper h-full">
                     <div class="swiper-wrapper">
                         {{-- Slide 1 --}}
                         <div class="swiper-slide p-6 md:p-8 lg:p-12">
                             <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
-                                <span class="text-[#2d6a4f] text-xs font-bold">🌿 100% Pure & Natural</span>
+                                <span class="text-secondary text-xs font-bold">🌿 100% Pure & Natural</span>
                             </div>
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
@@ -36,9 +36,9 @@
                                         </a>
                                     </div>
                                 </div>
-                                <div class="relative">
+                                <div class="relative group">
                                     <img src="{{ asset('assets/images/honey-jar.png') }}" alt="Raw Honey"
-                                        class="max-w-full h-auto">
+                                        class="w-full h-full lg:min-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
                                 </div>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                         {{-- Slide 2 --}}
                         <div class="swiper-slide p-6 md:p-8 lg:p-12">
                             <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
-                                <span class="text-[#2d6a4f] text-xs font-bold">🌿 Raw & Unfiltered</span>
+                                <span class="text-secondary text-xs font-bold">🌿 Raw & Unfiltered</span>
                             </div>
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
@@ -72,9 +72,9 @@
                                         </a>
                                     </div>
                                 </div>
-                                <div class="relative">
+                                <div class="relative group">
                                     <img src="{{ asset('assets/images/honey-jar-2.png') }}" alt="Raw Honey"
-                                        class="max-w-full h-auto">
+                                        class="w-full h-full lg:min-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
                                 </div>
                             </div>
                         </div>
@@ -82,7 +82,7 @@
                         {{-- Slide 3 --}}
                         <div class="swiper-slide p-6 md:p-8 lg:p-12">
                             <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
-                                <span class="text-[#2d6a4f] text-xs font-bold">🌿 Gift Box Special</span>
+                                <span class="text-secondary text-xs font-bold">🌿 Gift Box Special</span>
                             </div>
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
@@ -108,35 +108,85 @@
                                         </a>
                                     </div>
                                 </div>
-                                <div class="relative">
+                                <div class="relative group">
                                     <img src="{{ asset('assets/images/honey-gift.png') }}" alt="Honey Gift Set"
-                                        class="max-w-full h-auto">
+                                        class="w-full h-full lg:min-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- Navigation Buttons --}}
+                    <!-- Next Button -->
                     <div
-                        class="swiper-button-next !text-[#1D6327] after:text-xl! bg-white/80 backdrop-blur w-10 h-10 rounded-full shadow-md">
+                        class="swiper-button-next after:hidden flex items-center justify-center bg-[#246E231A] hover:bg-[#246E2333] backdrop-blur w-10 h-10 rounded-full shadow-md transition-colors">
+                        <svg xmlns="http://www.w3.org" class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
                     </div>
+
+                    <!-- Prev Button -->
                     <div
-                        class="swiper-button-prev !text-[#1D6327] after:text-xl! bg-white/80 backdrop-blur w-10 h-10 rounded-full shadow-md">
+                        class="swiper-button-prev after:hidden flex items-center justify-center bg-[#246E231A] hover:bg-[#246E2333] backdrop-blur w-10 h-10 rounded-full shadow-md transition-colors">
+                        <svg xmlns="http://www.w3.org" class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
                     </div>
 
                 </div>
+
                 {{-- Social Media Links - Fixed positioning --}}
-                <div class="absolute bottom-6 left-6 flex items-center gap-3 text-slate-400 z-10">
-                    <span class="text-xs font-medium tracking-widest mr-2">Follow Us On:</span>
+                <div class="absolute bottom-6 left-16 flex items-center gap-3 text-slate-400 z-10">
+                    <span class="text-base font-medium tracking-widest mr-2">Follow Us On:</span>
+
+                    {{-- Facebook --}}
                     <a href="#"
-                        class="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center hover:bg-slate-50 transition-colors"><i
-                            class="fa-brands fa-facebook-f text-sm"></i></a>
+                        class="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center hover:bg-[#1877f2] hover:border-[#1877f2] transition-colors group">
+                        <svg class="w-5 h-5 fill-current text-slate-400 group-hover:text-white" viewBox="0 0 320 512">
+                            <path
+                                d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z" />
+                        </svg>
+                    </a>
+
+                    {{-- Instagram --}}
                     <a href="#"
-                        class="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center hover:bg-slate-50 transition-colors"><i
-                            class="fa-brands fa-instagram text-sm"></i></a>
+                        class="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center hover:bg-[linear-gradient(45deg,#f09433_0%,#e6683c_25%,#dc2743_50%,#cc2366_75%,#bc1888_100%)] hover:border-transparent transition-colors group">
+                        <svg class="w-5.5 h-5.5 fill-current text-slate-400 group-hover:text-white"
+                            viewBox="0 0 448 512">
+                            <path
+                                d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z" />
+                        </svg>
+                    </a>
+
+                    {{-- YouTube --}}
                     <a href="#"
-                        class="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center hover:bg-slate-50 transition-colors"><i
-                            class="fa-brands fa-youtube text-sm"></i></a>
+                        class="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center hover:bg-[#ff0000] hover:border-[#ff0000] transition-colors group">
+                        <svg class="w-5.5 h-5 fill-current text-slate-400 group-hover:text-white" viewBox="0 0 576 512">
+                            <path
+                                d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z" />
+                        </svg>
+                    </a>
+
+                    {{-- WhatsApp --}}
+                    <a href="#"
+                        class="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center hover:bg-[#25D366] hover:border-[#25D366] transition-colors group">
+                        <svg class="w-5.5 h-5.5 fill-current text-slate-400 group-hover:text-white"
+                            viewBox="0 0 448 512" stroke-width="2">
+                            <path
+                                d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
+                        </svg>
+                    </a>
+
+                    {{-- TikTok --}}
+                    <a href="#"
+                        class="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center hover:bg-black hover:border-black transition-colors group">
+                        <svg class="w-5 h-5 fill-current text-slate-400 group-hover:text-white" viewBox="0 0 448 512">
+                            <path
+                                d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z" />
+                        </svg>
+                    </a>
                 </div>
             </div>
 
@@ -151,7 +201,8 @@
                                     <div
                                         class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:border-primary transition-all">
                                         <img src="{{ asset('assets/images/' . strtolower($cat) . '.png') }}"
-                                            alt="{{ $cat }}" class="w-6 h-6 object-contain">
+                                            alt="{{ $cat }}" class="w-6 h-6 aspect-square object-contain"
+                                            lazy="loading">
                                     </div>
                                     <span
                                         class="text-base font-medium text-slate-400 tracking-tighter">{{ $cat }}</span>
@@ -171,7 +222,7 @@
                     <div class="flex flex-col justify-between h-full flex-1 z-10">
 
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">New
+                            <span class="text-sm font-bold text-slate-400 uppercase tracking-wider">New
                                 Arrival</span>
                         </div>
 
@@ -181,18 +232,21 @@
                             </h4>
                         </div>
 
-                        <div>
-                            <div
-                                class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center transition-all duration-300 group-hover:bg-[#1D6327] group-hover:text-white cursor-pointer shadow-sm">
-                                <i class="fa-solid fa-arrow-right text-[12px]"></i>
-                            </div>
+                        <div
+                            class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center transition-all duration-300 group-hover:bg-primary group-hover:text-white cursor-pointer shadow-sm">
+                            <svg class="w-5 h-5 group-hover:text-white" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                                <path
+                                    d="M17.92 6.62a1 1 0 0 0-.54-.54A1 1 0 0 0 17 6H7a1 1 0 0 0 0 2h7.59l-8.3 8.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0L16 9.41V17a1 1 0 0 0 2 0V7a1 1 0 0 0-.08-.38" />
+                            </svg>
                         </div>
                     </div>
 
                     {{-- take middle right --}}
-                    <div class="relative w-24 h-24 flex-shrink-0 flex items-center">
+                    <div class="relative w-36 h-36 shrink-0 flex items-center">
                         <img src="{{ asset('assets/images/dates.png') }}" alt="Dates"
-                            class="w-full h-full object-contain transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500">
+                            class="w-full h-full aspect-square object-contain transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500"
+                            lazy="loading">
                     </div>
 
                 </div>
@@ -206,31 +260,29 @@
                         @foreach ([1, 2, 3] as $i)
                             <div class="swiper-slide">
                                 <img src="{{ asset('assets/images/offer' . $i . '.png') }}"
-                                    alt="Offer {{ $i }}" class="w-full h-full object-cover rounded-lg">
+                                    alt="Offer {{ $i }}"
+                                    class="w-full h-full aspect-4/5 object-cover rounded-lg" lazy="loading">
                             </div>
                         @endforeach
-                    </div>
-                </div>
-                <div
-                    class="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <div
-                        class="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-primary hover:text-white transition-all cursor-pointer pointer-events-auto">
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
                     </div>
                 </div>
             </div>
 
             {{-- More Products  --}}
             <div
-                class="col-span-12 md:col-span-3 md:row-span-1 md:row-start-4 bg-white rounded-3xl p-6 flex flex-col justify-between">
-                <div class="flex justify-between items-center gap-4">
+                class="col-span-12 md:col-span-3 md:row-span-1 md:row-start-4 bg-white rounded-3xl p-6 flex flex-col justify-between group">
+                <div class="flex justify-between items-center gap-4 ">
                     <div>
                         <h3 class="font-bold text-slate-800">More Products</h3>
-                        <p class="text-xs text-slate-400">40+ Natural Items</p>
+                        <p class="text-xs text-slate-400">20+ Natural Items</p>
                     </div>
                     <div
-                        class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 cursor-pointer hover:bg-primary hover:text-white transition-all">
-                        <i class="fa-solid fa-chevron-right text-sm"></i>
+                        class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center transition-all duration-300 group-hover:bg-primary group-hover:text-white cursor-pointer shadow-sm">
+                        <svg class="w-5 h-5 group-hover:text-white rotate-45 group-hover:rotate-0 duration-300"
+                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                            <path
+                                d="M17.92 6.62a1 1 0 0 0-.54-.54A1 1 0 0 0 17 6H7a1 1 0 0 0 0 2h7.59l-8.3 8.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0L16 9.41V17a1 1 0 0 0 2 0V7a1 1 0 0 0-.08-.38" />
+                        </svg>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 mt-4">
@@ -238,7 +290,8 @@
                         @foreach ([1, 2, 3] as $i)
                             <img src="{{ asset('assets/images/product' . $i . '.png') }}"
                                 alt="Product {{ $i }}"
-                                class="w-16 h-16 md:w-20 md:h-20 rounded-2xl object-cover border-2 border-white">
+                                class="w-16 h-16 md:w-20 md:h-20 rounded-2xl aspect-square object-cover border-2 border-white"
+                                lazy="loading">
                         @endforeach
                     </div>
                 </div>
@@ -247,10 +300,10 @@
             {{-- Happy Customers  --}}
             <div
                 class="col-span-12 md:col-span-2 md:row-span-1 md:col-start-4 md:row-start-4 bg-white rounded-3xl p-6 flex flex-col items-center justify-center text-center">
-                <div class="flex justify-center items-center gap-1 mt-4">
-                    @foreach ([1, 2, 3, 4, 5] as $i)
+                <div class="flex justify-center items-center gap-1">
+                    @foreach ([1, 2, 3] as $i)
                         <img src="{{ asset('assets/images/customer' . $i . '.png') }}" alt="Happy Customer"
-                            class="rounded-full w-6 h-6 object-cover border-2 border-white -ml-2 first:ml-0">
+                            class="rounded-full w-12 h-12 aspect-square object-cover border-2 border-white -ml-2 first:ml-0">
                     @endforeach
                 </div>
                 <div class="bg-primary text-white text-base font-black px-3 py-1 rounded-full mb-2">10k+</div>
@@ -262,7 +315,7 @@
             <div
                 class="col-span-12 md:col-span-4 md:row-span-1 md:col-start-6 md:row-start-4 bg-white rounded-3xl p-6">
                 <span
-                    class="text-sm font-bold bg-primary/10 text-primary border border-secondary/10 p-2 rounded-2xl mb-4 inline-block">
+                    class="text-sm font-bold bg-primary/10 text-primary border border-secondary/10 p-2 rounded-2xl inline-block">
                     <i class="fa-solid fa-certificate text-sm"></i> Certifications
                 </span>
 
@@ -272,7 +325,7 @@
                             <div class="swiper-slide">
                                 <img src="{{ asset('assets/images/certificates/' . $cert . '.png') }}"
                                     alt="{{ $cert }}"
-                                    class="w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain mx-auto hover:scale-110 transition-transform">
+                                    class="w-14 h-14 md:w-16 md:h-16 lg:w-28 lg:h-28 aspect-square object-contain mx-auto hover:scale-110 transition-transform">
                             </div>
                         @endforeach
                     </div>
@@ -338,7 +391,7 @@
                 grabCursor: true,
             });
 
-            // Certifications Swiper - Fixed for auto-loop
+            // Certifications Swiper 
             const certSwiper = new Swiper('.certificationsSwiper', {
                 loop: true,
                 autoplay: {
@@ -350,24 +403,23 @@
                 spaceBetween: 15,
                 grabCursor: true,
                 speed: 800,
-                loopedSlides: 9, // Match the number of slides we have (including duplicates)
+                loopedSlides: 4,
                 breakpoints: {
                     640: {
                         slidesPerView: 4,
-                        loopedSlides: 9,
+                        loopedSlides: 4,
                     },
                     768: {
-                        slidesPerView: 5,
-                        loopedSlides: 9,
+                        slidesPerView: 4,
+                        loopedSlides: 4,
                     },
                     1024: {
-                        slidesPerView: 6,
-                        loopedSlides: 9,
+                        slidesPerView: 5,
+                        loopedSlides: 4,
                     },
                 },
                 on: {
                     init: function() {
-                        // Force autoplay to start
                         this.autoplay.start();
                     }
                 }
