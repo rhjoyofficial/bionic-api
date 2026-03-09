@@ -14,13 +14,9 @@ return new class extends Migration
         Schema::create('product_relations', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('product_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
 
-            $table->foreignId('related_product_id')
-                ->constrained('products')
-                ->cascadeOnDelete();
+            $table->foreignId('related_product_id')->constrained('products')->cascadeOnDelete();
 
             $table->enum('relation_type', ['cross_sell', 'upsell', 'downsell']);
             $table->decimal('discount_percentage', 5, 2)->nullable();

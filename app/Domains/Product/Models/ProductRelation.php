@@ -9,7 +9,8 @@ class ProductRelation extends Model
     protected $fillable = [
         'product_id',
         'related_product_id',
-        'type'
+        'type',
+        'discount_percentage'
     ];
 
     public function product()

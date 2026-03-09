@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_relations', function (Blueprint $table) {
+        Schema::create('device_tokens', function (Blueprint $table) {
 
             $table->id();
 
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
-            $table->foreignId('related_product_id')->constrained('products')->cascadeOnDelete();
-
-            $table->enum('type', ['upsell', 'cross_sell']);
+            $table->string('token');
 
             $table->timestamps();
         });
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_relations');
+        Schema::dropIfExists('device_tokens');
     }
 };
