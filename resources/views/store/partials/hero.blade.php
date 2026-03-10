@@ -15,7 +15,7 @@
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
                                     <h1
-                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slate-900 leading-[1.1] mb-6">
+                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
                                         Pure Organic <br> Mangrove Gold <br> Honey
                                     </h1>
 
@@ -31,14 +31,14 @@
                                     <div class="flex flex-col flex-wrap justify-start items-start gap-6">
                                         <a href="#"
                                             class="bg-primary hover:opacity-90 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-green-900/20">
-                                            All Products
+                                            Shop All Products
                                             <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
                                         </a>
                                     </div>
                                 </div>
                                 <div class="relative group">
-                                    <img src="{{ asset('assets/images/honey-jar.png') }}" alt="Raw Honey"
-                                        class="w-full h-full lg:min-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
+                                    <img src="{{ asset('assets/hero-products/honey-jar.png') }}" alt="Raw Honey"
+                                        class="w-full h-full lg:max-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
                                 </div>
                             </div>
                         </div>
@@ -51,7 +51,7 @@
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
                                     <h1
-                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slate-900 leading-[1.1] mb-6">
+                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
                                         Wild Forest <br> Raw Honey <br> 100% Pure
                                     </h1>
 
@@ -73,8 +73,8 @@
                                     </div>
                                 </div>
                                 <div class="relative group">
-                                    <img src="{{ asset('assets/images/honey-jar-2.png') }}" alt="Raw Honey"
-                                        class="w-full h-full lg:min-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
+                                    <img src="{{ asset('assets/hero-products/floral-honey.png') }}" alt="Raw Honey"
+                                        class="w-full h-full lg:max-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
                                 </div>
                             </div>
                         </div>
@@ -87,7 +87,7 @@
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
                                     <h1
-                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slate-900 leading-[1.1] mb-6">
+                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
                                         Organic Honey <br> Gift Set <br> Perfect Gift
                                     </h1>
 
@@ -109,8 +109,8 @@
                                     </div>
                                 </div>
                                 <div class="relative group">
-                                    <img src="{{ asset('assets/images/honey-gift.png') }}" alt="Honey Gift Set"
-                                        class="w-full h-full lg:min-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
+                                    <img src="{{ asset('assets/hero-products/beet-root.png') }}" alt="Honey Gift Set"
+                                        class="w-full h-full lg:max-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
                                 </div>
                             </div>
                         </div>
@@ -259,7 +259,7 @@
                     <div class="swiper-wrapper">
                         @foreach ([1, 2, 3] as $i)
                             <div class="swiper-slide">
-                                <img src="{{ asset('assets/images/offer' . $i . '.png') }}"
+                                <img src="{{ asset('assets/images/offer-' . $i . '.jpg') }}"
                                     alt="Offer {{ $i }}"
                                     class="w-full h-full aspect-4/5 object-cover rounded-lg" lazy="loading">
                             </div>
@@ -285,10 +285,10 @@
                         </svg>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 mt-4">
-                    <div class="flex -space-x-3">
-                        @foreach ([1, 2, 3] as $i)
-                            <img src="{{ asset('assets/images/product' . $i . '.png') }}"
+                <div class="flex items-center gap-2 mt-4 overflow-hidden">
+                    <div class="flex -space-x-5">
+                        @foreach ([1, 2, 3, 4, 5, 6] as $i)
+                            <img src="{{ asset('assets/images/product-' . $i . '.png') }}"
                                 alt="Product {{ $i }}"
                                 class="w-16 h-16 md:w-20 md:h-20 rounded-2xl aspect-square object-cover border-2 border-white"
                                 lazy="loading">

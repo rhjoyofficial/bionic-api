@@ -24,12 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
-    ->withEvents(function (Events $events): void {
-        $events->discover([
-            app_path('Listeners'),
-            app_path('Domains'),
-        ]);
-    })
+    ->withEvents(discover: [
+        app_path('Listeners'),
+        app_path('Domains'),
+    ])
     ->withExceptions(function (Exceptions $exceptions) {
 
         // 1. Handle Validation Errors

@@ -1,5 +1,5 @@
 {{-- Flash Messages Container - Auto-initializes --}}
-<div class="flash-messages-container fixed top-4 right-4 z-[9999] space-y-3 w-full max-w-sm pointer-events-none"></div>
+<div class="flash-messages-container fixed top-4 right-4 z-9999 space-y-3 w-full max-w-sm pointer-events-none"></div>
 
 {{-- Process session flash messages --}}
 @if (session()->has('flash_message'))
