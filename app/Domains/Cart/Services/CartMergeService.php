@@ -6,33 +6,39 @@ use App\Domains\Cart\Models\Cart;
 
 class CartMergeService
 {
-    public function merge(string $sessionToken, int $userId)
+    public function merge(string $sessionToken, int $userId): void
     {
-        $guestCart = Cart::where('session_token', $sessionToken)->first();
+        $guestCart = Cart::query()
+            ->where('session_token', $sessionToken)
+            ->with('items')
+            ->first();
 
-        if (!$guestCart) {
+        if (! $guestCart) {
             return;
         }
 
         $userCart = Cart::firstOrCreate([
-            'user_id' => $userId
+            'user_id' => $userId,
         ]);
 
-        foreach ($guestCart->items as $item) {
+        $existingItems = $userCart->items()
+            ->get()
+            ->keyBy('variant_id');
 
-            $existing = $userCart->items()
-                ->where('variant_id', $item->variant_id)
-                ->first();
+        foreach ($guestCart->items as $item) {
+            $existing = $existingItems->get($item->variant_id);
 
             if ($existing) {
                 $existing->increment('quantity', $item->quantity);
-            } else {
-
-                $userCart->items()->create([
-                    'variant_id' => $item->variant_id,
-                    'quantity' => $item->quantity
-                ]);
+                continue;
             }
+
+            $created = $userCart->items()->create([
+                'variant_id' => $item->variant_id,
+                'quantity' => $item->quantity,
+            ]);
+
+            $existingItems->put($created->variant_id, $created);
         }
 
         $guestCart->delete();
