@@ -45,6 +45,8 @@
             @yield('content')
         </main>
 
+        @include('store.partials.footer')
+
     </div>
 
 
