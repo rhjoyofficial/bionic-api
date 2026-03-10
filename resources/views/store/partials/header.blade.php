@@ -2,7 +2,7 @@
     <div class="max-w-8xl mx-auto flex flex-wrap items-center justify-between gap-4">
 
         <div class="shrink-0">
-            <a href="/" class=" transition-transform hover:scale-105 active:scale-95">
+            <a href="/" class="transition-transform hover:scale-105 active:scale-95">
                 <img src="{{ asset('assets/images/bionic-logo.png') }}" alt="Logo"
                     class="w-20 md:w-24 object-contain h-auto">
             </a>

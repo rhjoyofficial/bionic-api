@@ -1,6 +1,6 @@
 import "./bootstrap";
 import "./flash";
-
+import VideoManager from "./managers/video-manager";
 // Auto-attach flash to buttons with data-flash attribute
 document.addEventListener("DOMContentLoaded", function () {
     //  Flash button triggers
@@ -41,6 +41,12 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         }
     }
+    // Video Manager
+    new VideoManager({
+        selector: "[data-video]",
+        autoPauseOthers: true,
+        pauseWhenOutOfView: true,
+    });
 });
 
 //  Helper function to trigger flash from anywhere
