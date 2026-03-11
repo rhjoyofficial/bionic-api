@@ -4,7 +4,7 @@
         <div class="shrink-0">
             <a href="/" class="transition-transform hover:scale-105 active:scale-95">
                 <img src="{{ asset('assets/images/bionic-logo.png') }}" alt="Logo"
-                    class="w-20 md:w-24 object-contain h-auto">
+                    class="w-28 md:w-24 object-contain h-auto">
             </a>
         </div>
 
@@ -117,7 +117,7 @@
                 <input type="text" placeholder="Search products..."
                     class="flex-1 px-5 py-2.5 text-sm outline-none rounded-full">
                 <button class="bg-primary text-white p-2.5 rounded-full">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>

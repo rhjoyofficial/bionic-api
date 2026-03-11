@@ -23,7 +23,7 @@
                     class="px-6 py-2 rounded-full text-sm font-medium transition-all cursor-pointer
                     {{ $cat['active']
                         ? 'bg-primary text-white shadow-md'
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent' }}">
+                        : 'bg-gray-50 text-primary hover:bg-primary/80 hover:text-white! border border-transparent' }}">
                     {{ $cat['name'] }}
                 </button>
             @endforeach

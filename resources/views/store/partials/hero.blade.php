@@ -195,13 +195,14 @@
                 <h3 class="text-sm font-bold text-slate-800 mb-4">Explore Categories</h3>
                 <div class="swiper categoriesSwiper">
                     <div class="swiper-wrapper">
-                        @foreach (['Honey', 'Dates', 'Oils', 'Seeds', 'Nuts', 'Spices'] as $cat)
+                        @foreach (['Honey', 'Dates', 'Oils', 'Seeds', 'Nuts', 'Ghee'] as $cat)
                             <div class="swiper-slide">
                                 <div class="flex flex-col items-center gap-1 group cursor-pointer">
                                     <div
-                                        class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:border-primary transition-all">
-                                        <img src="{{ asset('assets/images/' . strtolower($cat) . '.png') }}"
-                                            alt="{{ $cat }}" class="w-6 h-6 aspect-square object-contain"
+                                        class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:border-primary transition-all overflow-hidden">
+                                        <img src="{{ asset('assets/categories/' . strtolower($cat) . '.gif') }}"
+                                            alt="{{ $cat }}"
+                                            class="w-full h-full aspect-square object-contain group-hover:scale-110 duration-300 transform-all"
                                             lazy="loading">
                                     </div>
                                     <span
@@ -253,7 +254,7 @@
             </div>
 
             {{-- Offer Swiper  --}}
-            <div
+            {{-- <div
                 class="col-span-12 md:col-span-3 md:row-span-2 md:col-start-10 md:row-start-3 rounded-3xl relative overflow-hidden bg-white">
                 <div class="swiper offerSwiper w-full">
                     <div class="swiper-wrapper">
@@ -266,11 +267,18 @@
                         @endforeach
                     </div>
                 </div>
+            </div> --}}
+            <div
+                class="col-span-12 md:col-span-3 md:row-span-2 md:col-start-10 md:row-start-3 rounded-3xl relative overflow-hidden bg-white">
+                <div class="w-full">
+                    <img src="{{ asset('assets/offer/products.gif') }}" alt="Offer"
+                        class="w-full h-full aspect-4/5 object-cover rounded-lg" lazy="loading">
+                </div>
             </div>
 
             {{-- More Products  --}}
             <div
-                class="col-span-12 md:col-span-3 md:row-span-1 md:row-start-4 bg-white rounded-3xl p-6 flex flex-col justify-between group">
+                class="hidden col-span-12 md:col-span-3 md:row-span-1 md:row-start-4 bg-white rounded-3xl p-6 md:flex flex-col justify-between group">
                 <div class="flex justify-between items-center gap-4 ">
                     <div>
                         <h3 class="font-bold text-slate-800">More Products</h3>
@@ -299,7 +307,7 @@
 
             {{-- Happy Customers  --}}
             <div
-                class="col-span-12 md:col-span-2 md:row-span-1 md:col-start-4 md:row-start-4 bg-white rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                class="hidden col-span-12 md:col-span-2 md:row-span-1 md:col-start-4 md:row-start-4 bg-white rounded-3xl p-6 md:flex flex-col items-center justify-center text-center">
                 <div class="flex justify-center items-center gap-1">
                     @foreach ([1, 2, 3] as $i)
                         <img src="{{ asset('assets/images/customer' . $i . '.png') }}" alt="Happy Customer"
@@ -406,7 +414,7 @@
                 loopedSlides: 4,
                 breakpoints: {
                     640: {
-                        slidesPerView: 4,
+                        slidesPerView: 6,
                         loopedSlides: 4,
                     },
                     768: {

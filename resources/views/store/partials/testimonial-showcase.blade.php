@@ -46,7 +46,7 @@
                                     <div class="relative media-frame group" data-video>
 
                                         <video class="w-full h-full object-cover rounded-xl" preload="metadata">
-                                            <source src="{{ asset('assets/video/video-file.mp4') }}" type="video/mp4">
+                                            <source src="{{ asset('assets/video/user.mp4') }}" type="video/mp4">
                                         </video>
 
                                         <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition cursor-pointer"
