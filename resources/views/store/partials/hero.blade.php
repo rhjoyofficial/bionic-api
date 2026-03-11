@@ -1,21 +1,21 @@
-<section class="bg-[#246E231A] py-8 px-4 md:px-8">
+<section class="bg-[#246E231A] py-8 px-4 lg:px-8">
     <div class="max-w-8xl mx-auto">
         {{-- Grid Layout --}}
-        <div class="grid grid-cols-1 md:grid-cols-12 grid-rows-none md:grid-rows-4 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-12 grid-rows-none lg:grid-rows-4 gap-4">
 
             {{-- Main Hero Swiper --}}
-            <div class="col-span-12 md:col-span-9 md:row-span-3 bg-white rounded-3xl overflow-hidden relative">
+            <div class="col-span-12 lg:col-span-9 lg:row-span-3 bg-white rounded-3xl overflow-hidden relative">
                 <div class="swiper mainHeroSwiper h-full">
                     <div class="swiper-wrapper">
                         {{-- Slide 1 --}}
-                        <div class="swiper-slide p-6 md:p-8 lg:p-12">
+                        <div class="swiper-slide p-6 lg:p-12">
                             <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
                                 <span class="text-secondary text-xs font-bold">🌿 100% Pure & Natural</span>
                             </div>
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
                                     <h1
-                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
+                                        class="font-heading text-3xl sm:text-4xl lg:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
                                         Pure Organic <br> Mangrove Gold <br> Honey
                                     </h1>
 
@@ -44,14 +44,14 @@
                         </div>
 
                         {{-- Slide 2 --}}
-                        <div class="swiper-slide p-6 md:p-8 lg:p-12">
+                        <div class="swiper-slide p-6 lg:p-12">
                             <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
                                 <span class="text-secondary text-xs font-bold">🌿 Raw & Unfiltered</span>
                             </div>
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
                                     <h1
-                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
+                                        class="font-heading text-3xl sm:text-4xl lg:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
                                         Wild Forest <br> Raw Honey <br> 100% Pure
                                     </h1>
 
@@ -80,14 +80,14 @@
                         </div>
 
                         {{-- Slide 3 --}}
-                        <div class="swiper-slide p-6 md:p-8 lg:p-12">
+                        <div class="swiper-slide p-6 lg:p-12">
                             <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
                                 <span class="text-secondary text-xs font-bold">🌿 Gift Box Special</span>
                             </div>
                             <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
                                 <div>
                                     <h1
-                                        class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
+                                        class="font-heading text-3xl sm:text-4xl lg:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
                                         Organic Honey <br> Gift Set <br> Perfect Gift
                                     </h1>
 
@@ -191,7 +191,7 @@
             </div>
 
             {{-- Explore Categories  --}}
-            <div class="col-span-12 md:col-span-3 md:row-span-1 md:col-start-10 bg-white rounded-3xl p-6 shadow-sm">
+            <div class="col-span-12 lg:col-span-3 lg:row-span-1 lg:col-start-10 bg-white rounded-3xl p-6 shadow-sm">
                 <h3 class="text-sm font-bold text-slate-800 mb-4">Explore Categories</h3>
                 <div class="swiper categoriesSwiper">
                     <div class="swiper-wrapper">
@@ -216,7 +216,7 @@
 
             {{-- New Arrival  --}}
             <div
-                class="col-span-12 md:col-span-3 md:row-span-1 md:col-start-10 md:row-start-2 bg-white rounded-3xl p-6 relative overflow-hidden group">
+                class="col-span-12 lg:col-span-3 lg:row-span-1 lg:col-start-10 lg:row-start-2 bg-white rounded-3xl p-6 relative overflow-hidden group">
                 <div
                     class="flex items-center justify-between gap-3 bg-white rounded-2xl group overflow-hidden relative h-full">
 
@@ -255,7 +255,7 @@
 
             {{-- Offer Swiper  --}}
             {{-- <div
-                class="col-span-12 md:col-span-3 md:row-span-2 md:col-start-10 md:row-start-3 rounded-3xl relative overflow-hidden bg-white">
+                class="col-span-12 lg:col-span-3 lg:row-span-2 lg:col-start-10 lg:row-start-3 rounded-3xl relative overflow-hidden bg-white">
                 <div class="swiper offerSwiper w-full">
                     <div class="swiper-wrapper">
                         @foreach ([1, 2, 3] as $i)
@@ -269,7 +269,7 @@
                 </div>
             </div> --}}
             <div
-                class="col-span-12 md:col-span-3 md:row-span-2 md:col-start-10 md:row-start-3 rounded-3xl relative overflow-hidden bg-white">
+                class="col-span-12 lg:col-span-3 lg:row-span-2 lg:col-start-10 lg:row-start-3 rounded-3xl relative overflow-hidden bg-white">
                 <div class="w-full">
                     <img src="{{ asset('assets/offer/products.gif') }}" alt="Offer"
                         class="w-full h-full aspect-4/5 object-cover rounded-lg" lazy="loading">
@@ -278,7 +278,7 @@
 
             {{-- More Products  --}}
             <div
-                class="hidden col-span-12 md:col-span-3 md:row-span-1 md:row-start-4 bg-white rounded-3xl p-6 md:flex flex-col justify-between group">
+                class="hidden col-span-12 lg:col-span-3 lg:row-span-1 lg:row-start-4 bg-white rounded-3xl p-6 lg:flex flex-col justify-between group">
                 <div class="flex justify-between items-center gap-4 ">
                     <div>
                         <h3 class="font-bold text-slate-800">More Products</h3>
@@ -298,7 +298,7 @@
                         @foreach ([1, 2, 3, 4, 5, 6] as $i)
                             <img src="{{ asset('assets/images/product-' . $i . '.png') }}"
                                 alt="Product {{ $i }}"
-                                class="w-16 h-16 md:w-20 md:h-20 rounded-2xl aspect-square object-cover border-2 border-white"
+                                class="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl aspect-square object-cover border-2 border-white"
                                 lazy="loading">
                         @endforeach
                     </div>
@@ -307,7 +307,7 @@
 
             {{-- Happy Customers  --}}
             <div
-                class="hidden col-span-12 md:col-span-2 md:row-span-1 md:col-start-4 md:row-start-4 bg-white rounded-3xl p-6 md:flex flex-col items-center justify-center text-center">
+                class="hidden col-span-12 lg:col-span-2 lg:row-span-1 lg:col-start-4 lg:row-start-4 bg-white rounded-3xl p-6 lg:flex flex-col items-center justify-center text-center">
                 <div class="flex justify-center items-center gap-1">
                     @foreach ([1, 2, 3] as $i)
                         <img src="{{ asset('assets/images/customer' . $i . '.png') }}" alt="Happy Customer"
@@ -321,7 +321,7 @@
 
             {{-- Certifications Swiper  --}}
             <div
-                class="col-span-12 md:col-span-4 md:row-span-1 md:col-start-6 md:row-start-4 bg-white rounded-3xl p-6">
+                class="col-span-12 lg:col-span-4 lg:row-span-1 lg:col-start-6 lg:row-start-4 bg-white rounded-3xl p-6">
                 <span
                     class="text-sm font-bold bg-primary/10 text-primary border border-secondary/10 p-2 rounded-2xl inline-block">
                     <i class="fa-solid fa-certificate text-sm"></i> Certifications
@@ -333,7 +333,7 @@
                             <div class="swiper-slide">
                                 <img src="{{ asset('assets/images/certificates/' . $cert . '.png') }}"
                                     alt="{{ $cert }}"
-                                    class="w-14 h-14 md:w-16 md:h-16 lg:w-28 lg:h-28 aspect-square object-contain mx-auto hover:scale-110 transition-transform">
+                                    class="w-14 h-14 lg:w-28 lg:h-28 aspect-square object-contain mx-auto hover:scale-110 transition-transform">
                             </div>
                         @endforeach
                     </div>

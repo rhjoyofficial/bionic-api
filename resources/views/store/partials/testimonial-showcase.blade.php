@@ -46,7 +46,7 @@
                                     <div class="relative media-frame group" data-video>
 
                                         <video class="w-full h-full object-cover rounded-xl" preload="metadata">
-                                            <source src="{{ asset('assets/video/user.mp4') }}" type="video/mp4">
+                                            <source src="{{ asset('assets/video/video-file.mp4') }}" type="video/mp4">
                                         </video>
 
                                         <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition cursor-pointer"
@@ -158,30 +158,47 @@
         });
 
 
-        /* IMAGE PREVIEW */
+        const certModal = document.getElementById('certModal');
+        const certModalImg = document.getElementById('certModalImg');
+        const imageModal = document.getElementById('image-preview-modal');
+        const previewImage = document.getElementById('preview-image');
 
-        const modal = document.getElementById('image-preview-modal');
-        const preview = document.getElementById('preview-image');
-
-        document.querySelectorAll('.image-preview-trigger').forEach(el => {
-
-            el.addEventListener('click', () => {
-
-                const src = el.dataset.image;
-
-                preview.src = src;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-
-            });
-
+        // Certificate cards modal
+        document.querySelectorAll('.cert-card').forEach(card => {
+            card.onclick = () => {
+                certModalImg.src = card.dataset.img;
+                certModal.classList.remove('opacity-0', 'pointer-events-none');
+                setTimeout(() => certModalImg.classList.remove('scale-95'), 10);
+            };
         });
 
-        modal.addEventListener('click', () => {
+        certModal.onclick = () => {
+            certModal.classList.add('opacity-0', 'pointer-events-none');
+            certModalImg.classList.add('scale-95');
+        };
 
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        // Image preview modal
+        document.querySelectorAll('.image-preview-trigger').forEach(el => {
+            el.addEventListener('click', () => {
+                previewImage.src = el.dataset.image;
+                imageModal.classList.remove('hidden');
+                imageModal.classList.add('flex');
+            });
+        });
 
+        imageModal.addEventListener('click', () => {
+            imageModal.classList.add('hidden');
+            imageModal.classList.remove('flex');
+        });
+
+        // Escape key for both modals
+        document.addEventListener('keydown', e => {
+            if (e.key === "Escape") {
+                certModal.click();
+                if (!imageModal.classList.contains('hidden')) {
+                    imageModal.click();
+                }
+            }
         });
     </script>
 @endpush
