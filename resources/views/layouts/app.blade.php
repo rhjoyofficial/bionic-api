@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth no-scrollbar">
 
 <head>
 
@@ -33,7 +33,7 @@
 
 </head>
 
-<body class="antialiased font-sans">
+<body class="antialiased font-sans no-scrollbar">
 
     <div class="min-h-screen flex flex-col">
 

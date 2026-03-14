@@ -1,7 +1,7 @@
 @props(['i'])
 
 <div
-    class="group flex flex-col h-full border border-gray-100 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:border-primary/20 bg-white">
+    class="group flex flex-col h-full border border-gray-100 rounded-2xl p-2 md:p-4 transition-all duration-300 hover:shadow-lg hover:border-primary/20 bg-white">
 
     <div class="relative aspect-square overflow-hidden rounded-xl bg-gray-50 mb-4">
         <img src="{{ asset('assets/products/product-' . $i . '.jpg') }}" alt="Product Image"
@@ -9,23 +9,23 @@
 
         @if ($i % 2 == 0)
             <span
-                class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider">-28%</span>
+                class="absolute top-1 right-1 md:top-3 md:right-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">-28%</span>
         @endif
     </div>
 
     <div class="flex flex-col grow">
         <a href="#"
-            class="font-bengali text-left text-gray-800 font-medium leading-snug line-clamp-2 min-h-8 group-hover:text-primary transition-colors truncate-2 hover:underline">
+            class="text-xs md:text-base font-bengali text-left text-gray-800 font-medium leading-snug line-clamp-2 min-h-8 group-hover:text-primary transition-colors truncate-2 hover:underline">
             Mariyam Super Premium Dates - মরিয়ম সুপার প্রিমিয়াম খেজুর (১ কেজি)
         </a>
 
-        <div class="flex items-center gap-2 mt-auto mb-4 font-bengali">
-            <span class="text-lg font-bold text-gray-900">1,920 ৳</span>
-            <span class="text-sm text-gray-400 line-through">1,920 ৳</span>
+        <div class="flex items-center gap-2 mt-auto mb-2 md:mb-4 font-bengali">
+            <span class="text-sm md:text-lg font-bold text-gray-900">৳1,920</span>
+            <span class="text-xs md:text-sm text-gray-400 line-through">৳1,920</span>
         </div>
 
         <button
-            class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold group-hover:bg-primary group-hover:text-white transition-all duration-300 active:scale-95 cursor-pointer focus:outline-none">
+            class="addToCartBtn w-full flex items-center justify-center gap-2 px-2.5 py-1.5 md:py-2.5 rounded-lg md:rounded-xl bg-primary/10 text-primary font-semibold group-hover:bg-primary group-hover:text-white transition-all duration-300 active:scale-95 cursor-pointer focus:outline-none">
             <svg class="md:block hidden w-6 h-full fill-current group-hover:text-white"
                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path

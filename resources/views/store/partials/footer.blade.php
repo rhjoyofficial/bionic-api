@@ -159,7 +159,7 @@
                 <h4 class="font-heading font-bold text-lg mb-6 text-white">Contact Us</h4>
                 <ul class="space-y-4 text-gray-200 text-sm">
                     <li class="flex gap-3 group hover:text-white transition-all duration-300">
-                        <svg class="w-5 h-5 fill-current text-yellow-500 shrink-0 group-hover:scale-110 transition-transform duration-300"
+                        <svg class="w-5 h-5 fill-current text-yellow-500 md:shrink-0 group-hover:scale-110 transition-transform duration-300"
                             viewBox="0 0 384 512">
                             <path
                                 d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z" />
@@ -167,7 +167,7 @@
                         <span>65, Feroza Garden, Shahid Smriti Sarak, Barguna-8700</span>
                     </li>
                     <li class="flex gap-3 group hover:text-white transition-all duration-300">
-                        <svg class="w-5 h-5 fill-current text-yellow-500 shrink-0 group-hover:scale-110 transition-transform duration-300"
+                        <svg class="w-5 h-5 fill-current text-yellow-500 md:shrink-0 group-hover:scale-110 transition-transform duration-300"
                             viewBox="0 0 512 512">
                             <path
                                 d="M497.39 361.8l-112-48a16 16 0 0 0-15.64 2.22l-42.95 32.73c-42.34-23.27-76.58-57.5-99.85-99.85l32.73-42.95a16 16 0 0 0 2.22-15.64l-48-112A16 16 0 0 0 196.7 64h-112A16 16 0 0 0 68 80a376.17 376.17 0 0 0 376 376 16 16 0 0 0 16-16v-112a16 16 0 0 0-10.61-15.2z" />
@@ -175,7 +175,7 @@
                         <span>+8801733358158</span>
                     </li>
                     <li class="flex gap-3 group hover:text-white transition-all duration-300">
-                        <svg class="w-5 h-5 fill-current text-yellow-500 shrink-0 group-hover:scale-110 transition-transform duration-300"
+                        <svg class="w-5 h-5 fill-current text-yellow-500 md:shrink-0 group-hover:scale-110 transition-transform duration-300"
                             viewBox="0 0 512 512">
                             <path
                                 d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z" />

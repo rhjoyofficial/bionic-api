@@ -2,11 +2,11 @@
     <div class="max-w-8xl mx-auto">
 
         <div class="flex items-center justify-between gap-6 mb-8 pb-4">
-            <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand text-left gap-3 shrink-0">
+            <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand text-left gap-3 md:shrink-0">
                 Trending Products
             </h2>
             <span class="h-0.5 w-full bg-gray-200 hidden md:block"></span>
-            <div class="flex gap-2 shrink-0">
+            <div class="flex gap-2 md:shrink-0">
                 <button
                     class="trending-prev p-2 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24"
@@ -41,7 +41,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const swiper = new Swiper('.trending-swiper', {
                 slidesPerView: 2,
-                spaceBetween: 12, 
+                spaceBetween: 12,
                 loop: true,
                 navigation: {
                     nextEl: '.trending-next',
