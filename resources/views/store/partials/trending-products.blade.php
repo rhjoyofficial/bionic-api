@@ -40,23 +40,25 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const swiper = new Swiper('.trending-swiper', {
-                slidesPerView: 1.2, // Shows a peek of the next slide on mobile
-                spaceBetween: 16,
+                slidesPerView: 2,
+                spaceBetween: 12, 
                 loop: true,
                 navigation: {
                     nextEl: '.trending-next',
                     prevEl: '.trending-prev',
                 },
                 breakpoints: {
-                    // responsive breakpoints
+                    // When window width is >= 640px (Tablets)
                     640: {
                         slidesPerView: 2,
                         spaceBetween: 20,
                     },
+                    // When window width is >= 1024px (Laptops)
                     1024: {
                         slidesPerView: 3,
                         spaceBetween: 24,
                     },
+                    // When window width is >= 1280px (Large Desktops)
                     1280: {
                         slidesPerView: 4,
                         spaceBetween: 30,

@@ -11,7 +11,7 @@
                 </p>
             </div>
             <span class="h-0.5 w-full bg-gray-200 hidden md:block"></span>
-            <div class="shrink-0">
+            <div class="shrink-0 hidden md:block">
                 <div
                     class="relative transition-all duration-300 border rounded-2xl border-primary/20 group/btn hover:bg-primary hover:border-primary">
                     <a href="#"
@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
             @foreach (range(1, 9) as $i)
                 <x-combo-card :i="$i" />
             @endforeach

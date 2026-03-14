@@ -122,3 +122,49 @@
     align-items: center;
     justify-content: center;
 }
+
+@keyframes marquee-left {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes marquee-right {
+    from {
+        transform: translateX(-50%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.marquee-left {
+    animation: marquee-left 28s linear infinite;
+    will-change: transform;
+}
+
+.marquee-right {
+    animation: marquee-right 28s linear infinite;
+    will-change: transform;
+}
+
+.group:hover .marquee-left,
+.group:hover .marquee-right {
+    animation-play-state: paused;
+}
+
+.cert-card {
+    @apply w-28 h-28 md:w-36 md:h-36 shrink-0 rounded-2xl border border-gray-100 
+    bg-white shadow-sm cursor-pointer transition hover:scale-105 hover:shadow-xl overflow-hidden;
+}
+
+.cert-canvas {
+    @apply w-full h-full flex items-center justify-center p-4;
+}
+
+.cert-img {
+    @apply max-w-full max-h-full object-contain;
+}

@@ -3,7 +3,7 @@
 <div
     class="group bg-white rounded-xl border border-gray-100 overflow-hidden active:bg-gray-50 transition-all duration-300 hover:shadow-md hover:border-primary/20">
     <div class="flex flex-row items-stretch h-full">
-        <div class="w-28 sm:w-32 md:w-5/12 aspect-square shrink-0 overflow-hidden">
+        <div class="w-2/5 sm:w-32 md:w-5/12 aspect-square shrink-0 overflow-hidden">
             <img src="{{ asset('assets/combo-products/combo.jpg') }}" alt="Combo"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
         </div>
