@@ -17,14 +17,14 @@ class CartPricingService
 
         foreach ($cart->items as $item) {
 
-            $variant = $item->variant;
+            $basePrice = $item->unit_price_snapshot ?? $item->variant->price;
 
             $pricing = $this->pricingService->calculate(
-                $variant,
+                $item->variant,
                 $item->quantity
             );
 
-            $subtotal += $variant->price * $item->quantity;
+            $subtotal += $basePrice * $item->quantity;
             $discount += $pricing['discount'];
         }
 

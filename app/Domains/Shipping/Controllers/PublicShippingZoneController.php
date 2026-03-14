@@ -5,7 +5,7 @@ namespace App\Domains\Shipping\Controllers;
 use App\Http\Controllers\Controller;
 use App\Domains\Shipping\Models\ShippingZone;
 use App\Domains\Shipping\Resources\ShippingZoneResource;
-use App\Support\ApiResponse;
+use App\Helpers\ApiResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
 

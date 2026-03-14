@@ -6,7 +6,7 @@ use App\Domains\Product\Requests\ProductSearchRequest;
 use App\Domains\Product\Resources\ProductResource;
 use App\Domains\Product\Services\ProductSearchService;
 use App\Http\Controllers\Controller;
-use App\Support\ApiResponse;
+use App\Helpers\ApiResponse;
 use Illuminate\Support\Facades\Log;
 
 class ProductSearchController extends Controller

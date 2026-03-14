@@ -24,10 +24,10 @@ return new class extends Migration
             $table->string('customer_phone');
             $table->string('customer_email')->nullable();
 
-            $table->string('address_line');
-            $table->string('area')->nullable();
-            $table->string('city');
-            $table->string('postal_code')->nullable();
+            // $table->string('address_line');
+            // $table->string('area')->nullable();
+            // $table->string('city');
+            // $table->string('postal_code')->nullable();
 
             $table->foreignId('zone_id')
                 ->constrained('shipping_zones');
@@ -55,14 +55,18 @@ return new class extends Migration
                 'returned'
             ])->default('pending');
 
+            $table->timestamp('placed_at')->nullable()->useCurrent();
             $table->timestamp('confirmed_at')->nullable();
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
 
             $table->text('notes')->nullable();
+            $table->string('checkout_token')->nullable()->unique();
             $table->timestamps();
 
             $table->index(['order_status', 'customer_phone']);
+            $table->index(['placed_at', 'delivered_at']);
         });
     }
 

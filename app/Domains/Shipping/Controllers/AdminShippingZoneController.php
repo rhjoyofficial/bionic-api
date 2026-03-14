@@ -7,7 +7,7 @@ use App\Domains\Shipping\Models\ShippingZone;
 use App\Domains\Shipping\Requests\StoreShippingZoneRequest;
 use App\Domains\Shipping\Requests\UpdateShippingZoneRequest;
 use App\Domains\Shipping\Resources\ShippingZoneResource;
-use App\Support\ApiResponse; // Import your new helper
+use App\Helpers\ApiResponse; // Import your new helper
 use Illuminate\Support\Facades\Log;
 use Exception;
 

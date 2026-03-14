@@ -9,7 +9,7 @@ class CartManager {
 
         this.queue = [];
         this.lockedButtons = new Set();
-
+        this.sessionToken = this.ensureToken();
         this.sidebar = document.getElementById("cartSidebar");
         this.overlay = document.getElementById("overlay");
         this.badge = document.getElementById("cartCount");
@@ -37,6 +37,7 @@ class CartManager {
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-Session-Token": this.getToken(),
                 },
                 body: method === "GET" ? null : JSON.stringify(data),
             });
@@ -54,6 +55,20 @@ class CartManager {
     }
 
     /* ---------------- STATE ---------------- */
+    ensureToken() {
+        let token = localStorage.getItem("bionic_cart_token");
+
+        if (!token) {
+            token = crypto.randomUUID();
+            localStorage.setItem("bionic_cart_token", token);
+        }
+
+        return token;
+    }
+
+    getToken() {
+        return this.sessionToken;
+    }
 
     setState(cart) {
         this.state.items = cart.items || [];
@@ -87,7 +102,11 @@ class CartManager {
 
     async refresh() {
         try {
-            const res = await fetch(`/api/v1/cart`);
+            const res = await fetch(`/api/v1/cart`, {
+                headers: {
+                    "X-Session-Token": this.getToken(),
+                },
+            });
             const json = await res.json();
 
             this.setState(json.data);

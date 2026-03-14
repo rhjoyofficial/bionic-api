@@ -8,76 +8,46 @@
                 class="col-span-12 lg:col-span-9 lg:row-span-3 bg-white rounded-3xl overflow-hidden pb-6 md:pb-0 relative">
                 <div class="swiper mainHeroSwiper h-full">
                     <div class="swiper-wrapper">
-                        {{-- Slide 1 --}}
-                        <div class="swiper-slide p-6 lg:p-12">
-                            <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
-                                <span class="text-secondary text-xs font-bold">🌿 100% Pure & Natural</span>
-                            </div>
-                            <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
-                                <div>
-                                    <h1
-                                        class="font-heading text-3xl sm:text-4xl lg:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
-                                        Pure Organic <br> Mangrove Gold <br> Honey
-                                    </h1>
+                        @foreach ($heroBanners as $banner)
+                            {{-- Slide 1 --}}
+                            <div class="swiper-slide p-6 lg:p-12">
+                                <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
+                                    <span class="text-secondary text-xs font-bold">🌿
+                                        {{ $banner->badge ?? 'New Arrival' }}
+                                    </span>
+                                </div>
+                                <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
+                                    <div>
+                                        <h1
+                                            class="font-heading text-3xl sm:text-4xl lg:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
+                                            {!! $banner->title !!}
+                                        </h1>
 
-                                    <div class="flex items-center gap-4 mb-8">
-                                        <span class="text-3xl font-light text-slate-300">01</span>
-                                        <div class="h-px w-12 bg-slate-200"></div>
-                                        <div class="text-slate-500 text-sm max-w-xs">
-                                            <strong>Farm to Jar Freshness</strong><br>
-                                            Premium organic dates, raw honey, cold-pressed oils & natural superfoods.
+                                        <div class="flex items-center gap-4 mb-8">
+                                            <span
+                                                class="text-3xl font-light text-slate-300">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                                            <div class="h-px w-12 bg-slate-200"></div>
+                                            <div class="text-slate-500 text-sm max-w-xs">
+                                                <strong>{{ $banner->subtitle }}</strong><br>
+                                                {{ $banner->description }}
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-col flex-wrap justify-start items-start gap-6">
+                                            <a href="{{ $banner->effective_button_url ?? '#' }}"
+                                                class="bg-primary hover:opacity-90 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-green-900/20">
+                                                {{ $banner->button_text ?? 'Shop All Products' }}
+                                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                                            </a>
                                         </div>
                                     </div>
-
-                                    <div class="flex flex-col flex-wrap justify-start items-start gap-6">
-                                        <a href="#"
-                                            class="bg-primary hover:opacity-90 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-green-900/20">
-                                            Shop All Products
-                                            <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-                                        </a>
+                                    <div class="relative group">
+                                        <img src="{{ asset('assets/hero-products/honey-jar.png') }}" alt="Raw Honey"
+                                            class="w-full h-full lg:max-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
                                     </div>
                                 </div>
-                                <div class="relative group">
-                                    <img src="{{ asset('assets/hero-products/honey-jar.png') }}" alt="Raw Honey"
-                                        class="w-full h-full lg:max-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
-                                </div>
                             </div>
-                        </div>
-                        {{-- Slide 2 --}}
-                        <div class="swiper-slide p-6 lg:p-12">
-                            <div class="inline-flex items-center gap-2 bg-[#f0f7f0] px-4 py-1.5 rounded-full mb-6">
-                                <span class="text-secondary text-xs font-bold">🌿 Gift Box Special</span>
-                            </div>
-                            <div class="flex flex-col lg:flex-row justify-between items-center gap-8 w-full">
-                                <div>
-                                    <h1
-                                        class="font-heading text-3xl sm:text-4xl lg:text-5xl lg:text-[52px] text-slate-900 leading-[1.1] mb-6">
-                                        Organic Honey <br> Gift Set <br> Perfect Gift
-                                    </h1>
-
-                                    <div class="flex items-center gap-4 mb-8">
-                                        <span class="text-3xl font-light text-slate-300">02</span>
-                                        <div class="h-px w-12 bg-slate-200"></div>
-                                        <div class="text-slate-500 text-sm max-w-xs">
-                                            <strong>Curated Collection</strong><br>
-                                            Three premium honey varieties in an elegant gift box.
-                                        </div>
-                                    </div>
-
-                                    <div class="flex flex-col flex-wrap justify-start items-start gap-6">
-                                        <a href="#"
-                                            class="bg-primary hover:opacity-90 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-green-900/20">
-                                            Shop Gift Sets
-                                            <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="relative group">
-                                    <img src="{{ asset('assets/hero-products/beet-root.png') }}" alt="Honey Gift Set"
-                                        class="w-full h-full lg:max-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
-                                </div>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
 
                     {{-- Navigation Buttons --}}
@@ -164,19 +134,21 @@
                 <h3 class="text-sm font-bold text-slate-800 mb-4">Explore Categories</h3>
                 <div class="swiper categoriesSwiper">
                     <div class="swiper-wrapper">
-                        @foreach (['Honey', 'Dates', 'Oils', 'Seeds', 'Nuts', 'Ghee'] as $cat)
+                        @foreach ($categories as $cat)
                             <div class="swiper-slide">
-                                <div class="flex flex-col items-center gap-1 group cursor-pointer">
+
+                                <a href="{{ $cat->category_page }}"
+                                    class="flex flex-col items-center gap-1 group cursor-pointer">
                                     <div
                                         class="w-16 h-16 rounded-full bg-slate-50 border border-secondary/50 md:border-slate-100 flex items-center justify-center group-hover:border-primary transition-all overflow-hidden">
-                                        <img src="{{ asset('assets/categories/' . strtolower($cat) . '.gif') }}"
-                                            alt="{{ $cat }}"
+                                        <img src="{{ $cat->image_url }}" alt="{{ $cat->name }}"
                                             class="w-full h-full aspect-square object-contain group-hover:scale-110 duration-300 transform-all"
                                             lazy="loading">
                                     </div>
                                     <span
-                                        class="text-base font-medium text-slate-400 tracking-tighter">{{ $cat }}</span>
-                                </div>
+                                        class="text-base font-medium text-slate-400 tracking-tighter">{{ $cat->name }}</span>
+                                </a>
+
                             </div>
                         @endforeach
                     </div>

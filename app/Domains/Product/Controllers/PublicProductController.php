@@ -5,7 +5,7 @@ namespace App\Domains\Product\Controllers;
 use App\Domains\Product\Models\Product;
 use App\Domains\Product\Resources\ProductResource;
 use App\Http\Controllers\Controller;
-use App\Support\ApiResponse;
+use App\Helpers\ApiResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PublicProductController extends Controller

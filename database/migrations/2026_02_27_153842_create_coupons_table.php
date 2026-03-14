@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('min_purchase', 10, 2)->nullable();
             $table->integer('usage_limit')->nullable();
             $table->integer('used_count')->default(0);
+            $table->integer('limit_per_user')->default(1);
             $table->timestamp('start_date')->nullable();
             $table->timestamp('end_date')->nullable();
             $table->boolean('is_active')->default(true);

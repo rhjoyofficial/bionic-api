@@ -26,11 +26,13 @@
 
         <div class="swiper trending-swiper overflow-hidden">
             <div class="swiper-wrapper">
-                @foreach ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as $i)
+                @forelse($products as $product)
                     <div class="swiper-slide h-auto">
-                        <x-product-card :i="$i" />
+                        <x-product-card :product="$product" />
                     </div>
-                @endforeach
+                @empty
+                    <p>No trending products</p>
+                @endforelse
             </div>
         </div>
     </div>

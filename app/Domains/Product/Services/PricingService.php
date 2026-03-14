@@ -3,20 +3,27 @@
 namespace App\Domains\Product\Services;
 
 use App\Domains\Product\Models\ProductVariant;
+use Illuminate\Support\Collection;
 
 class PricingService
 {
-    public function calculate(ProductVariant $variant, int $quantity): array
-    {
+    public function calculate(
+        ProductVariant $variant,
+        int $quantity,
+        ?Collection $tiers = null
+    ): array {
+
         $basePrice = $variant->price;
         $total = $basePrice * $quantity;
 
-        $tier = $variant->tierPrices()
+        $tiers = $tiers ?? $variant->tierPrices;
+
+        $tier = $tiers
             ->where('min_quantity', '<=', $quantity)
-            ->orderByDesc('min_quantity')
+            ->sortByDesc('min_quantity')
             ->first();
 
-        if (!$tier) {
+        if (! $tier) {
             return [
                 'unit_price' => $basePrice,
                 'discount' => 0,

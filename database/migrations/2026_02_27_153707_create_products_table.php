@@ -27,6 +27,7 @@ return new class extends Migration
             $table->json('gallery')->nullable();
             $table->string('sku')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_trending')->default(false);
             $table->boolean('is_featured')->default(false);
 
             $table->string('landing_slug')->nullable()->unique();
@@ -37,7 +38,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index(['category_id', 'is_active']);
+            $table->index(['category_id', 'is_active', 'is_trending']);
             $table->index('base_price');
             $table->index('is_featured');
             $table->index('name');

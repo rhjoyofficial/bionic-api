@@ -8,7 +8,7 @@ use App\Domains\Category\Services\CategoryService;
 use App\Domains\Category\Requests\StoreCategoryRequest;
 use App\Domains\Category\Requests\UpdateCategoryRequest;
 use App\Domains\Category\Resources\CategoryResource;
-use App\Support\ApiResponse; // Import your new helper
+use App\Helpers\ApiResponse; // Import your new helper
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;
 use Exception;

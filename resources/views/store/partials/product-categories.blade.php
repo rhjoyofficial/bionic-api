@@ -53,9 +53,12 @@
 
         {{-- PRODUCTS GRID --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6 mb-12">
-            @foreach (range(1, 8) as $i)
-                <x-product-card :i="$i" />
-            @endforeach
+            @foreach ($categoryProducts as $product)
+                <x-product-card :product="$product" />
+        </div>
+        @empty
+            <p>No trending products</p>
+            @endforelse
         </div>
 
         <a href="/products"
@@ -63,5 +66,5 @@
             View All Products
         </a>
 
-    </div>
-</section>
+        </div>
+    </section>

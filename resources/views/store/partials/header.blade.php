@@ -24,20 +24,9 @@
                 <!-- Categories Dropdown Menu -->
                 <div id="categoriesDropdown"
                     class="absolute left-0 top-full w-64 bg-white rounded-xl shadow-xl opacity-0 invisible group-hover:visible group-hover:opacity-100 transition z-50">
-                    @php
-                        $categories = [
-                            (object) ['name' => 'Fruits & Vegetables', 'slug' => 'fruits-vegetables'],
-                            (object) ['name' => 'Dairy & Eggs', 'slug' => 'dairy-eggs'],
-                            (object) ['name' => 'Meat & Seafood', 'slug' => 'meat-seafood'],
-                            (object) ['name' => 'Pantry Staples', 'slug' => 'pantry-staples'],
-                            (object) ['name' => 'Beverages', 'slug' => 'beverages'],
-                            (object) ['name' => 'Snacks & Sweets', 'slug' => 'snacks-sweets'],
-                            (object) ['name' => 'Frozen Foods', 'slug' => 'frozen-foods'],
-                            (object) ['name' => 'Health & Wellness', 'slug' => 'health-wellness'],
-                        ];
-                    @endphp
+
                     @foreach ($categories as $category)
-                        <a href="/category/{{ $category->slug }}"
+                        <a href="{{ $category->category_page }}"
                             class="block px-4 py-2.5 text-sm hover:bg-slate-50 hover:text-primary">
                             {{ $category->name }}
                         </a>

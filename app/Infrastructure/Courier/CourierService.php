@@ -1,6 +1,10 @@
 <?php
 
-namespace App\Services\Courier;
+namespace App\Infrastructure\Courier;
+
+use App\Services\Infrastructure\Drivers\PathaoCourier;
+use App\Services\Infrastructure\Drivers\RedXCourier;
+use App\Services\Infrastructure\Drivers\SteadfastCourier;
 
 class CourierService
 {

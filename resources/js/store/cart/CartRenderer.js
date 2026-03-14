@@ -64,7 +64,7 @@ class CartRenderer {
                 <div class="flex justify-between">
 
                     <div class="font-semibold text-sm leading-tight line-clamp-2">
-                        ${v.product.name}
+                        ${item.product_name_snapshot}
                     </div>
 
                     <button class="removeItem text-slate-400 hover:text-red-500 transition">
@@ -74,7 +74,7 @@ class CartRenderer {
                 </div>
 
                 <div class="text-xs text-slate-400 mt-1">
-                    ${v.title}
+                    ${item.variant_title_snapshot}
                 </div>
 
                 <div class="flex items-center justify-between mt-3">
@@ -90,7 +90,7 @@ class CartRenderer {
                     </div>
 
                     <div class="font-bold text-primary text-sm">
-                        ৳${item.line_total}
+                        ৳${item.subtotal}
                     </div>
 
                 </div>
@@ -129,11 +129,18 @@ class CartRenderer {
                 window.Cart.update(variant, next);
             };
 
-            plus.onclick = () => {
+            plus.onclick = async () => {
+                if (row.classList.contains("loading")) return;
+
+                row.classList.add("loading");
+
                 const item = this.getItem(variant);
+
                 if (!item) return;
 
-                window.Cart.update(variant, item.quantity + 1);
+                await window.Cart.update(variant, item.quantity + 1);
+
+                row.classList.remove("loading");
             };
 
             remove.onclick = () => {
