@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Store\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -8,9 +9,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('store.home');
-})->name('home');
+Route::get('/', [HomeController::class, 'index']);
 
 Route::get('/shop', function () {
     return view('store.shop');
@@ -22,7 +21,7 @@ Route::get('/category/{slug}', function () {
 
 Route::get('/product/{slug}', function () {
     return view('store.product');
-})->name('product.view');
+})->name('product.show');
 
 Route::get('/landing/{slug}', function () {
     return view('store.landing');

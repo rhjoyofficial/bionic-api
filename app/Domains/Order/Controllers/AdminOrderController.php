@@ -7,7 +7,7 @@ use App\Domains\Order\Models\Order;
 use App\Domains\Order\Requests\UpdateOrderStatusRequest;
 use App\Domains\Order\Services\OrderStatusService;
 use App\Http\Controllers\Controller;
-use App\Support\ApiResponse;
+use App\Helpers\ApiResponse;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -52,7 +52,7 @@ class AdminOrderController extends Controller
 
             return ApiResponse::success(
                 $updated,
-                'Order status updated to '.$request->status,
+                'Order status updated to ' . $request->status,
             );
         } catch (Exception $e) {
             $code = $e->getMessage() === 'Invalid status transition' ? 422 : 500;
@@ -63,7 +63,7 @@ class AdminOrderController extends Controller
 
     private function handleError(Exception $e, string $msg, int $code = 500)
     {
-        Log::error($msg.': '.$e->getMessage());
+        Log::error($msg . ': ' . $e->getMessage());
 
         return ApiResponse::error(
             $msg,

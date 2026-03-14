@@ -11,6 +11,7 @@ use App\Domains\Shipping\Services\ShippingCalculator;
 use App\Events\OrderCreated;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -25,8 +26,18 @@ class OrderService
 
     public function create(array $data): Order
     {
+
+        if (!empty($data['checkout_token'])) {
+
+            $existing = Order::where('checkout_token', $data['checkout_token'])->first();
+
+            if ($existing) return $existing;
+        }
+
         try {
+
             return DB::transaction(function () use ($data) {
+
                 $subtotal = 0;
                 $discountTotal = 0;
 
@@ -38,7 +49,8 @@ class OrderService
 
                 $order = Order::create([
                     ...$data,
-                    'order_number' => 'BNC-'.now()->format('Ymd').'-'.strtoupper(Str::random(6)),
+                    'checkout_token' => $data['checkout_token'] ?? null,
+                    'order_number' => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6)),
                     'subtotal' => 0,
                     'discount_total' => 0,
                     'shipping_cost' => 0,
@@ -46,16 +58,26 @@ class OrderService
                     'payment_method' => 'cod',
                     'payment_status' => 'unpaid',
                     'order_status' => 'pending',
+                    'placed_at' => now(),
                 ]);
 
                 foreach ($items as $item) {
+
                     $variant = $variants->get($item['variant_id']);
 
                     if (! $variant) {
                         throw new Exception('Invalid product variant selected.');
                     }
 
-                    $pricing = $this->pricingService->calculate($variant, $item['quantity']);
+                    if (! $variant->hasStock($item['quantity'])) {
+                        throw new Exception("Insufficient stock for {$variant->title}");
+                    }
+
+                    $pricing = $this->pricingService->calculate(
+                        $variant,
+                        $item['quantity'],
+                        $variant->tierPrices   // <-- NO QUERY pricing
+                    );
 
                     $subtotal += $variant->price * $item['quantity'];
                     $discountTotal += $pricing['discount'];
@@ -69,31 +91,41 @@ class OrderService
                         'unit_price' => $variant->price,
                         'total_price' => $pricing['total'],
                     ]);
+
+                    // ⭐ reserve stock (NOT decrement real stock)
+                    $variant->increment('reserved_stock', $item['quantity']);
                 }
 
                 $couponDiscount = 0;
                 $couponId = null;
 
                 if (! empty($data['coupon_code'])) {
+
                     $couponResult = $this->couponService->validate(
                         $data['coupon_code'],
                         $subtotal - $discountTotal,
+                        Auth::user()
                     );
+
                     $coupon = $couponResult['coupon'];
                     $couponDiscount = $couponResult['discount'];
                     $couponId = $coupon->id;
-                    $coupon->increment('used_count');
+
+                    $affected = \App\Domains\Coupon\Models\Coupon::where('id', $coupon->id)
+                        ->whereColumn('used_count', '<', 'usage_limit')
+                        ->increment('used_count');
+
+                    if (!$affected) {
+                        throw new Exception("Coupon exhausted");
+                    }
                 }
 
-                $shippingCost = $this->shippingCalculator->calculate($zone, $subtotal - $discountTotal);
+                $shippingCost = $this->shippingCalculator
+                    ->calculate($zone, $subtotal - $discountTotal);
 
-                if ($zone->free_shipping_threshold && ($subtotal - $discountTotal) >= $zone->free_shipping_threshold) {
-                    $shippingCost = 0;
-                }
-
-                $totalAfterProductDiscount = $subtotal - $discountTotal;
-                $totalAfterCoupon = $totalAfterProductDiscount - $couponDiscount;
-                $grandTotal = $totalAfterCoupon + $shippingCost;
+                $grandTotal =
+                    ($subtotal - $discountTotal - $couponDiscount)
+                    + $shippingCost;
 
                 $order->update([
                     'subtotal' => $subtotal,
@@ -110,8 +142,10 @@ class OrderService
                 return $order;
             });
         } catch (Exception $e) {
-            Log::error('Order Service Error: '.$e->getMessage(), [
+
+            Log::error('Order Service Error: ' . $e->getMessage(), [
                 'customer_phone' => $data['customer_phone'] ?? null,
+                'checkout_token' => $data['checkout_token'] ?? null,
                 'zone_id' => $data['zone_id'] ?? null,
                 'item_count' => count($data['items'] ?? []),
             ]);
@@ -128,7 +162,7 @@ class OrderService
             ->values();
 
         return ProductVariant::query()
-            ->with('product')
+            ->with(['product', 'tierPrices']) // ⭐ IMPORTANT
             ->whereIn('id', $variantIds)
             ->get()
             ->keyBy('id');

@@ -7,7 +7,7 @@ use App\Domains\Auth\Requests\RegisterRequest;
 use App\Domains\Cart\Services\CartMergeService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Support\ApiResponse;
+use App\Helpers\ApiResponse;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;

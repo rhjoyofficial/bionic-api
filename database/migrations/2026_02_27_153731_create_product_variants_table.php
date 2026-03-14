@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('sku')->unique();
             $table->decimal('price', 10, 2);
             $table->integer('stock')->nullable();
+            $table->integer('reserved_stock')->nullable();
             $table->integer('weight_grams')->nullable();
             $table->boolean('is_active')->default(true);
 

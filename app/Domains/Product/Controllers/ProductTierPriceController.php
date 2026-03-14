@@ -4,7 +4,7 @@ namespace App\Domains\Product\Controllers;
 
 use App\Domains\Product\Models\ProductVariant;
 use App\Http\Controllers\Controller;
-use App\Support\ApiResponse; // Import your helper
+use App\Helpers\ApiResponse; // Import your helper
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

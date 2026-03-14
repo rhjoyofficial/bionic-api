@@ -3,51 +3,109 @@
 namespace App\Domains\Cart\Services;
 
 use App\Domains\Cart\Models\Cart;
+use App\Domains\Product\Models\ProductVariant;
+use Exception;
+use Illuminate\Support\Facades\DB;
 
 class CartService
 {
-    public function getCart(?int $userId, ?string $sessionToken)
+    public function getCart(?int $userId, ?string $sessionToken): Cart
     {
-        if ($userId) {
-            return Cart::firstOrCreate(['user_id' => $userId]);
-        }
-
         return Cart::firstOrCreate([
-            'session_token' => $sessionToken
+            'user_id' => $userId,
+            'session_token' => $userId ? null : $sessionToken,
+            'status' => 'active'
         ]);
     }
 
-    public function addItem($cart, $variantId, $qty)
+    public function addItem(Cart $cart, int $variantId, int $qty)
     {
-        $item = $cart->items()->where('variant_id', $variantId)->first();
+        return DB::transaction(function () use ($cart, $variantId, $qty) {
 
-        if ($item) {
-            $item->increment('quantity', $qty);
+            $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
+
+            if (! $variant->hasStock($qty)) {
+                throw new Exception("Only {$variant->available_stock} left");
+            }
+
+            $item = $cart->items()->where('variant_id', $variantId)->first();
+
+            if ($item) {
+
+                $newQty = $item->quantity + $qty;
+
+                if (! $variant->hasStock($qty)) {
+                    throw new Exception("Stock limit reached");
+                }
+
+                $item->increment('quantity', $qty);
+                $variant->increment('reserved_stock', $qty);
+
+                return $item;
+            }
+
+            $variant->increment('reserved_stock', $qty);
+
+            return $cart->items()->create([
+                'variant_id' => $variantId,
+                'quantity' => $qty,
+                'unit_price_snapshot' => $variant->price,
+                'product_name_snapshot' => $variant->product->name,
+                'variant_title_snapshot' => $variant->title,
+            ]);
+        });
+    }
+
+    public function updateItem(Cart $cart, int $variantId, int $qty)
+    {
+        return DB::transaction(function () use ($cart, $variantId, $qty) {
+
+            $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
+
+            $item = $cart->items()->where('variant_id', $variantId)->firstOrFail();
+
+            $diff = $qty - $item->quantity;
+
+            if ($diff > 0 && ! $variant->hasStock($diff)) {
+                throw new Exception("Stock limit reached");
+            }
+
+            $item->update(['quantity' => $qty]);
+
+            $variant->increment('reserved_stock', $diff);
+
             return $item;
-        }
-
-        return $cart->items()->create([
-            'variant_id' => $variantId,
-            'quantity' => $qty
-        ]);
+        });
     }
 
-    public function updateItem($cart, $variantId, $qty)
+    public function removeItem(Cart $cart, int $variantId)
     {
-        $item = $cart->items()->where('variant_id', $variantId)->firstOrFail();
+        return DB::transaction(function () use ($cart, $variantId) {
 
-        $item->update(['quantity' => $qty]);
+            $item = $cart->items()->where('variant_id', $variantId)->first();
 
-        return $item;
+            if (! $item) return;
+
+            $variant = ProductVariant::lockForUpdate()->find($variantId);
+
+            $variant?->decrement('reserved_stock', $item->quantity);
+
+            $item->delete();
+        });
     }
 
-    public function removeItem($cart, $variantId)
+    public function clearCart(Cart $cart)
     {
-        $cart->items()->where('variant_id', $variantId)->delete();
-    }
+        return DB::transaction(function () use ($cart) {
 
-    public function clearCart($cart)
-    {
-        $cart->items()->delete();
+            foreach ($cart->items as $item) {
+
+                $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
+
+                $variant?->decrement('reserved_stock', $item->quantity);
+            }
+
+            $cart->items()->delete();
+        });
     }
 }

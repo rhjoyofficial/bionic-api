@@ -30,7 +30,7 @@
             </div>
 
             <button
-                class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold group-hover:bg-primary group-hover:text-white transition-all duration-300 active:scale-95 cursor-pointer focus:outline-none">
+                class="addToCartBtn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold group-hover:bg-primary group-hover:text-white transition-all duration-300 active:scale-95 cursor-pointer focus:outline-none">
                 <svg class="md:block hidden w-4.5 h-full fill-current group-hover:text-white"
                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                     <path

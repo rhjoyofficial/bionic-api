@@ -8,7 +8,7 @@ use App\Domains\Product\Requests\UpdateProductRequest;
 use App\Domains\Product\Resources\ProductResource;
 use App\Domains\Product\Services\ProductService;
 use App\Http\Controllers\Controller;
-use App\Support\ApiResponse; // Import your new helper
+use App\Helpers\ApiResponse; // Import your new helper
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;

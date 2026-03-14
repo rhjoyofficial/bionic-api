@@ -4,7 +4,7 @@ namespace App\Domains\Coupon\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Domains\Coupon\Services\CouponValidationService;
-use App\Support\ApiResponse;
+use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Exception;
 

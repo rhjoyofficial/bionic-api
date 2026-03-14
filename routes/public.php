@@ -41,6 +41,7 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::post('/remove', [CartController::class, 'remove']);
     Route::delete('/clear', [CartController::class, 'clear']);
   });
+  
 });
 
 Route::get('/products/search',  [ProductSearchController::class, 'search']);

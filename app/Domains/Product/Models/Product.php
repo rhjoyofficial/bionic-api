@@ -3,6 +3,7 @@
 namespace App\Domains\Product\Models;
 
 use App\Domains\Category\Models\Category;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
@@ -65,5 +66,19 @@ class Product extends Model
             'product_id',
             'related_product_id'
         )->wherePivot('type', 'cross_sell');
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
+    public function scopeTrending(Builder $query): Builder
+    {
+        return $query->where('is_trending', true);
+    }
+
+    public function getImageUrlAttribute(): string
+    {
+        return asset('storage/products/' . ($this->thumbnail ?? 'default-products.jpg'));
     }
 }

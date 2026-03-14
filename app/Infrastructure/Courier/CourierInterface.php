@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Courier;
+namespace App\Infrastructure\Courier;
 
 interface CourierInterface
 {

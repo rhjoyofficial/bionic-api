@@ -5,7 +5,7 @@ namespace App\Domains\Category\Controllers;
 use App\Domains\Category\Models\Category;
 use App\Domains\Category\Resources\CategoryResource;
 use App\Http\Controllers\Controller;
-use App\Support\ApiResponse;
+use App\Helpers\ApiResponse;
 use Exception;
 use Illuminate\Support\Facades\Log;
 

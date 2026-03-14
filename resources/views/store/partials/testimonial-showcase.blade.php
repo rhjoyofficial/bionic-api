@@ -2,7 +2,7 @@
     <div class="max-w-8xl mx-auto">
 
         <div class="flex items-center justify-between gap-6 mb-8 pb-4">
-            <div class="max-w-2xl shrink-0">
+            <div class="max-w-2xl md:shrink-0">
                 <h2 class="font-heading text-3xl md:text-4xl font-bold text-brand mb-4">
                     What Our Community Says
                 </h2>
@@ -11,7 +11,7 @@
                 </p>
             </div>
             <span class="h-0.5 w-full bg-gray-200 hidden md:block"></span>
-            <div class="flex gap-2 shrink-0">
+            <div class="flex gap-2 md:shrink-0">
                 <button
                     class="testi-prev p-2 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-primary" fill="none"

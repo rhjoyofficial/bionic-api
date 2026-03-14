@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Requests\StoreCouponRequest;
 use App\Domains\Coupon\Requests\UpdateCouponRequest;
-use App\Support\ApiResponse; // Import your helper
+use App\Helpers\ApiResponse; // Import your helper
 use Illuminate\Support\Facades\Log;
 use Exception;
 

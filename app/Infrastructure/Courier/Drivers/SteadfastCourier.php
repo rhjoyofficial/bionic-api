@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\Courier\Drivers;
+namespace App\Services\Infrastructure\Drivers;
 
-use App\Services\Courier\CourierInterface;
+use App\Infrastructure\Courier\CourierInterface;
 use Illuminate\Support\Facades\Http;
 
-class PathaoCourier implements CourierInterface
+class SteadfastCourier implements CourierInterface
 {
   public function createShipment($order)
   {
