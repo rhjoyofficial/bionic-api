@@ -2,6 +2,7 @@
 
 namespace App\Domains\Cart\Controllers;
 
+use App\Domains\Cart\Resources\CartItemResource;
 use App\Domains\Cart\Services\CartPricingService;
 use App\Domains\Cart\Services\CartService;
 use App\Http\Controllers\Controller;
@@ -60,20 +61,45 @@ class CartController extends Controller
         }
     }
 
-    public function update(Request $request)
+    public function addCombo(Request $request)
     {
         try {
-
             $request->validate([
-                'variant_id' => 'required',
+                'combo_id' => 'required|exists:combos,id',
                 'quantity' => 'required|integer|min:1'
             ]);
 
             $cart = $this->resolveCart($request);
 
-            $this->cartService->updateItem(
+            $this->cartService->addCombo(
                 $cart,
-                $request->variant_id,
+                $request->combo_id,
+                $request->quantity
+            );
+
+            return ApiResponse::success(
+                $this->payload($cart->fresh()),
+                'Combo added to cart',
+                201
+            );
+        } catch (Exception $e) {
+            return $this->fail($e, 'Add combo failed');
+        }
+    }
+
+    public function update(Request $request)
+    {
+        try {
+            $request->validate([
+                'cart_item_id' => 'required|exists:cart_items,id',
+                'quantity' => 'required|integer|min:1'
+            ]);
+
+            $cart = $this->resolveCart($request);
+
+            $this->cartService->updateItemQuantity(
+                $cart,
+                $request->cart_item_id,
                 $request->quantity
             );
 
@@ -136,8 +162,9 @@ class CartController extends Controller
         $cart->load('items.variant.product');
 
         return [
-            'cart' => $cart,
-            'totals' => $this->pricing->calculate($cart)
+            'items' => CartItemResource::collection($cart->items),
+            'totals' => $this->pricing->calculate($cart),
+            'cart_id' => $cart->id,
         ];
     }
 

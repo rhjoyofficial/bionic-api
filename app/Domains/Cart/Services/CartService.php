@@ -4,6 +4,7 @@ namespace App\Domains\Cart\Services;
 
 use App\Domains\Cart\Models\Cart;
 use App\Domains\Product\Models\ProductVariant;
+use App\Models\Combo;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +17,38 @@ class CartService
             'session_token' => $userId ? null : $sessionToken,
             'status' => 'active'
         ]);
+    }
+
+    public function addCombo(Cart $cart, int $comboId, int $qty = 1)
+    {
+        return DB::transaction(function () use ($cart, $comboId, $qty) {
+            $combo = Combo::with(['items.variant' => function ($q) {
+                $q->lockForUpdate();
+            }])->findOrFail($comboId);
+
+            if ($combo->available_stock < $qty) {
+                throw new Exception("Insufficient stock for this bundle.");
+            }
+
+            $cartItem = $cart->items()->where('combo_id', $comboId)->first();
+
+            if ($cartItem) {
+                $cartItem->increment('quantity', $qty);
+            } else {
+                $cartItem = $cart->items()->create([
+                    'combo_id' => $comboId,
+                    'quantity' => $qty,
+                    'unit_price_snapshot' => $combo->final_price,
+                    'combo_name_snapshot' => $combo->title,
+                ]);
+            }
+
+            foreach ($combo->items as $item) {
+                $item->variant->increment('reserved_stock', $item->quantity * $qty);
+            }
+
+            return $cartItem;
+        });
     }
 
     public function addItem(Cart $cart, int $variantId, int $qty)
@@ -49,7 +82,7 @@ class CartService
             return $cart->items()->create([
                 'variant_id' => $variantId,
                 'quantity' => $qty,
-                'unit_price_snapshot' => $variant->price,
+                'unit_price_snapshot' => $variant->final_price,
                 'product_name_snapshot' => $variant->product->name,
                 'variant_title_snapshot' => $variant->title,
             ]);
@@ -78,17 +111,18 @@ class CartService
         });
     }
 
-    public function removeItem(Cart $cart, int $variantId)
+    public function removeItem(Cart $cart, int $itemId)
     {
-        return DB::transaction(function () use ($cart, $variantId) {
+        return DB::transaction(function () use ($cart, $itemId) {
+            $item = $cart->items()->findOrFail($itemId);
 
-            $item = $cart->items()->where('variant_id', $variantId)->first();
-
-            if (! $item) return;
-
-            $variant = ProductVariant::lockForUpdate()->find($variantId);
-
-            $variant?->decrement('reserved_stock', $item->quantity);
+            if ($item->combo_id) {
+                foreach ($item->combo->items as $ci) {
+                    $ci->variant->decrement('reserved_stock', $ci->quantity * $item->quantity);
+                }
+            } else {
+                $item->variant->decrement('reserved_stock', $item->quantity);
+            }
 
             $item->delete();
         });
@@ -106,6 +140,35 @@ class CartService
             }
 
             $cart->items()->delete();
+        });
+    }
+
+    public function updateItemQuantity(Cart $cart, int $cartItemId, int $newQty)
+    {
+        return DB::transaction(function () use ($cart, $cartItemId, $newQty) {
+            $item = $cart->items()->findOrFail($cartItemId);
+            $diff = $newQty - $item->quantity;
+
+            if ($diff === 0) return $item;
+
+            if ($item->combo_id) {
+                $combo = Combo::with('items.variant')->findOrFail($item->combo_id);
+                if ($diff > 0 && $combo->available_stock < $diff) {
+                    throw new Exception("Insufficient stock for bundle update.");
+                }
+                foreach ($combo->items as $ci) {
+                    $ci->variant->increment('reserved_stock', $ci->quantity * $diff);
+                }
+            } else {
+                $variant = ProductVariant::lockForUpdate()->findOrFail($item->variant_id);
+                if ($diff > 0 && !$variant->hasStock($diff)) {
+                    throw new Exception("Insufficient stock.");
+                }
+                $variant->increment('reserved_stock', $diff);
+            }
+
+            $item->update(['quantity' => $newQty]);
+            return $item;
         });
     }
 }

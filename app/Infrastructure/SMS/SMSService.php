@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\SMS;
+namespace App\Infrastructure\SMS;
 
 use Illuminate\Support\Facades\Http;
 

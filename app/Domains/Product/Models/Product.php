@@ -20,6 +20,7 @@ class Product extends Model
         'sku',
         'is_active',
         'is_featured',
+        'is_trending',
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -30,7 +31,8 @@ class Product extends Model
     protected $casts = [
         'gallery' => 'array',
         'is_active' => 'boolean',
-        'is_featured' => 'boolean'
+        'is_featured' => 'boolean',
+        'is_trending' => 'boolean'
     ];
 
     public function category()
@@ -38,11 +40,15 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function variants()
+    public function allVariants()
     {
         return $this->hasMany(ProductVariant::class);
     }
 
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class)->where('is_active', true)->orderBy('id');
+    }
     public function relations()
     {
         return $this->hasMany(ProductRelation::class);

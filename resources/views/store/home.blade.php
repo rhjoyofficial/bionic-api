@@ -7,13 +7,13 @@
     @include('store.partials.hero')
     @include('store.partials.trending-products', ['products' => $trendingProducts])
     @include('store.partials.ad-promotions')
-    {{-- @include('store.partials.product-categories', [
+    @include('store.partials.product-categories', [
         'categories' => $categories,
         'categoryProducts' => $categoryProducts,
-    ]) --}}
-    {{-- @include('store.partials.combo-products')
+    ])
+    @include('store.partials.combo-products', ['combos' => $combos])
     @include('store.partials.certifications')
     @include('store.partials.video-promotion')
-    @include('store.partials.testimonial-showcase') --}}
+    @include('store.partials.testimonial-showcase')
 
 @endsection

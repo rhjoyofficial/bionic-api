@@ -37,6 +37,7 @@ Route::middleware('throttle:60,1')->group(function () {
 
     Route::get('/', [CartController::class, 'view']);
     Route::post('/add', [CartController::class, 'add']);
+    Route::post('/add-combo', [CartController::class, 'addCombo']);
     Route::post('/update', [CartController::class, 'update']);
     Route::post('/remove', [CartController::class, 'remove']);
     Route::delete('/clear', [CartController::class, 'clear']);

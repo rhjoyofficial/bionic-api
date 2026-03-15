@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('unit_price_snapshot', 12, 2);
             $table->string('product_name_snapshot');
             $table->string('variant_title_snapshot')->nullable();
+            $table->string('combo_name_snapshot')->nullable();
 
             $table->timestamps();
         });

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Webhook;
+namespace App\Infrastructure\Webhook;
 
 use App\Domains\Webhook\Models\Webhook;
 use Illuminate\Support\Facades\Http;
