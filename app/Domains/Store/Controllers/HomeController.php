@@ -6,6 +6,9 @@ use App\Domains\Category\Models\Category;
 use App\Domains\Product\Models\Product;
 use App\Domains\Store\Models\HeroBanner;
 use App\Http\Controllers\Controller;
+use App\Domains\Product\Resources\ProductTierResource;
+use App\Domains\Product\Resources\ProductVariantResource;
+use App\Domains\Product\Resources\ProductResource;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -13,27 +16,24 @@ class HomeController extends Controller
     public function index()
     {
         $heroBanners = HeroBanner::active()->ordered()->get();
-
         $categories = Category::active()->ordered()->get();
 
-        $categoryIds = $categories->pluck('id');
-
-        $trendingProducts = Product::query()
+        // 1. Trending Products
+        $trendingProductsRaw = Product::query()->active()->trending()
             ->with(['variants.tierPrices'])
-            ->active()
-            ->trending()
             ->limit(12)
             ->get();
 
-        $categoryProducts = Product::query()
-            ->with(['variants'])
-            ->whereIn('category_id', $categoryIds)
-            ->active()
+        // Transform using the Resource
+        $trendingProducts = ProductResource::collection($trendingProductsRaw);
+
+        // 2. Category Products 
+        $categoryProductsRaw = Product::active()
+            ->with(['variants.tierPrices', 'category'])
             ->latest()
-            ->get()
-            ->groupBy('category_id')
-            ->map(fn($items) => $items->take(8));
-        // dd($categoryProducts);
+            ->get();
+
+        $categoryProducts = ProductResource::collection($categoryProductsRaw);
 
         return view('store.home', compact(
             'heroBanners',

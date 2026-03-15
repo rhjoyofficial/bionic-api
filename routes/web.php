@@ -23,6 +23,10 @@ Route::get('/product/{slug}', function () {
     return view('store.product');
 })->name('product.show');
 
+Route::get('/products', function () {
+    return view('store.products');
+})->name('products.index');
+
 Route::get('/landing/{slug}', function () {
     return view('store.landing');
 })->name('landing.page');

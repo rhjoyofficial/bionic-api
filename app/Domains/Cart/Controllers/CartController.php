@@ -2,6 +2,7 @@
 
 namespace App\Domains\Cart\Controllers;
 
+use App\Domains\Cart\Resources\CartItemResource;
 use App\Domains\Cart\Services\CartPricingService;
 use App\Domains\Cart\Services\CartService;
 use App\Http\Controllers\Controller;
@@ -136,8 +137,9 @@ class CartController extends Controller
         $cart->load('items.variant.product');
 
         return [
-            'cart' => $cart,
-            'totals' => $this->pricing->calculate($cart)
+            'items' => CartItemResource::collection($cart->items),
+            'totals' => $this->pricing->calculate($cart),
+            'cart_id' => $cart->id,
         ];
     }
 

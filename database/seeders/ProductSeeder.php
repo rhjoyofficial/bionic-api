@@ -35,6 +35,8 @@ class ProductSeeder extends Seeder
             'title' => '1kg Bottle',
             'sku' => 'HON-SUN-1KG',
             'price' => 1200,
+            'discount_type' => 'fixed',
+            'discount_value' => 100,
             'stock' => 50,
             'weight_grams' => 1000,
             'is_active' => true,

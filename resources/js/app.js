@@ -1,9 +1,23 @@
 import "./bootstrap";
 import "./flash";
+import "./filter/categoryFilter";
 import VideoManager from "./managers/video-manager";
-// Auto-attach flash to buttons with data-flash attribute
-document.addEventListener("DOMContentLoaded", function () {
-    //  Flash button triggers
+
+/* ===========================
+   CART SYSTEM (IMPORTANT)
+=========================== */
+
+import CartManager from "./cart/CartManager";
+import CartRenderer from "./cart/CartRenderer";
+import bindAddToCart from "./cart/AddToCartBinder";
+import initProductCards from "./cart/product-card";
+
+/* ===========================
+   DOM READY
+=========================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+    /* Flash button triggers */
     document.querySelectorAll("[data-flash]").forEach((button) => {
         button.addEventListener("click", function (e) {
             if (!this.dataset.flash) return;
@@ -14,11 +28,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const duration = parseInt(this.dataset.flashDuration) || 5000;
             const description = this.dataset.flashDescription || "";
 
-            if (typeof window.flash === "function") {
-                window.flash(message, type, duration, description);
-            }
+            window.flash?.(message, type, duration, description);
 
-            // Prevent default if it's a test button without form
             if (
                 this.tagName === "BUTTON" &&
                 (!this.type || this.type === "button")
@@ -28,12 +39,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    //  Auto-flash on form errors (Laravel validation)
+    /* Laravel validation flash */
     const errorBag = document.querySelector(".alert-danger");
     if (errorBag) {
         const errorText = errorBag.textContent.trim();
-        if (errorText && typeof window.flash === "function") {
-            window.flash(
+
+        if (errorText) {
+            window.flash?.(
                 "Please fix the errors below",
                 "error",
                 8000,
@@ -41,31 +53,36 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         }
     }
-    // Video Manager
+
+    /* Video Manager */
     new VideoManager({
         selector: "[data-video]",
         autoPauseOthers: true,
         pauseWhenOutOfView: true,
     });
+
+    /* ===========================
+       CART BOOT (VERY IMPORTANT)
+    ============================ */
+
+    window.Cart = new CartManager();
+    window.CartUI = new CartRenderer();
+
+    bindAddToCart();
+    initProductCards();
 });
 
-//  Helper function to trigger flash from anywhere
+/* Global Flash helpers */
+
 window.triggerFlash = function (
     message,
     type = "success",
     duration = 5000,
     description = "",
 ) {
-    if (typeof window.flash === "function") {
-        return window.flash(message, type, duration, description);
-    }
-    console.error("Flash system not loaded");
-    return null;
+    return window.flash?.(message, type, duration, description);
 };
 
-//  Clear all flash messages
 window.clearFlash = function () {
-    if (window.flashSystem && typeof window.flashSystem.clear === "function") {
-        window.flashSystem.clear();
-    }
+    window.flashSystem?.clear?.();
 };

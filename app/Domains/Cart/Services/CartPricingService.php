@@ -29,6 +29,7 @@ class CartPricingService
         }
 
         return [
+            'total_qty' => $cart->items->sum('quantity'),
             'subtotal' => $subtotal,
             'discount' => $discount,
             'total' => $subtotal - $discount

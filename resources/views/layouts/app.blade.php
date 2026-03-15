@@ -36,38 +36,13 @@
 <body class="antialiased font-sans no-scrollbar">
 
     <div class="min-h-screen flex flex-col">
-
         @include('store.partials.header')
-
+        @include('store.partials.cart-drawer')
         <x-flash-container />
-
         <main class="flex-1">
             @yield('content')
         </main>
-
         @include('store.partials.footer')
-
-    </div>
-
-
-    {{-- CART DRAWER --}}
-    <div id="cartDrawer"
-        class="fixed top-0 right-0 w-96 max-w-full h-full bg-white shadow-xl transform translate-x-full transition-transform duration-300 z-50">
-
-        <div class="p-6 border-b flex justify-between items-center">
-
-            <h3 class="font-bold text-lg">Your Cart</h3>
-
-            <button onclick="toggleCart()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-        </div>
-
-        <div id="cartItems" class="p-6 overflow-y-auto">
-
-        </div>
-
     </div>
 
 
@@ -75,15 +50,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/ScrollTrigger.min.js"></script>
-
     <script>
-        function toggleCart() {
-            const drawer = document.getElementById('cartDrawer');
-
-            if (!drawer) return;
-
-            drawer.classList.toggle('translate-x-full');
-        }
+        gsap.registerPlugin(ScrollTrigger);
     </script>
     <script>
         const searchInput = document.querySelector('input[placeholder="Search products/ Categories..."]');

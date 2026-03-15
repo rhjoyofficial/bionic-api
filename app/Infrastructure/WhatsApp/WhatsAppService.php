@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\WhatsApp;
+namespace App\Infrastructure\WhatsApp;
 
 use Illuminate\Support\Facades\Http;
 

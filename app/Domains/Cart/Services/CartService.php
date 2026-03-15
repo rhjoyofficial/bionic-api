@@ -49,7 +49,7 @@ class CartService
             return $cart->items()->create([
                 'variant_id' => $variantId,
                 'quantity' => $qty,
-                'unit_price_snapshot' => $variant->price,
+                'unit_price_snapshot' => $variant->final_price,
                 'product_name_snapshot' => $variant->product->name,
                 'variant_title_snapshot' => $variant->title,
             ]);

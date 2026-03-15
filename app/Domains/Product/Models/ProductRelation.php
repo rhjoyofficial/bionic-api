@@ -9,7 +9,7 @@ class ProductRelation extends Model
     protected $fillable = [
         'product_id',
         'related_product_id',
-        'type',
+        'relation_type', // cross_sell, upsell, downsell
         'discount_percentage'
     ];
 

@@ -21,6 +21,9 @@ return new class extends Migration
             $table->string('title'); // 250g, 500g
             $table->string('sku')->unique();
             $table->decimal('price', 10, 2);
+            $table->enum('discount_type', ['percentage', 'fixed'])->nullable();
+            $table->decimal('discount_value', 10, 2)->nullable();
+            $table->timestamp('sale_ends_at')->nullable();
             $table->integer('stock')->nullable();
             $table->integer('reserved_stock')->nullable();
             $table->integer('weight_grams')->nullable();

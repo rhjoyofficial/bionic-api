@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Infrastructure\Drivers;
+namespace App\Infrastructure\Courier\Drivers;
 
 use App\Infrastructure\Courier\CourierInterface;
 use Illuminate\Support\Facades\Http;
