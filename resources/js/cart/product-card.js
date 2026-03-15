@@ -1,10 +1,9 @@
 export default function initProductCards() {
     document.querySelectorAll(".product-card").forEach((card) => {
-        // Parse variant data from the data attribute
+        
         const variants = JSON.parse(card.dataset.variants || "[]");
         if (!variants.length) return;
 
-        // Select elements - some might be null depending on the Blade @if logic
         const select = card.querySelector(".variantSelect");
         const price = card.querySelector(".finalPrice");
         const old = card.querySelector(".oldPrice");
@@ -13,10 +12,6 @@ export default function initProductCards() {
         const addBtn = card.querySelector(".addToCartBtn");
         const contactBtn = card.querySelector(".contactBtn");
 
-        /**
-         * Updates the UI based on the selected variant
-         * @param {Object} v - The variant object
-         */
         function render(v) {
             // 1. Update Prices (only if elements exist - Single Variant Mode)
             if (price) {

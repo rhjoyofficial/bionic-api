@@ -70,11 +70,11 @@
             {{-- PRICE (Only shows if there is 1 variant) --}}
             <div class="priceBox flex items-center gap-2 mt-auto mb-2 md:mb-4 font-bengali">
                 <span class="finalPrice text-sm md:text-lg font-bold text-gray-900">
-                    ৳{{ $first?->final_price }}
+                    ৳{{ number_format($first?->final_price) }}
                 </span>
                 <span
                     class="oldPrice text-xs md:text-sm text-gray-400 line-through {{ $first?->discount_percent ? '' : 'hidden' }}">
-                    ৳{{ $first?->price }}
+                    ৳{{ number_format($first?->price) }}
                 </span>
             </div>
         @endif

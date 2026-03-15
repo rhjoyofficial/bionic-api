@@ -8,6 +8,7 @@ use App\Domains\Store\Models\HeroBanner;
 use App\Http\Controllers\Controller;
 use App\Domains\Product\Resources\ProductTierResource;
 use App\Domains\Product\Resources\ProductVariantResource;
+use App\Models\Combo;
 use App\Domains\Product\Resources\ProductResource;
 use Illuminate\Http\Request;
 
@@ -19,27 +20,24 @@ class HomeController extends Controller
         $categories = Category::active()->ordered()->get();
 
         // 1. Trending Products
-        $trendingProductsRaw = Product::query()->active()->trending()
-            ->with(['variants.tierPrices'])
-            ->limit(12)
-            ->get();
+        $trendingProductsRaw = Product::query()->active()->trending()->with(['variants.tierPrices'])->limit(12)->get();
 
-        // Transform using the Resource
         $trendingProducts = ProductResource::collection($trendingProductsRaw);
 
         // 2. Category Products 
-        $categoryProductsRaw = Product::active()
-            ->with(['variants.tierPrices', 'category'])
-            ->latest()
-            ->get();
+        $categoryProductsRaw = Product::active()->with(['variants.tierPrices', 'category'])->latest()->get();
 
         $categoryProducts = ProductResource::collection($categoryProductsRaw);
+
+        // 3. Combo Products 
+        $combos = Combo::where('is_active', true)->with(['items.variant.product'])->latest()->limit(12)->get();
 
         return view('store.home', compact(
             'heroBanners',
             'categories',
             'trendingProducts',
-            'categoryProducts'
+            'categoryProducts',
+            'combos'
         ));
     }
 }

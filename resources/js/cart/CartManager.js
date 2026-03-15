@@ -87,37 +87,31 @@ export default class CartManager {
     }
 
     async add(variantId, qty = 1, button = null) {
-        if (this.pending) return;
+        return this._perfomCartAction("/add", { variant_id: variantId, quantity: qty }, button);
+    }
 
+    async addCombo(comboId, qty = 1, button = null) {
+        return this._perfomCartAction("/add-combo", { combo_id: comboId, quantity: qty }, button);
+    }
+
+    async _perfomCartAction(endpoint, data, button) {
+        if (this.pending) return;
         this.pending = true;
 
         if (button) {
-            if (this.lockedButtons.has(button)) return;
-
             this.lockedButtons.add(button);
             button.classList.add("opacity-50", "pointer-events-none");
         }
 
         try {
-            const res = await this.api("/add", {
-                variant_id: variantId,
-                quantity: qty,
-            });
-
+            const res = await this.api(endpoint, data);
             this.setState(res.data);
-
-            if (typeof flash === "function") {
-                flash("Added to cart");
-            }
-
+            if (typeof flash === "function") flash("Added to cart");
             this.open();
         } catch (e) {
-            if (typeof flash === "function") {
-                flash(e.message || "Cart failed", "error");
-            }
+            if (typeof flash === "function") flash(e.message || "Action failed", "error");
         } finally {
             this.pending = false;
-
             if (button) {
                 button.classList.remove("opacity-50", "pointer-events-none");
                 this.lockedButtons.delete(button);
@@ -125,40 +119,21 @@ export default class CartManager {
         }
     }
 
-    async update(variantId, qty) {
+    async update(cartItemId, qty) {
         try {
-            const res = await this.api("/update", {
-                variant_id: variantId,
-                quantity: qty,
-            });
-
+            const res = await this.api("/update", { cart_item_id: cartItemId, quantity: qty });
             this.setState(res.data);
-
-            if (typeof flash === "function") {
-                flash("Quantity updated");
-            }
         } catch (e) {
-            if (typeof flash === "function") {
-                flash(e.message || "Update failed", "error");
-            }
+            if (typeof flash === "function") flash(e.message || "Update failed", "error");
         }
     }
 
-    async remove(variantId) {
+    async remove(cartItemId) {
         try {
-            const res = await this.api("/remove", {
-                variant_id: variantId,
-            });
-
+            const res = await this.api("/remove", { cart_item_id: cartItemId });
             this.setState(res.data);
-
-            if (typeof flash === "function") {
-                flash("Item removed from cart");
-            }
         } catch (e) {
-            if (typeof flash === "function") {
-                flash(e.message || "Remove failed", "error");
-            }
+            if (typeof flash === "function") flash(e.message || "Remove failed", "error");
         }
     }
 

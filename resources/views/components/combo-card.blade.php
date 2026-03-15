@@ -1,10 +1,10 @@
-@props(['i'])
+@props(['combo'])
 
 <div
     class="group bg-white rounded-xl border border-gray-100 overflow-hidden active:bg-gray-50 transition-all duration-300 hover:shadow-md hover:border-primary/20">
     <div class="flex flex-row items-stretch h-full">
         <div class="w-2/5 sm:w-32 md:w-5/12 aspect-square shrink-0 overflow-hidden">
-            <img src="{{ asset('assets/combo-products/combo.jpg') }}" alt="Combo"
+            <img src="{{ asset('assets/combo-products/combo.jpg') }}" alt="{{ $combo->title }}"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
         </div>
 
@@ -13,24 +13,30 @@
                 <div class="flex items-start justify-between gap-2 mb-1 relative">
                     <a href="#"
                         class="font-bengali text-left text-gray-800 font-medium leading-snug line-clamp-2 min-h-8 group-hover:text-primary transition-colors truncate-2 hover:underline">
-                        Ramadan Essentials Pack - রামাদান এসএনটিয়ালস প্যাক
+                        {{ $combo->title }}
                     </a>
-                    <span
-                        class="absolute top-0 right-0 font-bengali bg-primary/10 text-primary text-xs font-bold px-1.5 py-0.5 rounded shrink-0">
-                        -{{ 200 + $i * 50 }}৳
-                    </span>
+                    @if ($combo->total_savings > 0)
+                        <span
+                            class="absolute top-0 right-0 font-bengali bg-primary/10 text-primary text-xs font-bold px-1.5 py-0.5 rounded shrink-0">
+                            -{{ number_format($combo->total_savings) }}৳
+                        </span>
+                    @endif
                 </div>
 
-                <p class="text-xs text-gray-400 mb-2 truncate">Dates • Honey • Ghee</p>
+                <p class="text-xs text-gray-400 mb-2 truncate ">
+                    {{ $combo->items->map(fn($item) => $item->variant->product->name)->implode(' • ') }}</p>
 
                 <div class="flex items-baseline gap-1.5 mb-3 font-bengali">
-                    <span class="text-base font-bold text-primary">2,450৳</span>
-                    <span class="text-xs text-gray-400 line-through">2,850৳</span>
+                    <span class="text-base font-bold text-primary">{{ number_format($combo->final_price) }}৳</span>
+                    @if ($combo->pricing_mode === 'manual' || $combo->discount_value > 0)
+                        <span class="text-xs text-gray-400 line-through">{{ number_format($combo->auto_price) }}৳</span>
+                    @endif
                 </div>
             </div>
 
             <button
-                class="addToCartBtn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold group-hover:bg-primary group-hover:text-white transition-all duration-300 active:scale-95 cursor-pointer focus:outline-none">
+                class="addComboBtn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold group-hover:bg-primary group-hover:text-white transition-all duration-300 active:scale-95 cursor-pointer focus:outline-none"
+                data-combo="{{ $combo->id }}">
                 <svg class="md:block hidden w-4.5 h-full fill-current group-hover:text-white"
                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                     <path

@@ -12,4 +12,13 @@ export default function bindAddToCart() {
 
         window.Cart?.add(variantId, 1, btn);
     });
+
+    document.addEventListener("click", e => {
+
+        const btn = e.target.closest(".addComboBtn");
+        if (!btn) return;
+
+        Cart.addCombo(btn.dataset.combo, 1, btn);
+
+    });
 }

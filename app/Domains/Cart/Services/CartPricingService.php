@@ -16,16 +16,17 @@ class CartPricingService
         $discount = 0;
 
         foreach ($cart->items as $item) {
-
-            $basePrice = $item->unit_price_snapshot ?? $item->variant->price;
-
-            $pricing = $this->pricingService->calculate(
-                $item->variant,
-                $item->quantity
-            );
-
-            $subtotal += $basePrice * $item->quantity;
-            $discount += $pricing['discount'];
+            if ($item->combo_id) {
+                $subtotal += $item->unit_price_snapshot * $item->quantity;
+            } else {
+                $pricing = $this->pricingService->calculate(
+                    $item->variant,
+                    $item->quantity
+                );
+                $price = $pricing['unit_price'] ?? $item->unit_price_snapshot;
+                $subtotal += $price * $item->quantity;
+                $discount += $pricing['discount'] ?? 0;
+            }
         }
 
         return [

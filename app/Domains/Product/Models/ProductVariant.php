@@ -17,8 +17,8 @@ class ProductVariant extends Model
         'discount_type',
         'discount_value',
         'sale_ends_at',
-        'stock',          // Physical items in the warehouse
-        'reserved_stock', // Items currently in pending orders/carts
+        'stock',        
+        'reserved_stock', 
         'weight_grams',
         'is_active'
     ];

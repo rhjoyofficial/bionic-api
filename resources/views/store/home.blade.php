@@ -11,9 +11,9 @@
         'categories' => $categories,
         'categoryProducts' => $categoryProducts,
     ])
-    @include('store.partials.combo-products')
-    {{--  @include('store.partials.certifications')
-    @include('store.partials.video-promotion') --}}
+    @include('store.partials.combo-products', ['combos' => $combos])
+    @include('store.partials.certifications')
+    @include('store.partials.video-promotion')
     @include('store.partials.testimonial-showcase')
 
 @endsection

@@ -28,8 +28,8 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
-            @foreach (range(1, 9) as $i)
-                <x-combo-card :i="$i" />
+            @foreach ($combos as $combo)
+                <x-combo-card :combo="$combo" />
             @endforeach
         </div>
     </div>
