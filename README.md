@@ -58,6 +58,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
+
 ```
 bionic-api
 ├─ .editorconfig
@@ -83,6 +84,8 @@ bionic-api
 │  │  │  ├─ Models
 │  │  │  │  ├─ Cart.php
 │  │  │  │  └─ CartItem.php
+│  │  │  ├─ Resources
+│  │  │  │  └─ CartItemResource.php
 │  │  │  └─ Services
 │  │  │     ├─ CartMergeService.php
 │  │  │     ├─ CartPricingService.php
@@ -213,8 +216,9 @@ bionic-api
 │  │  ├─ Store
 │  │  │  ├─ Controllers
 │  │  │  │  └─ HomeController.php
-│  │  │  └─ Models
-│  │  │     └─ HeroBanner.php
+│  │  │  ├─ Models
+│  │  │  │  └─ HeroBanner.php
+│  │  │  └─ Services
 │  │  └─ Webhook
 │  │     ├─ Controllers
 │  │     │  └─ AdminWebhookController.php
@@ -263,6 +267,8 @@ bionic-api
 │  │  ├─ SendOrderWhatsAppListener.php
 │  │  └─ SendWhatsAppOrderNotification.php
 │  ├─ Models
+│  │  ├─ Combo.php
+│  │  ├─ ComboItem.php
 │  │  └─ User.php
 │  ├─ Notifications
 │  │  └─ OrderStatusPushNotification.php
@@ -275,6 +281,7 @@ bionic-api
 │  ├─ app.php
 │  ├─ cache
 │  │  ├─ packages.php
+│  │  ├─ serB3CD.tmp
 │  │  └─ services.php
 │  └─ providers.php
 ├─ composer.json
@@ -323,9 +330,12 @@ bionic-api
 │  │  ├─ 2026_03_07_153023_create_device_tokens_table.php
 │  │  ├─ 2026_03_07_153203_create_courier_shipments_table.php
 │  │  ├─ 2026_03_07_154330_create_webhooks_table.php
-│  │  └─ 2026_03_14_074212_create_hero_banners_table.php
+│  │  ├─ 2026_03_14_074212_create_hero_banners_table.php
+│  │  ├─ 2026_03_15_153426_create_combos_table.php
+│  │  └─ 2026_03_15_153527_create_combo_items_table.php
 │  └─ seeders
 │     ├─ CategorySeeder.php
+│     ├─ ComboSeeder.php
 │     ├─ DatabaseSeeder.php
 │     ├─ HeroBannerSeeder.php
 │     ├─ ProductSeeder.php
@@ -441,16 +451,17 @@ bionic-api
 │  │  │  ├─ CartManager.js
 │  │  │  ├─ CartRenderer.js
 │  │  │  └─ product-card.js
+│  │  ├─ filter
+│  │  │  └─ categoryFilter.js
 │  │  ├─ flash.js
 │  │  ├─ managers
 │  │  │  └─ video-manager.js
-│  │  ├─ pages
-│  │  │  ├─ cart.js
-│  │  │  ├─ checkout.js
-│  │  │  ├─ home.js
-│  │  │  ├─ product.js
-│  │  │  └─ shop.js
-│  │  └─ store
+│  │  └─ pages
+│  │     ├─ cart.js
+│  │     ├─ checkout.js
+│  │     ├─ home.js
+│  │     ├─ product.js
+│  │     └─ shop.js
 │  └─ views
 │     ├─ components
 │     │  ├─ combo-card.blade.php
@@ -468,6 +479,7 @@ bionic-api
 │     │  ├─ home.blade.php
 │     │  ├─ partials
 │     │  │  ├─ ad-promotions.blade.php
+│     │  │  ├─ cart-drawer.blade.php
 │     │  │  ├─ certifications.blade.php
 │     │  │  ├─ combo-products.blade.php
 │     │  │  ├─ footer.blade.php
@@ -554,12 +566,12 @@ bionic-api
 │  │     ├─ offer
 │  │     │  └─ products.gif
 │  │     ├─ products
-│  │     │  ├─ default-products.jpg
 │  │     │  ├─ honey-jar.png
 │  │     │  ├─ product-1.jpg
 │  │     │  ├─ product-2.jpg
 │  │     │  ├─ product-3.jpg
 │  │     │  ├─ product-4.jpg
+│  │     │  ├─ product-5.jpg
 │  │     │  ├─ product-6.jpg
 │  │     │  ├─ product-7.jpg
 │  │     │  └─ product-8.jpg
@@ -593,6 +605,7 @@ bionic-api
 │  │     ├─ 46a23365478ec7adcb2ef1b89df7f1bf.php
 │  │     ├─ 4bfb9a16160c18216a13e70346c8d2a8.php
 │  │     ├─ 53f13d19fb513704ae50f4af16a4bd03.php
+│  │     ├─ 5441415c95962af9f9127580912b95bb.php
 │  │     ├─ 562c108607088433c682389637edcadb.php
 │  │     ├─ 593e15931a640cc2b83867c5c4639c0c.php
 │  │     ├─ 5ac6e21b3023c607c4869f7c6eccd2c8.php
