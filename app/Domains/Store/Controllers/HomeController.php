@@ -32,7 +32,7 @@ class HomeController extends Controller
         // 3. Combo Products 
         $combos = Combo::where('is_active', true)->with(['items.variant.product'])->latest()->limit(12)->get();
 
-        return view('store.home', compact(
+        return view('store.pages.home', compact(
             'heroBanners',
             'categories',
             'trendingProducts',

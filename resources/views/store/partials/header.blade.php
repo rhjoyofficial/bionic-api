@@ -25,7 +25,7 @@
                 <div id="categoriesDropdown"
                     class="absolute left-0 top-full w-64 bg-white rounded-xl shadow-xl opacity-0 invisible group-hover:visible group-hover:opacity-100 transition z-50">
 
-                    @foreach ($categories as $category)
+                    @foreach ($globalCategories as $category)
                         <a href="{{ $category->category_page }}"
                             class="block px-4 py-2.5 text-sm hover:bg-slate-50 hover:text-primary">
                             {{ $category->name }}
@@ -114,7 +114,7 @@
     <div id="mobileDropdown"
         class="hidden md:hidden absolute left-4 right-4 top-auto mt-3 bg-white rounded-2xl shadow-xl z-40 max-h-[60vh] no-scrollbar overflow-y-auto">
 
-        @foreach ($categories as $category)
+        @foreach ($globalCategories as $category)
             <a href="/category/{{ $category->slug }}"
                 class="block px-5 py-3 border-b border-slate-100 text-sm hover:bg-slate-50">
                 {{ $category->name }}

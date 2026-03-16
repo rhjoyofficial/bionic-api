@@ -24,7 +24,7 @@ Route::get('/product/{slug}', function () {
 })->name('product.show');
 
 Route::get('/products', function () {
-    return view('store.products');
+    return view('store.pages.products');
 })->name('products.index');
 
 Route::get('/landing/{slug}', function () {

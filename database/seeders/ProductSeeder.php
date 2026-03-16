@@ -20,8 +20,8 @@ class ProductSeeder extends Seeder
         // Simple Product - No variants
         Product::create([
             'category_id' => $categories['Honey']->id,
-            'name' => 'Sundarban Wild Honey',
-            'slug' => 'sundarban-wild-honey',
+            'name' => 'Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি)',
+            'slug' => 'mangrove-gold-honey',
             'short_description' => 'Pure wild honey collected from Sundarban mangrove forest',
             'description' => 'This honey is collected by traditional honey hunters from the Sundarbans. It has a distinct flavor and medicinal properties.',
             'base_price' => 1200,
@@ -29,8 +29,9 @@ class ProductSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
-            'meta_title' => 'Buy Sundarban Wild Honey Online',
-            'meta_description' => 'Pure Sundarban wild honey with medicinal properties. 100% natural and unprocessed.',
+            'thumbnail' => 'mangrove-gold-honey.jpg',
+            'meta_title' => 'Buy Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) Online',
+            'meta_description' => 'Pure Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) with medicinal properties. 100% natural and unprocessed.',
         ])->variants()->create([
             'title' => '1kg Bottle',
             'sku' => 'HON-SUN-1KG',
@@ -54,6 +55,7 @@ class ProductSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
+            'thumbnail' => 'honey.jpg',
         ]);
 
         // Variants for Organic Honey
@@ -87,11 +89,12 @@ class ProductSeeder extends Seeder
         // Simple Honey Product
         Product::create([
             'category_id' => $categories['Honey']->id,
-            'name' => 'Forest Honey',
-            'slug' => 'forest-honey',
+            'name' => 'Floral Gold Honey',
+            'slug' => 'floral-gold-honey',
             'base_price' => 950,
             'sku' => 'HON-FOR-001',
             'is_active' => true,
+            'thumbnail' => 'floral-gold-honey.jpg',
         ])->variants()->create([
             'title' => '1kg Bottle',
             'sku' => 'HON-FOR-1KG',
@@ -174,12 +177,13 @@ class ProductSeeder extends Seeder
         // Variable Oil Product - multiple sizes
         $coconutOil = Product::create([
             'category_id' => $categories['Oils']->id,
-            'name' => 'Virgin Coconut Oil',
-            'slug' => 'virgin-coconut-oil',
+            'name' => 'Edible Virgin Coconut Oil',
+            'slug' => 'edible-virgin-coconut-oil',
             'short_description' => 'Cold-pressed virgin coconut oil',
             'base_price' => 600,
             'sku' => 'OIL-COC-001',
             'is_active' => true,
+            'thumbnail' => 'edible-virgin-coconut-oil.jpg',
         ]);
 
         $coconutOil->variants()->createMany([
