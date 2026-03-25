@@ -1,5 +1,6 @@
 import "./bootstrap";
 import "./flash";
+import "./search-suggestion";
 import "./filter/categoryFilter";
 import VideoManager from "./managers/video-manager";
 

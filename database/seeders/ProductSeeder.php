@@ -33,7 +33,7 @@ class ProductSeeder extends Seeder
             'meta_title' => 'Buy Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) Online',
             'meta_description' => 'Pure Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) with medicinal properties. 100% natural and unprocessed.',
         ])->variants()->create([
-            'title' => '1kg Bottle',
+            'title' => '1kg',
             'sku' => 'HON-SUN-1KG',
             'price' => 1200,
             'discount_type' => 'fixed',
@@ -61,7 +61,7 @@ class ProductSeeder extends Seeder
         // Variants for Organic Honey
         $honeyVariable->variants()->createMany([
             [
-                'title' => '250g Jar',
+                'title' => '250g',
                 'sku' => 'HON-ORG-250G',
                 'price' => 250,
                 'stock' => 100,
@@ -69,7 +69,7 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => '500g Jar',
+                'title' => '500g',
                 'sku' => 'HON-ORG-500G',
                 'price' => 450,
                 'stock' => 80,
@@ -77,7 +77,7 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => '1kg Jar',
+                'title' => '1kg',
                 'sku' => 'HON-ORG-1KG',
                 'price' => 800,
                 'stock' => 60,
@@ -96,7 +96,7 @@ class ProductSeeder extends Seeder
             'is_active' => true,
             'thumbnail' => 'floral-gold-honey.jpg',
         ])->variants()->create([
-            'title' => '1kg Bottle',
+            'title' => '1kg',
             'sku' => 'HON-FOR-1KG',
             'price' => 950,
             'stock' => 40,
@@ -118,7 +118,7 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_trending' => true,
         ])->variants()->create([
-            'title' => '1kg Premium Box',
+            'title' => '1kg',
             'sku' => 'DATE-MED-1KG',
             'price' => 1800,
             'stock' => 30,
@@ -140,7 +140,7 @@ class ProductSeeder extends Seeder
         ]);
 
         $ajwaVariant = $ajwaDates->variants()->create([
-            'title' => '1kg Box',
+            'title' => '1kg',
             'sku' => 'DATE-AJW-1KG',
             'price' => 2500,
             'stock' => 25,
@@ -164,7 +164,7 @@ class ProductSeeder extends Seeder
             'sku' => 'DATE-SUK-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '1kg Box',
+            'title' => '1kg',
             'sku' => 'DATE-SUK-1KG',
             'price' => 1600,
             'stock' => 35,
@@ -188,7 +188,7 @@ class ProductSeeder extends Seeder
 
         $coconutOil->variants()->createMany([
             [
-                'title' => '500ml Bottle',
+                'title' => '500ml',
                 'sku' => 'OIL-COC-500ML',
                 'price' => 350,
                 'stock' => 45,
@@ -196,7 +196,7 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => '1L Bottle',
+                'title' => '1L',
                 'sku' => 'OIL-COC-1L',
                 'price' => 600,
                 'stock' => 30,
@@ -216,7 +216,7 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_trending' => true,
         ])->variants()->create([
-            'title' => '1L Bottle',
+            'title' => '1L',
             'sku' => 'OIL-OLV-1L',
             'price' => 1200,
             'stock' => 40,
@@ -243,25 +243,25 @@ class ProductSeeder extends Seeder
         // Apple variants with different prices per kg
         $appleProduct->variants()->createMany([
             [
-                'title' => 'Small Apples (1kg)',
+                'title' => '1kg',
                 'sku' => 'APP-SML-1KG',
-                'price' => 400,  // 400 BDT per kg for small
+                'price' => 400,  // 400 BDT per 1kg 
                 'stock' => 100,
                 'weight_grams' => 1000,
                 'is_active' => true,
             ],
             [
-                'title' => 'Medium Apples (1kg)',
+                'title' => '2kg',
                 'sku' => 'APP-MED-1KG',
-                'price' => 500,  // 500 BDT per kg for medium
+                'price' => 750,  // 750 BDT per 2kg
                 'stock' => 80,
                 'weight_grams' => 1000,
                 'is_active' => true,
             ],
             [
-                'title' => 'Large Apples (1kg)',
+                'title' => '3kg',
                 'sku' => 'APP-LRG-1KG',
-                'price' => 700,  // 700 BDT per kg for large
+                'price' => 1050,  // 1050 BDT per 3kg
                 'stock' => 60,
                 'weight_grams' => 1000,
                 'is_active' => true,
@@ -280,7 +280,7 @@ class ProductSeeder extends Seeder
 
         $mixedNuts->variants()->createMany([
             [
-                'title' => '250g Pack',
+                'title' => '250g',
                 'sku' => 'NUT-MIX-250G',
                 'price' => 450,
                 'stock' => 60,
@@ -288,7 +288,7 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => '500g Pack',
+                'title' => '500g',
                 'sku' => 'NUT-MIX-500G',
                 'price' => 850,
                 'stock' => 40,
@@ -296,7 +296,7 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => '1kg Pack',
+                'title' => '1kg',
                 'sku' => 'NUT-MIX-1KG',
                 'price' => 1600,
                 'stock' => 20,
@@ -314,7 +314,7 @@ class ProductSeeder extends Seeder
             'sku' => 'NUT-ALM-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '500g Pack',
+            'title' => '500g',
             'sku' => 'ALM-500G',
             'price' => 950,
             'stock' => 70,
@@ -331,7 +331,7 @@ class ProductSeeder extends Seeder
             'sku' => 'NUT-CAS-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '500g Pack',
+            'title' => '500g',
             'sku' => 'CAS-500G',
             'price' => 1100,
             'stock' => 55,
@@ -348,7 +348,7 @@ class ProductSeeder extends Seeder
             'sku' => 'NUT-WAL-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '500g Pack',
+            'title' => '500g',
             'sku' => 'WAL-500G',
             'price' => 1200,
             'stock' => 40,
@@ -370,7 +370,7 @@ class ProductSeeder extends Seeder
 
         $chiaSeeds->variants()->createMany([
             [
-                'title' => '250g Pack',
+                'title' => '250g',
                 'sku' => 'CHA-250G',
                 'price' => 250,
                 'stock' => 90,
@@ -378,7 +378,7 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => '500g Pack',
+                'title' => '500g',
                 'sku' => 'CHA-500G',
                 'price' => 450,
                 'stock' => 70,
@@ -396,7 +396,7 @@ class ProductSeeder extends Seeder
             'sku' => 'SED-FLA-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '500g Pack',
+            'title' => '500g',
             'sku' => 'FLA-500G',
             'price' => 280,
             'stock' => 85,
@@ -421,7 +421,7 @@ class ProductSeeder extends Seeder
 
         $gheeProduct->variants()->createMany([
             [
-                'title' => '500ml Jar',
+                'title' => '500ml',
                 'sku' => 'GHE-500ML',
                 'price' => 1000,
                 'stock' => 30,
@@ -429,7 +429,7 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => '900ml Jar',
+                'title' => '900ml',
                 'sku' => 'GHE-900ML',
                 'price' => 1800,
                 'stock' => 20,
@@ -437,7 +437,7 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => '1.8L Jar',
+                'title' => '1.8L',
                 'sku' => 'GHE-1.8L',
                 'price' => 3400,
                 'stock' => 10,
@@ -457,7 +457,7 @@ class ProductSeeder extends Seeder
             'sku' => 'DRY-APR-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '500g Pack',
+            'title' => '500g',
             'sku' => 'APR-500G',
             'price' => 650,
             'stock' => 45,
@@ -474,7 +474,7 @@ class ProductSeeder extends Seeder
             'sku' => 'DRY-RAI-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '500g Pack',
+            'title' => '500g',
             'sku' => 'RAI-500G',
             'price' => 400,
             'stock' => 60,
@@ -493,7 +493,7 @@ class ProductSeeder extends Seeder
             'sku' => 'SPI-CAR-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '100g Pack',
+            'title' => '100g',
             'sku' => 'CAR-100G',
             'price' => 1200,
             'stock' => 25,
@@ -510,7 +510,7 @@ class ProductSeeder extends Seeder
             'sku' => 'SPI-CIN-001',
             'is_active' => true,
         ])->variants()->create([
-            'title' => '250g Pack',
+            'title' => '250g',
             'sku' => 'CIN-250G',
             'price' => 350,
             'stock' => 40,

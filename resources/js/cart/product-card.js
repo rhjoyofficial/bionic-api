@@ -1,10 +1,10 @@
 export default function initProductCards() {
     document.querySelectorAll(".product-card").forEach((card) => {
-        
         const variants = JSON.parse(card.dataset.variants || "[]");
         if (!variants.length) return;
 
-        const select = card.querySelector(".variantSelect");
+        // Element Selectors
+        const capsules = card.querySelectorAll(".variant-capsule");
         const price = card.querySelector(".finalPrice");
         const old = card.querySelector(".oldPrice");
         const badge = card.querySelector(".discountBadge");
@@ -13,7 +13,7 @@ export default function initProductCards() {
         const contactBtn = card.querySelector(".contactBtn");
 
         function render(v) {
-            // 1. Update Prices (only if elements exist - Single Variant Mode)
+            // 1. Update Prices
             if (price) {
                 price.innerText = "৳" + v.final_price;
             }
@@ -27,7 +27,7 @@ export default function initProductCards() {
                 }
             }
 
-            // 2. Update Discount Badge (always exists)
+            // 2. Update Discount Badge
             if (badge) {
                 if (v.discount_percent) {
                     badge.innerText = "-" + v.discount_percent + "%";
@@ -51,7 +51,10 @@ export default function initProductCards() {
                 if (v.tiers?.length) {
                     tier.innerHTML = v.tiers
                         .map((t) => {
-                            const val = t.type === "percentage" ? `${t.value}%` : `৳${t.value}`;
+                            const val =
+                                t.type === "percentage"
+                                    ? `${t.value}%`
+                                    : `৳${t.value}`;
                             return `
                                 <div class="bg-white/80 backdrop-blur-md border border-primary/20 text-primary px-2 py-1 rounded-md shadow-sm">
                                     <p class="text-[9px] font-bold uppercase tracking-tight leading-none">Buy ${t.qty}+</p>
@@ -64,7 +67,36 @@ export default function initProductCards() {
                 }
             }
 
-            // 5. Update the Data Attribute for the Add to Cart logic
+            // 5. Update Active Capsule UI
+            capsules.forEach((btn) => {
+                if (btn.dataset.variantId == v.id) {
+                    // Active State
+                    btn.classList.add(
+                        "border-primary",
+                        "bg-primary/10",
+                        "text-primary",
+                    );
+                    btn.classList.remove(
+                        "border-gray-200",
+                        "bg-gray-50",
+                        "text-gray-600",
+                    );
+                } else {
+                    // Inactive State
+                    btn.classList.remove(
+                        "border-primary",
+                        "bg-primary/10",
+                        "text-primary",
+                    );
+                    btn.classList.add(
+                        "border-gray-200",
+                        "bg-gray-50",
+                        "text-gray-600",
+                    );
+                }
+            });
+
+            // 6. Update Add to Cart Data
             if (addBtn) {
                 addBtn.dataset.variant = v.id;
             }
@@ -72,21 +104,18 @@ export default function initProductCards() {
 
         // --- INITIALIZATION ---
 
-        let initial = variants[0];
-
-        // If a select dropdown exists, sync with its current value
-        if (select) {
-            const found = variants.find((x) => x.id == select.value);
-            if (found) initial = found;
-
-            // Listen for changes
-            select.addEventListener("change", (e) => {
-                const selectedVariant = variants.find((x) => x.id == e.target.value);
+        // Bind Click Events to Capsules
+        capsules.forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                const selectedVariant = variants.find(
+                    (x) => x.id == btn.dataset.variantId,
+                );
                 if (selectedVariant) render(selectedVariant);
             });
-        }
+        });
 
-        // Run the first render
-        render(initial);
+        // Initial render with the first variant
+        render(variants[0]);
     });
 }
