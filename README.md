@@ -56,7 +56,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT). 
 
 
 ```
@@ -75,9 +75,11 @@ bionic-api
 │  │  │  │  ├─ LoginController.php
 │  │  │  │  ├─ LogoutController.php
 │  │  │  │  └─ RegisterController.php
-│  │  │  └─ Requests
-│  │  │     ├─ LoginRequest.php
-│  │  │     └─ RegisterRequest.php
+│  │  │  ├─ Requests
+│  │  │  │  ├─ LoginRequest.php
+│  │  │  │  └─ RegisterRequest.php
+│  │  │  └─ Services
+│  │  │     └─ AuthService.php
 │  │  ├─ Cart
 │  │  │  ├─ Controllers
 │  │  │  │  └─ CartController.php
@@ -216,9 +218,8 @@ bionic-api
 │  │  ├─ Store
 │  │  │  ├─ Controllers
 │  │  │  │  └─ HomeController.php
-│  │  │  ├─ Models
-│  │  │  │  └─ HeroBanner.php
-│  │  │  └─ Services
+│  │  │  └─ Models
+│  │  │     └─ HeroBanner.php
 │  │  └─ Webhook
 │  │     ├─ Controllers
 │  │     │  └─ AdminWebhookController.php
@@ -275,13 +276,13 @@ bionic-api
 │  ├─ Policies
 │  │  └─ ProductPolicy.php
 │  └─ Providers
-│     └─ AppServiceProvider.php
+│     ├─ AppServiceProvider.php
+│     └─ ViewServiceProvider.php
 ├─ artisan
 ├─ bootstrap
 │  ├─ app.php
 │  ├─ cache
 │  │  ├─ packages.php
-│  │  ├─ serB3CD.tmp
 │  │  └─ services.php
 │  └─ providers.php
 ├─ composer.json
@@ -476,7 +477,9 @@ bionic-api
 │     ├─ store
 │     │  ├─ cart.blade.php
 │     │  ├─ checkout.blade.php
-│     │  ├─ home.blade.php
+│     │  ├─ pages
+│     │  │  ├─ home.blade.php
+│     │  │  └─ products.blade.php
 │     │  ├─ partials
 │     │  │  ├─ ad-promotions.blade.php
 │     │  │  ├─ cart-drawer.blade.php
@@ -566,12 +569,12 @@ bionic-api
 │  │     ├─ offer
 │  │     │  └─ products.gif
 │  │     ├─ products
+│  │     │  ├─ default-products.jpg
 │  │     │  ├─ honey-jar.png
 │  │     │  ├─ product-1.jpg
 │  │     │  ├─ product-2.jpg
 │  │     │  ├─ product-3.jpg
 │  │     │  ├─ product-4.jpg
-│  │     │  ├─ product-5.jpg
 │  │     │  ├─ product-6.jpg
 │  │     │  ├─ product-7.jpg
 │  │     │  └─ product-8.jpg
@@ -588,63 +591,14 @@ bionic-api
 │  │  ├─ sessions
 │  │  ├─ testing
 │  │  └─ views
-│  │     ├─ 04fd903f47a47e208d3c57aa108f7f9c.php
-│  │     ├─ 069fbd28d13a421839802438bb95dcd4.php
-│  │     ├─ 078b54b02a68659e6397f1e516b780ee.php
-│  │     ├─ 0978eb187b2f6e5abd91ef8940481c43.php
-│  │     ├─ 145bd1317591dedc7b3885af2eb3882f.php
-│  │     ├─ 19e43a973006d96a667afed50a3bc938.php
-│  │     ├─ 1b97c66821b117a7a87f20019cf48a42.php
-│  │     ├─ 1e6cbbc15bc47c63d0f14e35f0c2b01c.php
-│  │     ├─ 1ff9b59c11e1b117846804e0c0e370dc.php
-│  │     ├─ 2c9f2d16afd1bdc2c5e1e4ed30b94c73.php
-│  │     ├─ 2da1f7958bdfe18aa69ba799665ceff9.php
-│  │     ├─ 32a3ed27c1680cb934728e83f89171e7.php
-│  │     ├─ 4021f97fa2d4c626e9826a04dfb8e762.php
-│  │     ├─ 41978af39c8a6b825b5d1290ea6d4e5a.php
-│  │     ├─ 46a23365478ec7adcb2ef1b89df7f1bf.php
-│  │     ├─ 4bfb9a16160c18216a13e70346c8d2a8.php
-│  │     ├─ 53f13d19fb513704ae50f4af16a4bd03.php
-│  │     ├─ 5441415c95962af9f9127580912b95bb.php
-│  │     ├─ 562c108607088433c682389637edcadb.php
-│  │     ├─ 593e15931a640cc2b83867c5c4639c0c.php
-│  │     ├─ 5ac6e21b3023c607c4869f7c6eccd2c8.php
-│  │     ├─ 651802ac66473df462322637a51cef1c.php
-│  │     ├─ 65f0bfef7424974413e00e09bbb6471e.php
-│  │     ├─ 7061dea29e8661ef7aab5489e77193ef.php
-│  │     ├─ 707b7cea1dde63b894cac31692decb42.php
-│  │     ├─ 7a1d471a639501c7b2d590ee17693a6f.php
-│  │     ├─ 7f701b811b81161a54d05257e6c62408.php
-│  │     ├─ 8511ebe2b20016d901aa5ff0036dd164.php
-│  │     ├─ 86bcc272718c1167fa51cc1e9957744e.php
-│  │     ├─ 8c7ca36001d8a7387f81e2ddc8ba2829.php
-│  │     ├─ 98b8a5f90f21a88bae4bd1859e2be72f.php
-│  │     ├─ 99259c941ed5b5deb2581763998f1c77.php
-│  │     ├─ 9a4a61a52c6f07271fd54eab27bb4624.php
-│  │     ├─ a0f816882ddf036bd25623f756af160d.php
-│  │     ├─ a8d09f7b90c6b184fbf5baf9c1ca8990.php
-│  │     ├─ b24f7823960397adaf09d5fdc96cfaac.php
-│  │     ├─ b2e6a1a43c02095750c7f3ccd7373958.php
-│  │     ├─ b8824bece766f48c28cc4c00e5897c1e.php
-│  │     ├─ b8d5e7c616a797308060736cd70f44b9.php
-│  │     ├─ b90509c8b764ca0b54c78b6ec21c1be6.php
-│  │     ├─ c6a66fadae7fef1b3218363659299981.php
-│  │     ├─ d21e7b8d471798023792595ba3e5d834.php
-│  │     ├─ d31892a6b2f18f0341802845f0b876ba.php
-│  │     ├─ d4ba63431bd07b0f138446c51a0f8217.php
-│  │     ├─ df5878eb8be8762191dc9237f3d0ea28.php
-│  │     ├─ e1da0da6368228eb4ca60cb3f64bb1e7.php
-│  │     ├─ e71be9fee3e1d45128db6c7691a89f74.php
-│  │     ├─ e74a8d16447a4c9f2de05cacf96c4000.php
-│  │     ├─ eecc48342a04c8666dcdfad24fe847a1.php
-│  │     ├─ f398a81a725d4e2981ab858b1d1001be.php
-│  │     └─ faca7892463b368ba62ea56e2285545b.php
 │  └─ logs
 ├─ tests
 │  ├─ Feature
 │  │  ├─ ExampleTest.php
 │  │  ├─ OrderTest.php
-│  │  └─ ProductTest.php
+│  │  ├─ ProductTest.php
+│  │  └─ Unit
+│  │     └─ AuthServiceTest.php
 │  ├─ TestCase.php
 │  └─ Unit
 │     ├─ ExampleTest.php

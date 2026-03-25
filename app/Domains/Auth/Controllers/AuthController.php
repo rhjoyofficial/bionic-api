@@ -13,10 +13,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use App\Domains\Auth\Services\AuthService;
 
 class AuthController extends Controller
 {
-    public function __construct(private CartMergeService $mergeService) {}
+    public function __construct(private CartMergeService $mergeService, protected AuthService $authService) {}
 
     public function register(RegisterRequest $request)
     {
@@ -33,6 +34,10 @@ class AuthController extends Controller
 
             $token = $user->createToken('bionic_token')->plainTextToken;
 
+            if ($request->filled('session_token')) {
+                $this->mergeService->merge($request->session_token, $user->id);
+            }
+
             return ApiResponse::success([
                 'user' => $user,
                 'token' => $token
@@ -46,37 +51,16 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         try {
-            $key = 'login:' . strtolower($request->input('login')) . '|' . $request->ip();
-
-            if (RateLimiter::tooManyAttempts($key, 5)) {
-                $seconds = RateLimiter::availableIn($key);
-                return ApiResponse::error("Too many attempts. Retry in {$seconds} seconds.", null, 429);
+            $result = $this->authService->authenticate($request->validated(), $request->ip());
+            if (!$result['success']) {
+                return ApiResponse::error($result['message'], null, $result['code']);
             }
-
-            $login = $request->input('login');
-            $user = User::where('email', $login)->orWhere('phone', $login)->first();
-
-            if (!$user || !Hash::check($request->password, $user->password)) {
-                RateLimiter::hit($key, 60); // Increment fail count
-                return ApiResponse::error('Invalid credentials', null, 401);
-            }
-
-            if (!($user->is_active ?? true)) {
-                return ApiResponse::error('Account disabled', null, 403);
-            }
-
-            // Success logic
-            RateLimiter::clear($key);
-            $token = $user->createToken('bionic_token')->plainTextToken;
 
             if ($request->filled('session_token')) {
-                $this->mergeService->merge($request->session_token, $user->id);
+                $this->mergeService->merge($request->session_token, $result['data']['user']->id);
             }
 
-            return ApiResponse::success([
-                'user' => $user,
-                'token' => $token
-            ], 'Login successful');
+            return ApiResponse::success($result['data'], 'Login Successful');
         } catch (Exception $e) {
             Log::error('Login Error: ' . $e->getMessage());
             return ApiResponse::error('Login failed', config('app.debug') ? $e->getMessage() : null, 500);

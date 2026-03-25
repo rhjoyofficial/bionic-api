@@ -24,11 +24,6 @@ return new class extends Migration
             $table->string('customer_phone');
             $table->string('customer_email')->nullable();
 
-            // $table->string('address_line');
-            // $table->string('area')->nullable();
-            // $table->string('city');
-            // $table->string('postal_code')->nullable();
-
             $table->foreignId('zone_id')
                 ->constrained('shipping_zones');
 
