@@ -1,4 +1,4 @@
-<header class="bg-[#246E231A] py-4 md:py-6 px-4 md:px-8 relative z-30">
+<header class="sticky top-0 bg-[#246E231A] py-4 md:py-6 px-4 md:px-8 z-30">
 
     <div class="max-w-8xl mx-auto flex flex-wrap items-center justify-between gap-3 md:gap-6">
 

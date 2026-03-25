@@ -35,7 +35,7 @@
 
 <body class="antialiased font-sans no-scrollbar">
 
-    <div class="min-h-screen flex flex-col">
+    <div class="min-h-screen flex flex-col relative">
         @include('store.partials.header')
         @include('store.partials.cart-drawer')
         <x-flash-container />

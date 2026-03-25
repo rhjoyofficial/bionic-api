@@ -87,4 +87,6 @@ class Product extends Model
     {
         return asset('storage/products/' . ($this->thumbnail ?? 'default-products.jpg'));
     }
+
+    
 }

@@ -2,6 +2,7 @@
 
 use App\Domains\Store\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
+use App\Domains\Store\Controllers\ProductPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,9 +20,7 @@ Route::get('/category/{slug}', function () {
     return view('store.category');
 })->name('category.view');
 
-Route::get('/product/{slug}', function () {
-    return view('store.product');
-})->name('product.show');
+Route::get('/product/{slug}', [ProductPageController::class, 'show'])->name('product.show');
 
 Route::get('/products', function () {
     return view('store.pages.products');
