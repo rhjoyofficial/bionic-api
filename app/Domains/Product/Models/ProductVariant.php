@@ -17,8 +17,8 @@ class ProductVariant extends Model
         'discount_type',
         'discount_value',
         'sale_ends_at',
-        'stock',        
-        'reserved_stock', 
+        'stock',
+        'reserved_stock',
         'weight_grams',
         'is_active'
     ];
@@ -78,6 +78,7 @@ class ProductVariant extends Model
             return (int)$this->discount_value;
         }
 
+        if ($this->price <= 0) return null;
         return (int)round(($this->discount_value / $this->price) * 100);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Domains\Product\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -25,14 +26,26 @@ class UpdateProductRequest extends FormRequest
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
 
-            'variants' => 'required|array|min:1',
+            'variants' => 'sometimes|array|min:1',
+            'variants.*.id' => 'nullable|integer|exists:product_variants,id',
+            'variants.*.sku' => [
+                'required',
+                'string',
+                Rule::unique('product_variants', 'sku')->ignore(
+                    $this->input('variants.*.id'),
+                    'id'
+                ),
+            ],
             'variants.*.title' => 'required|string',
-            'variants.*.sku' => 'required|string|unique:product_variants,sku',
             'variants.*.price' => 'required|numeric|min:0',
             'variants.*.stock' => 'nullable|integer|min:0',
             'variants.*.weight_grams' => 'nullable|integer|min:0',
 
-            'landing_slug' => 'nullable|string|unique:products,landing_slug',
+            'landing_slug' => [
+                'nullable',
+                'string',
+                Rule::unique('products', 'landing_slug')->ignore($this->route('product')),
+            ],
             'is_landing_enabled' => 'boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',

@@ -23,7 +23,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/categories', [PublicCategoryController::class, 'index']);
 
 Route::get('/products', [PublicProductController::class, 'index']);
+Route::get('/products/search', [ProductSearchController::class, 'search']); 
 Route::get('/products/{slug}', [PublicProductController::class, 'show']);
+Route::get('/products/{id}/recommendations', [ProductRecommendationController::class, 'show']);
 
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:10,1');
 
@@ -42,11 +44,6 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::post('/remove', [CartController::class, 'remove']);
     Route::delete('/clear', [CartController::class, 'clear']);
   });
-  
 });
 
-Route::get('/products/search',  [ProductSearchController::class, 'search']);
-
 Route::get('/landing/{slug}', [ProductLandingController::class, 'show']);
-
-Route::get('/products/{id}/recommendations',  [ProductRecommendationController::class, 'show']);

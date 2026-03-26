@@ -25,11 +25,11 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(functi
     // Products
     Route::get('products', [AdminProductController::class, 'index'])->middleware('permission:product.view');
 
-    Route::post('products', [AdminProductController::class, 'store']);
+    Route::post('products', [AdminProductController::class, 'store'])->middleware('permission:product.create');
 
-    Route::put('products/{product}', [AdminProductController::class, 'update']);
+    Route::put('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:product.update');
 
-    Route::delete('products/{product}', [AdminProductController::class, 'destroy']);
+    Route::delete('products/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:product.delete');
     // Product Tier
     Route::post('products/{variant}/tier-prices', [ProductTierPriceController::class, 'store']);
 

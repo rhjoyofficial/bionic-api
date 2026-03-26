@@ -14,7 +14,7 @@ class PublicProductController extends Controller
     {
         $products = Product::query()
             ->where('is_active', true)
-            ->with(['variants.tierPrices'])
+            ->with(['variants.tierPrices', 'category'])
             ->latest()
             ->paginate(12);
 

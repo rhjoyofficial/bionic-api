@@ -21,7 +21,7 @@ class ProductSearchService
             $query->where(function ($q) use ($filters) {
                 $searchTerm = "%{$filters->get('q')}%";
                 $q->where('name', 'LIKE', $searchTerm)
-                    ->orWhere('description', 'LIKE', $searchTerm);
+                    ->orWhere('short_description', 'LIKE', $searchTerm);
             });
         }
 
