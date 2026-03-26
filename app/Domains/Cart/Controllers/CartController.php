@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
@@ -90,12 +91,26 @@ class CartController extends Controller
     public function update(Request $request)
     {
         try {
+            $cart = $this->resolveCart($request);
+
             $request->validate([
-                'cart_item_id' => 'required|exists:cart_items,id',
+                'cart_item_id' => [
+                    'required',
+                    'integer',
+                    function ($attribute, $value, $fail) use ($cart) {
+                        $exists = \Illuminate\Support\Facades\DB::table('cart_items')
+                            ->where('id', $value)
+                            ->where('cart_id', $cart->id)
+                            ->exists();
+
+                        if (!$exists) {
+                            $fail('The selected cart item is invalid or does not belong to your cart.');
+                        }
+                    },
+                ],
                 'quantity' => 'required|integer|min:1'
             ]);
 
-            $cart = $this->resolveCart($request);
 
             $this->cartService->updateItemQuantity(
                 $cart,
@@ -115,18 +130,27 @@ class CartController extends Controller
     public function remove(Request $request)
     {
         try {
-
             $cart = $this->resolveCart($request);
 
-            $this->cartService->removeItem(
-                $cart,
-                $request->variant_id
-            );
+            $request->validate([
+                'cart_item_id' => [
+                    'required',
+                    function ($attribute, $value, $fail) use ($cart) {
+                        $exists = \Illuminate\Support\Facades\DB::table('cart_items')
+                            ->where('id', $value)
+                            ->where('cart_id', $cart->id)
+                            ->exists();
 
-            return ApiResponse::success(
-                $this->payload($cart->fresh()),
-                'Item removed'
-            );
+                        if (!$exists) {
+                            $fail('The selected cart item is invalid.');
+                        }
+                    },
+                ],
+            ]);
+
+            $this->cartService->removeItem($cart, $request->cart_item_id);
+
+            return ApiResponse::success($this->payload($cart->fresh()), 'Item removed');
         } catch (Exception $e) {
             return $this->fail($e, 'Remove failed');
         }
@@ -151,16 +175,22 @@ class CartController extends Controller
 
     private function resolveCart(Request $request)
     {
-        return $this->cartService->getCart(
-            Auth::id(),
-            $request->header('X-Session-Token') ?? $request->session_token
-        );
+        $token = $request->header('X-Session-Token') ?? $request->session_token;
+
+        if (!Auth::id() && !$token) {
+            throw new Exception('Session token required for guest cart');
+        }
+
+        if ($token && !Str::isUuid($token)) {
+            throw new Exception('Invalid session token format');
+        }
+
+        return $this->cartService->getCart(Auth::id(), $token);
     }
 
     private function payload($cart)
     {
-        $cart->load('items.variant.product');
-
+        $cart->load(['items.variant.product', 'items.variant.tierPrices', 'items.combo']);
         return [
             'items' => CartItemResource::collection($cart->items),
             'totals' => $this->pricing->calculate($cart),

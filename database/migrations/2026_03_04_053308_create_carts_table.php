@@ -16,6 +16,9 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('session_token')->nullable()->unique();
             $table->string('status')->default('active'); // active, converted, abandoned
+
+            $table->timestamp('expires_at')->nullable()->index();
+            $table->timestamp('locked_at')->nullable();
             $table->timestamps();
         });
     }
