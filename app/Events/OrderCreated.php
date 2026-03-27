@@ -15,11 +15,6 @@ class OrderCreated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
-    use Dispatchable, SerializesModels;
-
     public Order $order;
 
     public function __construct(Order $order)

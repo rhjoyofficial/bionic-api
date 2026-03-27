@@ -2,6 +2,7 @@
 
 namespace App\Domains\Order\Services;
 
+use App\Domains\Coupon\Models\CouponUsage;
 use App\Domains\Coupon\Services\CouponValidationService;
 use App\Domains\Order\Models\Order;
 use App\Domains\Product\Models\ProductVariant;
@@ -26,20 +27,22 @@ class OrderService
 
     public function create(array $data): Order
     {
-
-        if (!empty($data['checkout_token'])) {
-
-            $existing = Order::where('checkout_token', $data['checkout_token'])->first();
-
-            if ($existing) return $existing;
-        }
+        $itemCount = count($data['items']);
 
         try {
 
             return DB::transaction(function () use ($data) {
 
+                if (!empty($data['checkout_token'])) {
+
+                    $existing = Order::where('checkout_token', $data['checkout_token'])->first();
+
+                    if ($existing) return $existing;
+                }
+
                 $subtotal = 0;
                 $discountTotal = 0;
+
 
                 $items = $data['items'];
                 unset($data['items']);
@@ -50,7 +53,7 @@ class OrderService
                 $order = Order::create([
                     ...$data,
                     'checkout_token' => $data['checkout_token'] ?? null,
-                    'order_number' => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6)),
+                    'order_number' => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(10)),
                     'subtotal' => 0,
                     'discount_total' => 0,
                     'shipping_cost' => 0,
@@ -59,6 +62,14 @@ class OrderService
                     'payment_status' => 'unpaid',
                     'order_status' => 'pending',
                     'placed_at' => now(),
+                ]);
+
+                $order->shippingAddress()->create([
+                    'type' => 'shipping',
+                    'customer_name' => $data['customer_name'],
+                    'customer_phone' => $data['customer_phone'],
+                    'address_line' => $data['address_line'],
+                    'city' => $data['city'],
                 ]);
 
                 foreach ($items as $item) {
@@ -115,6 +126,12 @@ class OrderService
                         ->whereColumn('used_count', '<', 'usage_limit')
                         ->increment('used_count');
 
+                    CouponUsage::create([
+                        'coupon_id' => $coupon->id,
+                        'user_id'   => Auth::id(),
+                        'order_id'  => $order->id,
+                    ]);
+
                     if (!$affected) {
                         throw new Exception("Coupon exhausted");
                     }
@@ -123,9 +140,7 @@ class OrderService
                 $shippingCost = $this->shippingCalculator
                     ->calculate($zone, $subtotal - $discountTotal);
 
-                $grandTotal =
-                    ($subtotal - $discountTotal - $couponDiscount)
-                    + $shippingCost;
+                $grandTotal = max(0, $subtotal - $discountTotal - $couponDiscount) + $shippingCost;
 
                 $order->update([
                     'subtotal' => $subtotal,
@@ -147,7 +162,7 @@ class OrderService
                 'customer_phone' => $data['customer_phone'] ?? null,
                 'checkout_token' => $data['checkout_token'] ?? null,
                 'zone_id' => $data['zone_id'] ?? null,
-                'item_count' => count($data['items'] ?? []),
+                'item_count' => $itemCount,
             ]);
 
             throw $e;
@@ -162,8 +177,9 @@ class OrderService
             ->values();
 
         return ProductVariant::query()
-            ->with(['product', 'tierPrices']) // ⭐ IMPORTANT
+            ->with(['product', 'tierPrices'])
             ->whereIn('id', $variantIds)
+            ->lockForUpdate()
             ->get()
             ->keyBy('id');
     }

@@ -14,11 +14,11 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_name' => 'required|string',
-            'customer_phone' => 'required|string',
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'required|string|max:20',
             'customer_email' => 'nullable|email',
-            'address_line' => 'required|string',
-            'city' => 'required|string',
+            'address_line' => 'required|string|max:500',
+            'city' => 'required|string|max:100',
             'zone_id' => 'required|exists:shipping_zones,id',
 
             'items' => 'required|array|min:1',

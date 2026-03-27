@@ -21,14 +21,21 @@ class OrderStatusService
 
         try {
             return DB::transaction(function () use ($order, $newStatus, $oldStatus) {
+                $order = Order::lockForUpdate()->findOrFail($order->id);
+                $oldStatus = $order->order_status;
+
+                if (!$this->isValidTransition($oldStatus, $newStatus->value)) {
+                    throw new Exception("Invalid status transition from {$oldStatus} to {$newStatus->value}");
+                }
                 // 1. Update Status & Timestamps
                 $order->order_status = $newStatus->value;
 
                 match ($newStatus) {
-                    OrderStatus::Confirmed => $order->confirmed_at = now(),
-                    OrderStatus::Shipped   => $order->shipped_at = now(),
-                    OrderStatus::Delivered => $order->delivered_at = now(),
-                    OrderStatus::Cancelled => $order->cancelled_at = now(), // Track cancellation
+                    OrderStatus::Confirmed  => $order->confirmed_at = now(),
+                    OrderStatus::Processing => $order->processing_at = now(),
+                    OrderStatus::Shipped    => $order->shipped_at = now(),
+                    OrderStatus::Delivered  => $order->delivered_at = now(),
+                    OrderStatus::Cancelled  => $order->cancelled_at = now(),
                     default => null
                 };
 
