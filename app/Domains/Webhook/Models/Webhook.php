@@ -12,6 +12,6 @@ class Webhook extends Model
     'url',
     'secret',
     'is_active'
-
   ];
+  protected $casts = ['secret' => 'encrypted'];
 }

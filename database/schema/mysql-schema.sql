@@ -116,6 +116,24 @@ CREATE TABLE `combos` (
   UNIQUE KEY `combos_slug_unique` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `commissions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `commissions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint unsigned NOT NULL,
+  `referrer_id` bigint unsigned NOT NULL,
+  `commission_amount` decimal(10,2) NOT NULL,
+  `status` enum('pending','approved','paid','cancelled') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `commissions_order_id_foreign` (`order_id`),
+  KEY `commissions_referrer_id_foreign` (`referrer_id`),
+  CONSTRAINT `commissions_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
+  CONSTRAINT `commissions_referrer_id_foreign` FOREIGN KEY (`referrer_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `coupon_usages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -361,6 +379,23 @@ CREATE TABLE `order_items` (
   PRIMARY KEY (`id`),
   KEY `order_items_order_id_foreign` (`order_id`),
   CONSTRAINT `order_items_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `order_transactions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `order_transactions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint unsigned NOT NULL,
+  `type` enum('charge','discount','coupon','shipping','refund','commission') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `amount` decimal(12,2) NOT NULL,
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `metadata` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_transactions_order_id_foreign` (`order_id`),
+  CONSTRAINT `order_transactions_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `orders`;
@@ -661,3 +696,5 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (22,'2026_03_07_154
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (23,'2026_03_14_074212_create_hero_banners_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (24,'2026_03_15_153426_create_combos_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (25,'2026_03_15_153527_create_combo_items_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (26,'2026_03_28_155636_create_order_transactions_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (27,'2026_03_28_155815_create_commissions_table',2);

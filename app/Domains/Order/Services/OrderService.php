@@ -2,6 +2,7 @@
 
 namespace App\Domains\Order\Services;
 
+use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Models\CouponUsage;
 use App\Domains\Coupon\Services\CouponValidationService;
 use App\Domains\Order\Models\Order;
@@ -125,14 +126,15 @@ class OrderService
                     $couponDiscount = $couponResult['discount'];
                     $couponId = $coupon->id;
 
-                    $affected = \App\Domains\Coupon\Models\Coupon::where('id', $coupon->id)
+                    $affected = Coupon::where('id', $coupon->id)
                         ->whereColumn('used_count', '<', 'usage_limit')
                         ->increment('used_count');
 
                     CouponUsage::create([
-                        'coupon_id' => $coupon->id,
-                        'user_id'   => Auth::id(),
-                        'order_id'  => $order->id,
+                        'coupon_id' => $couponId,
+                        'user_id' => Auth::id(),
+                        'order_id' => $order->id,
+                        'discount_amount' => $couponDiscount,
                     ]);
 
                     if (!$affected) {

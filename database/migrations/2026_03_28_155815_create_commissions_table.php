@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('combo_items', function (Blueprint $table) {
+        Schema::create('commissions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('combo_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_variant_id')->constrained('product_variants')->cascadeOnDelete();
-            $table->integer('quantity')->default(1);
-            $table->unique(['combo_id', 'product_variant_id']);
+            $table->foreignId('order_id')->constrained();
+            $table->foreignId('referrer_id')->constrained('users');
+            $table->decimal('commission_amount', 10, 2);
+            $table->enum('status', ['pending', 'approved', 'paid', 'cancelled']);
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('combo_items');
+        Schema::dropIfExists('commissions');
     }
 };

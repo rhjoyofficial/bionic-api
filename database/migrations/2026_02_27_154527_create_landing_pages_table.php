@@ -17,7 +17,7 @@ return new class extends Migration
 
             $table->foreignId('product_id')
                 ->constrained()
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
 
             $table->string('title');
             $table->string('hero_image')->nullable();

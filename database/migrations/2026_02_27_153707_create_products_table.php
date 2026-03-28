@@ -20,7 +20,7 @@ return new class extends Migration
 
             $table->foreignId('category_id')
                 ->constrained()
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
 
             $table->decimal('base_price', 10, 2);
             $table->string('thumbnail')->nullable();

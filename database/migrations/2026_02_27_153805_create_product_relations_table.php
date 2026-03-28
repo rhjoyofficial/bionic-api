@@ -22,6 +22,8 @@ return new class extends Migration
             $table->decimal('discount_percentage', 5, 2)->nullable();
 
             $table->timestamps();
+
+            $table->unique(['product_id', 'related_product_id', 'relation_type']);
         });
     }
 
