@@ -40,6 +40,8 @@ class OrderService
                     if ($existing) return $existing;
                 }
 
+                $user = Auth::user();
+
                 $subtotal = 0;
                 $discountTotal = 0;
 
@@ -52,6 +54,7 @@ class OrderService
 
                 $order = Order::create([
                     ...$data,
+                    'user_id' => $user?->id,
                     'checkout_token' => $data['checkout_token'] ?? null,
                     'order_number' => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(10)),
                     'subtotal' => 0,

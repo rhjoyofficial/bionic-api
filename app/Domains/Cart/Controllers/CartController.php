@@ -175,17 +175,21 @@ class CartController extends Controller
 
     private function resolveCart(Request $request)
     {
-        $token = $request->header('X-Session-Token') ?? $request->session_token;
-
-        if (!Auth::id() && !$token) {
-            throw new Exception('Session token required for guest cart');
+        if (Auth::check()) {            
+            return $this->cartService->getCart(Auth::id(), null);
         }
 
-        if ($token && !Str::isUuid($token)) {
-            throw new Exception('Invalid session token format');
+        $sessionToken = $request->header('X-Session-Token') ?? $request->session_token;
+
+        if (!$sessionToken) {
+            throw new \Exception('Guest session token is required.');
         }
 
-        return $this->cartService->getCart(Auth::id(), $token);
+        if (!preg_match('/^[a-zA-Z0-9\-]{32,}$/', $sessionToken)) {
+            throw new \InvalidArgumentException('Invalid session token format');
+        }
+
+        return $this->cartService->getCart(null, $sessionToken);
     }
 
     private function payload($cart)

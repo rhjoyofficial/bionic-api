@@ -68,7 +68,5 @@ class ComboSeeder extends Seeder
         'quantity' => 1,
       ]);
     }
-
-    $this->command->info("Combos and Combo Items seeded successfully!");
   }
 }

@@ -3,6 +3,7 @@
 namespace App\Domains\Order\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class CheckoutRequest extends FormRequest
 {
@@ -25,7 +26,9 @@ class CheckoutRequest extends FormRequest
             'items.*.variant_id' => 'required|exists:product_variants,id',
             'items.*.quantity' => 'required|integer|min:1',
 
-            'coupon_code' => 'nullable|string'
+            'coupon_code' => 'nullable|string',
+
+            'checkout_token' => [Auth::check() ? 'nullable' : 'required', 'string',  'min:32'],
         ];
     }
 }

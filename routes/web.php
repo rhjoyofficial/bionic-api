@@ -60,33 +60,19 @@ Route::get('/order-failed', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('account')->group(function () {
+Route::prefix('account')->middleware('auth:sanctum')->group(function () {
 
-    Route::get('/login', function () {
-        return view('auth.login');
-    })->name('login');
+    Route::get('/dashboard', fn() => view('account.dashboard'));
 
-    Route::get('/register', function () {
-        return view('auth.register');
-    })->name('register');
+    Route::get('/orders', fn() => view('account.orders'));
 
-    Route::get('/dashboard', function () {
-        return view('account.dashboard');
-    })->name('account.dashboard');
+    Route::get('/orders/{order}', fn() => view('account.order-details'));
 
-    Route::get('/orders', function () {
-        return view('account.orders');
-    })->name('account.orders');
-
-    Route::get('/orders/{order}', function () {
-        return view('account.order-details');
-    })->name('account.order.details');
-
-    Route::get('/profile', function () {
-        return view('account.profile');
-    })->name('account.profile');
+    Route::get('/profile', fn() => view('account.profile'));
 });
 
+Route::get('/account/login', fn() => view('auth.login'))->name('login');
+Route::get('/account/register', fn() => view('auth.register'))->name('register');
 
 /*
 |--------------------------------------------------------------------------

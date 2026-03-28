@@ -12,17 +12,11 @@ class CartService
 {
     public function getCart(?int $userId, ?string $sessionToken): Cart
     {
-        try {
-            return Cart::firstOrCreate([
-                'user_id' => $userId,
-                'session_token' => $userId ? null : $sessionToken,
-                'status' => 'active'
-            ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            return Cart::where('session_token', $sessionToken)
-                ->where('status', 'active')
-                ->firstOrFail();
+        if ($userId) {
+            return Cart::firstOrCreate(['user_id' => $userId, 'status' => 'active']);
         }
+
+        return Cart::firstOrCreate(['session_token' => $sessionToken, 'user_id' => null, 'status' => 'active']);
     }
 
     public function addCombo(Cart $cart, int $comboId, int $qty = 1)
