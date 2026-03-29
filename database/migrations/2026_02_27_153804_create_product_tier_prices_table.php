@@ -21,6 +21,8 @@ return new class extends Migration
             $table->decimal('discount_value', 10, 2);
 
             $table->timestamps();
+
+            $table->unique(['variant_id', 'min_quantity']);
         });
     }
 

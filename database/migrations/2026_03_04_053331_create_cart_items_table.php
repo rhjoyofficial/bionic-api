@@ -22,7 +22,12 @@ return new class extends Migration
             $table->string('variant_title_snapshot')->nullable();
             $table->string('combo_name_snapshot')->nullable();
 
+            $table->foreignId('combo_id')->nullable()->constrained()->nullOnDelete();
+
             $table->timestamps();
+
+            $table->index(['cart_id', 'variant_id']);
+            $table->unique(['cart_id', 'variant_id']);
         });
     }
 

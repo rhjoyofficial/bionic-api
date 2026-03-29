@@ -4,16 +4,17 @@ namespace App\Domains\Auth\Controllers;
 
 use App\Domains\Auth\Requests\LoginRequest;
 use App\Domains\Auth\Requests\RegisterRequest;
+use App\Domains\Auth\Resources\UserResource;
+use App\Domains\Auth\Services\AuthService;
 use App\Domains\Cart\Services\CartMergeService;
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Helpers\ApiResponse;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
-use App\Domains\Auth\Services\AuthService;
 
 class AuthController extends Controller
 {
@@ -39,7 +40,7 @@ class AuthController extends Controller
             }
 
             return ApiResponse::success([
-                'user' => $user,
+                'user' => new UserResource($user),
                 'token' => $token
             ], 'User registered successfully', 201);
         } catch (Exception $e) {
@@ -81,6 +82,6 @@ class AuthController extends Controller
 
     public function me()
     {
-        return ApiResponse::success(Auth::user());
+        return ApiResponse::success(new UserResource(Auth::user()));
     }
 }

@@ -16,8 +16,8 @@ class ProductService
         return DB::transaction(function () use ($data) {
             $data['slug'] = $this->generateUniqueSlug($data['name']);
 
-            if (isset($data['image'])) {
-                $data['image'] = $data['image']->store($this->path, 'public');
+            if (isset($data['thumbnail'])) {
+                $data['thumbnail'] = $data['thumbnail']->store($this->path, 'public');
             }
 
             $variants = $data['variants'] ?? [];
@@ -37,9 +37,9 @@ class ProductService
                 $data['slug'] = $this->generateUniqueSlug($data['name'], $product->id);
             }
 
-            if (isset($data['image'])) {
-                if ($product->image) Storage::disk('public')->delete($product->image);
-                $data['image'] = $data['image']->store($this->path, 'public');
+            if (isset($data['thumbnail'])) {
+                if ($product->thumbnail) Storage::disk('public')->delete($product->thumbnail);
+                $data['thumbnail'] = $data['thumbnail']->store($this->path, 'public');
             }
 
             $variants = $data['variants'] ?? null;
@@ -48,8 +48,20 @@ class ProductService
             $product->update($data);
 
             if ($variants !== null) {
-                $product->variants()->delete();
-                $product->variants()->createMany($variants);
+                $existingIds = [];
+
+                foreach ($variants as $variantData) {
+                    if (isset($variantData['id'])) {
+                        $product->allVariants()->where('id', $variantData['id'])->update($variantData);
+                        $existingIds[] = $variantData['id'];
+                    } else {
+                        $new = $product->allVariants()->create($variantData);
+                        $existingIds[] = $new->id;
+                    }
+                }
+
+                // Only delete variants that were explicitly removed
+                $product->allVariants()->whereNotIn('id', $existingIds)->delete();
             }
 
             return $product->load('variants');
@@ -73,7 +85,7 @@ class ProductService
 
     public function delete(Product $product): void
     {
-        if ($product->image) Storage::disk('public')->delete($product->image);
+        if ($product->thumbnail) Storage::disk('public')->delete($product->thumbnail);
         $product->delete();
     }
 }

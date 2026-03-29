@@ -2,9 +2,10 @@
 
 namespace App\Domains\Product\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Domains\Product\Models\Product;
 use App\Domains\Product\Resources\ProductResource;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 
 class ProductRecommendationController extends Controller
 {
@@ -13,7 +14,7 @@ class ProductRecommendationController extends Controller
         $product = Product::with(['upsells', 'crossSells'])
             ->findOrFail($productId);
 
-        return response()->json([
+        return ApiResponse::success([
             'upsells' => ProductResource::collection($product->upsells),
             'cross_sells' => ProductResource::collection($product->crossSells)
         ]);

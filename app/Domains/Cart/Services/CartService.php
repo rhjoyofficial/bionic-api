@@ -12,11 +12,11 @@ class CartService
 {
     public function getCart(?int $userId, ?string $sessionToken): Cart
     {
-        return Cart::firstOrCreate([
-            'user_id' => $userId,
-            'session_token' => $userId ? null : $sessionToken,
-            'status' => 'active'
-        ]);
+        if ($userId) {
+            return Cart::firstOrCreate(['user_id' => $userId, 'status' => 'active']);
+        }
+
+        return Cart::firstOrCreate(['session_token' => $sessionToken, 'user_id' => null, 'status' => 'active']);
     }
 
     public function addCombo(Cart $cart, int $comboId, int $qty = 1)
@@ -64,16 +64,14 @@ class CartService
             $item = $cart->items()->where('variant_id', $variantId)->first();
 
             if ($item) {
-
                 $newQty = $item->quantity + $qty;
 
-                if (! $variant->hasStock($qty)) {
+                if (! $variant->hasStock($newQty)) {    // check TOTAL quantity against stock
                     throw new Exception("Stock limit reached");
                 }
 
                 $item->increment('quantity', $qty);
                 $variant->increment('reserved_stock', $qty);
-
                 return $item;
             }
 
@@ -131,14 +129,19 @@ class CartService
     public function clearCart(Cart $cart)
     {
         return DB::transaction(function () use ($cart) {
-
             foreach ($cart->items as $item) {
-
-                $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
-
-                $variant?->decrement('reserved_stock', $item->quantity);
+                if ($item->combo_id) {
+                    $combo = Combo::with('items.variant')->find($item->combo_id);
+                    if ($combo) {
+                        foreach ($combo->items as $ci) {
+                            $ci->variant->decrement('reserved_stock', $ci->quantity * $item->quantity);
+                        }
+                    }
+                } else {
+                    $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
+                    $variant?->decrement('reserved_stock', $item->quantity);
+                }
             }
-
             $cart->items()->delete();
         });
     }
@@ -170,5 +173,14 @@ class CartService
             $item->update(['quantity' => $newQty]);
             return $item;
         });
+    }
+
+    public function releaseReservedStock(Cart $cart)
+    {
+        foreach ($cart->items as $item) {
+
+            ProductVariant::where('id', $item->variant_id)
+                ->decrement('reserved_stock', $item->quantity);
+        }
     }
 }

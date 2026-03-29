@@ -61,7 +61,7 @@ class Product extends Model
             'product_relations',
             'product_id',
             'related_product_id'
-        )->wherePivot('type', 'upsell');
+        )->wherePivot('relation_type', 'upsell');
     }
 
     public function crossSells()
@@ -71,7 +71,7 @@ class Product extends Model
             'product_relations',
             'product_id',
             'related_product_id'
-        )->wherePivot('type', 'cross_sell');
+        )->wherePivot('relation_type', 'cross_sell');
     }
 
     public function scopeActive(Builder $query): Builder
@@ -87,6 +87,4 @@ class Product extends Model
     {
         return asset('storage/products/' . ($this->thumbnail ?? 'default-products.jpg'));
     }
-
-    
 }

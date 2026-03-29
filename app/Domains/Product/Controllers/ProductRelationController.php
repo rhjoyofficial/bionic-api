@@ -2,8 +2,9 @@
 
 namespace App\Domains\Product\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Domains\Product\Services\ProductRelationService;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class ProductRelationController extends Controller
@@ -29,13 +30,16 @@ class ProductRelationController extends Controller
 
     public function destroy(Request $request)
     {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'related_product_id' => 'required|exists:products,id',
+        ]);
+
         $this->service->removeRelation(
             $request->product_id,
             $request->related_product_id
         );
 
-        return response()->json([
-            'message' => 'Relation removed'
-        ]);
+        return ApiResponse::success(null, 'Relation removed');
     }
 }

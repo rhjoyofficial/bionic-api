@@ -39,8 +39,8 @@ class PricingService
 
         return [
             'unit_price' => $basePrice,
-            'discount' => $discount,
-            'total' => $total - $discount
+            'discount' => min($discount, $total),
+            'total' => max(0, $total - $discount),
         ];
     }
 }

@@ -20,9 +20,6 @@ class Order extends Model
         'shipping_cost',
         'grand_total',
         'coupon_id',
-        'payment_method',
-        'payment_status',
-        'order_status',
         'placed_at',
         'confirmed_at',
         'shipped_at',
@@ -89,8 +86,7 @@ class Order extends Model
      */
     public function isLateToShip(): bool
     {
-        if ($this->shipped_at) return false;
-
+        if ($this->shipped_at || !$this->placed_at) return false;
         return $this->placed_at->addHours(48)->isPast();
     }
 }

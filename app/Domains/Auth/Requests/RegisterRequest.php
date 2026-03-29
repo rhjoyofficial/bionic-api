@@ -11,6 +11,13 @@ class RegisterRequest extends FormRequest
     return true;
   }
 
+  protected function prepareForValidation(): void
+  {
+    $this->merge([
+      'phone' => preg_replace('/[^0-9]/', '', $this->phone),
+    ]);
+  }
+
   public function rules(): array
   {
     return [

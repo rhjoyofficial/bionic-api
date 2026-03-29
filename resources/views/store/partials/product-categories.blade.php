@@ -48,9 +48,9 @@
             @endforelse
         </div>
 
-        <a href="{{ route('products.index') }}"
+        {{-- <a href="{{ route('products.index') }}"
             class="inline-block px-10 py-3 bg-primary text-white font-heading font-bold rounded-full shadow-lg hover:shadow-primary/30 transition-all active:scale-95">
             View All Products
-        </a>
+        </a> --}}
     </div>
 </section>

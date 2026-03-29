@@ -11,7 +11,7 @@ class ProductRelationService
         return ProductRelation::create([
             'product_id' => $productId,
             'related_product_id' => $relatedId,
-            'type' => $type
+            'relation_type' => $type
         ]);
     }
 

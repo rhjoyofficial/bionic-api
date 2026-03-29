@@ -31,11 +31,14 @@ class ProductLandingResource extends JsonResource
             ],
 
             'variants' => $this->variants->map(function ($v) {
-
                 return [
                     'id' => $v->id,
                     'title' => $v->title,
-                    'price' => $v->price
+                    'sku' => $v->sku,
+                    'price' => (float) $v->price,
+                    'final_price' => (float) $v->final_price,
+                    'discount_percent' => $v->discount_percent,
+                    'available_stock' => $v->available_stock,
                 ];
             }),
 

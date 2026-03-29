@@ -5,6 +5,7 @@ namespace App\Domains\Order\Controllers;
 use App\Domains\Order\Enums\OrderStatus;
 use App\Domains\Order\Models\Order;
 use App\Domains\Order\Requests\UpdateOrderStatusRequest;
+use App\Domains\Order\Resources\OrderResource;
 use App\Domains\Order\Services\OrderStatusService;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
@@ -17,7 +18,7 @@ class AdminOrderController extends Controller
     {
         try {
             $orders = Order::query()
-                ->with(['items', 'coupon', 'shippingZone'])
+                ->with(['items', 'coupon', 'zone'])
                 ->latest()
                 ->paginate(10);
 
@@ -31,7 +32,7 @@ class AdminOrderController extends Controller
     {
         try {
             return ApiResponse::success(
-                $order->load(['items', 'coupon', 'shippingZone']),
+                new OrderResource($order->load(['items', 'coupon', 'zone'])),
                 'Order details retrieved',
             );
         } catch (Exception $e) {

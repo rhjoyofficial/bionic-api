@@ -40,7 +40,7 @@ class CheckoutController extends Controller
             ]);
 
             return ApiResponse::error(
-                $e->getMessage() ?: 'Order failed',
+                'Order could not be placed. Please try again.',
                 config('app.debug') ? $e->getMessage() : null,
                 $this->resolveStatus($e),
             );

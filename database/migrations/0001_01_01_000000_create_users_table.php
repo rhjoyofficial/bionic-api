@@ -21,6 +21,10 @@ return new class extends Migration
             $table->boolean('is_guest')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamp('last_login_at')->nullable();
+
+            $table->string('referral_code')->nullable()->unique();
+            $table->foreignId('referred_by')->nullable()->constrained('users')->nullOnDelete();
+
             $table->rememberToken();
             $table->timestamps();
         });

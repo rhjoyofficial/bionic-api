@@ -18,10 +18,10 @@ return new class extends Migration
             $table->foreignId('user_id')
                 ->nullable()
                 ->constrained()
-                ->nullOnDelete();
+                ->restrictOnDelete();
 
-            $table->string('customer_name');
-            $table->string('customer_phone');
+            $table->string('customer_name', 150);
+            $table->string('customer_phone', 20);
             $table->string('customer_email')->nullable();
 
             $table->foreignId('zone_id')
@@ -35,7 +35,7 @@ return new class extends Migration
             $table->foreignId('coupon_id')
                 ->nullable()
                 ->constrained()
-                ->nullOnDelete();
+                ->restrictOnDelete();
 
             $table->enum('payment_method', ['cod', 'sslcommerz'])->default('cod');
             $table->enum('payment_status', ['unpaid', 'paid', 'failed'])->default('unpaid');
@@ -58,7 +58,13 @@ return new class extends Migration
 
             $table->text('notes')->nullable();
             $table->string('checkout_token')->nullable()->unique();
+
+            $table->string('coupon_code_snapshot')->nullable();
+            $table->decimal('coupon_discount', 10, 2)->default(0);
+
             $table->timestamps();
+            $table->timestamp('processing_at')->nullable();
+
 
             $table->index(['order_status', 'customer_phone']);
             $table->index(['placed_at', 'delivered_at']);

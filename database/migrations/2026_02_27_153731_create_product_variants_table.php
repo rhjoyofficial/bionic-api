@@ -24,12 +24,13 @@ return new class extends Migration
             $table->enum('discount_type', ['percentage', 'fixed'])->nullable();
             $table->decimal('discount_value', 10, 2)->nullable();
             $table->timestamp('sale_ends_at')->nullable();
-            $table->integer('stock')->nullable();
-            $table->integer('reserved_stock')->nullable();
+            $table->unsignedInteger('stock')->default(0);
+            $table->unsignedInteger('reserved_stock')->default(0);
             $table->integer('weight_grams')->nullable();
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();
+            $table->index(['product_id', 'is_active']);
         });
     }
 

@@ -10,26 +10,26 @@ use App\Domains\Product\Controllers\ProductRelationController;
 use App\Domains\Webhook\Controllers\AdminWebhookController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         return response()->json(['message' => 'Admin Access']);
     });
     // Categories
     Route::get('categories', [AdminCategoryController::class, 'index'])->middleware('permission:category.view');
 
-    Route::post('categories', [AdminCategoryController::class, 'store']);
+    Route::post('categories', [AdminCategoryController::class, 'store'])->middleware('permission:category.create');
 
-    Route::put('categories/{category}', [AdminCategoryController::class, 'update']);
+    Route::put('categories/{category}', [AdminCategoryController::class, 'update'])->middleware('permission:category.update');
 
-    Route::delete('categories/{category}', [AdminCategoryController::class, 'destroy']);
+    Route::delete('categories/{category}', [AdminCategoryController::class, 'destroy'])->middleware('permission:category.delete');
     // Products
     Route::get('products', [AdminProductController::class, 'index'])->middleware('permission:product.view');
 
-    Route::post('products', [AdminProductController::class, 'store']);
+    Route::post('products', [AdminProductController::class, 'store'])->middleware('permission:product.create');
 
-    Route::put('products/{product}', [AdminProductController::class, 'update']);
+    Route::put('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:product.update');
 
-    Route::delete('products/{product}', [AdminProductController::class, 'destroy']);
+    Route::delete('products/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:product.delete');
     // Product Tier
     Route::post('products/{variant}/tier-prices', [ProductTierPriceController::class, 'store']);
 
@@ -41,9 +41,9 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(functi
     // Order Management
     Route::get('orders', [AdminOrderController::class, 'index'])->middleware('permission:order.view');
 
-    Route::get('orders/{order}', [AdminOrderController::class, 'show']);
+    Route::get('orders/{order}', [AdminOrderController::class, 'show'])->middleware('permission:order.view');
 
-    Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus']);
+    Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
     // Product Relation
     Route::post('/product-relations', [ProductRelationController::class, 'store']);
     Route::delete('/product-relations', [ProductRelationController::class, 'destroy']);

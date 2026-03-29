@@ -21,6 +21,9 @@ class User extends Authenticatable
         'is_guest',
         'is_active',
         'last_login_at',
+        'referred_by',
+        'referral_code'
+
     ];
 
     protected $hidden = [
