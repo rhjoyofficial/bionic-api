@@ -10,8 +10,12 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'variant_id',
+        'sku_snapshot',
         'product_name_snapshot',
         'variant_title_snapshot',
+        'original_unit_price',
+        'discount_type_snapshot',
+        'discount_value_snapshot',
         'quantity',
         'unit_price',
         'total_price'

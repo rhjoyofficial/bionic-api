@@ -178,9 +178,17 @@ class CartService
     public function releaseReservedStock(Cart $cart)
     {
         foreach ($cart->items as $item) {
-
-            ProductVariant::where('id', $item->variant_id)
-                ->decrement('reserved_stock', $item->quantity);
+            if ($item->combo_id) {
+                $combo = Combo::with('items.variant')->find($item->combo_id);
+                if ($combo) {
+                    foreach ($combo->items as $ci) {
+                        $ci->variant->decrement('reserved_stock', $ci->quantity * $item->quantity);
+                    }
+                }
+            } elseif ($item->variant_id) {
+                ProductVariant::where('id', $item->variant_id)
+                    ->decrement('reserved_stock', $item->quantity);
+            }
         }
     }
 }
