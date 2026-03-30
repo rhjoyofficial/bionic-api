@@ -172,19 +172,20 @@ class OrderService
                     $couponDiscount = $couponResult['discount'];
                     $couponId = $coupon->id;
 
-                    $affected = Coupon::where('id', $coupon->id)
-                        ->whereColumn('used_count', '<', 'usage_limit')
-                        ->increment('used_count');
+                    $alreadyUsed = CouponUsage::where('order_id', $order->id)->where('coupon_id', $couponId)->exists();
+                    if (!$alreadyUsed) {
+                        $affected = Coupon::where('id', $coupon->id)->whereColumn('used_count', '<', 'usage_limit')->increment('used_count');
 
-                    CouponUsage::create([
-                        'coupon_id' => $couponId,
-                        'user_id' => Auth::id(),
-                        'order_id' => $order->id,
-                        'discount_amount' => $couponDiscount,
-                    ]);
+                        CouponUsage::create([
+                            'coupon_id' => $couponId,
+                            'user_id' => Auth::id(),
+                            'order_id' => $order->id,
+                            'discount_amount' => $couponDiscount,
+                        ]);
 
-                    if (!$affected) {
-                        throw new Exception("Coupon exhausted");
+                        if (!$affected) {
+                            throw new Exception("Coupon exhausted");
+                        }
                     }
                 }
 

@@ -7,9 +7,13 @@ use App\Domains\Product\Models\ProductVariant;
 use App\Models\Combo;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use App\Domains\Product\Services\PricingService;
 
 class CartService
 {
+    public function __construct(
+        private PricingService $pricingService
+    ) {}
     public function getCart(?int $userId, ?string $sessionToken): Cart
     {
         if ($userId) {
@@ -66,16 +70,24 @@ class CartService
             if ($item) {
                 $newQty = $item->quantity + $qty;
 
-                if (! $variant->hasStock($newQty)) {    // check TOTAL quantity against stock
-                    throw new Exception("Stock limit reached");
+                if (!$variant->hasStock($newQty)) {
+                    throw new \Exception("Stock limit reached. Only {$variant->available_stock} left.");
                 }
 
-                $item->increment('quantity', $qty);
+                // $item->increment('quantity', $qty);
+                $item->update([
+                    'quantity' => $newQty,
+                    'unit_price_snapshot' => $variant->final_price,
+                    'product_name_snapshot' => $variant->product->name,
+                    'variant_title_snapshot' => $variant->title,
+                ]);
+
                 $variant->increment('reserved_stock', $qty);
                 return $item;
             }
 
             $variant->increment('reserved_stock', $qty);
+
 
             return $cart->items()->create([
                 'variant_id' => $variantId,
@@ -154,23 +166,45 @@ class CartService
 
             if ($diff === 0) return $item;
 
+            // 1. Handle Combo Items (Usually fixed price, but we refresh the snapshot anyway)
             if ($item->combo_id) {
-                $combo = Combo::with('items.variant')->findOrFail($item->combo_id);
+                $combo = \App\Models\Combo::with('items.variant')->findOrFail($item->combo_id);
+
                 if ($diff > 0 && $combo->available_stock < $diff) {
                     throw new Exception("Insufficient stock for bundle update.");
                 }
+
                 foreach ($combo->items as $ci) {
                     $ci->variant->increment('reserved_stock', $ci->quantity * $diff);
                 }
+
+                // Refresh snapshot from the combo's current final price
+                $item->update([
+                    'quantity' => $newQty,
+                    'unit_price_snapshot' => $combo->final_price
+                ]);
+
+                // 2. Handle Regular Variants (The Tier Pricing Logic)
             } else {
-                $variant = ProductVariant::lockForUpdate()->findOrFail($item->variant_id);
+                $variant = \App\Domains\Product\Models\ProductVariant::lockForUpdate()
+                    ->findOrFail($item->variant_id);
+
                 if ($diff > 0 && !$variant->hasStock($diff)) {
                     throw new Exception("Insufficient stock.");
                 }
+
+                // RECALCULATE PRICING BASED ON NEW QUANTITY
+                $pricing = $this->pricingService->calculate($variant, $newQty);
+
                 $variant->increment('reserved_stock', $diff);
+
+                // Update both quantity AND the new unit price snapshot
+                $item->update([
+                    'quantity' => $newQty,
+                    'unit_price_snapshot' => $pricing['unit_price'] // This captures the tier discount!
+                ]);
             }
 
-            $item->update(['quantity' => $newQty]);
             return $item;
         });
     }
@@ -190,5 +224,34 @@ class CartService
                     ->decrement('reserved_stock', $item->quantity);
             }
         }
+    }
+
+    public function syncCartPrices(Cart $cart): bool
+    {
+        $anyPriceChanged = false;
+
+        DB::transaction(function () use ($cart, &$anyPriceChanged) {
+            $cart->load(['items.variant.tierPrices', 'items.combo']);
+
+            foreach ($cart->items as $item) {
+                $currentPrice = $item->unit_price_snapshot;
+                $newPrice = $currentPrice;
+
+                if ($item->combo_id && $item->combo) {
+                    $newPrice = $item->combo->final_price;
+                } elseif ($item->variant) {
+                    $pricing = $this->pricingService->calculate($item->variant, $item->quantity);
+                    $newPrice = $pricing['unit_price'];
+                }
+
+                // Check if the price shifted
+                if ((float)$currentPrice !== (float)$newPrice) {
+                    $item->update(['unit_price_snapshot' => $newPrice]);
+                    $anyPriceChanged = true;
+                }
+            }
+        });
+
+        return $anyPriceChanged;
     }
 }

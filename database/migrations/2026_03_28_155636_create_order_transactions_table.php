@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
+
+            $table->index(['order_id', 'type']);
         });
     }
 

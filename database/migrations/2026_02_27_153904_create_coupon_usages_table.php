@@ -22,6 +22,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['coupon_id', 'user_id']);
+            $table->unique(['coupon_id', 'order_id']);
         });
     }
 

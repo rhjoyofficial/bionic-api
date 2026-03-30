@@ -10,51 +10,69 @@ use App\Domains\Product\Controllers\ProductRelationController;
 use App\Domains\Webhook\Controllers\AdminWebhookController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:Admin'])->group(function () {
+
     Route::get('/dashboard', function () {
         return response()->json(['message' => 'Admin Access']);
     });
-    // Categories
-    Route::get('categories', [AdminCategoryController::class, 'index'])->middleware('permission:category.view');
 
-    Route::post('categories', [AdminCategoryController::class, 'store'])->middleware('permission:category.create');
+    // --- Categories ---
+    Route::group(['prefix' => 'categories'], function () {
+        Route::get('/', [AdminCategoryController::class, 'index'])->middleware('permission:category.view');
+        Route::post('/', [AdminCategoryController::class, 'store'])->middleware('permission:category.create');
+        Route::put('/{category}', [AdminCategoryController::class, 'update'])->middleware('permission:category.update');
+        Route::delete('/{category}', [AdminCategoryController::class, 'destroy'])->middleware('permission:category.delete');
+    });
 
-    Route::put('categories/{category}', [AdminCategoryController::class, 'update'])->middleware('permission:category.update');
-
-    Route::delete('categories/{category}', [AdminCategoryController::class, 'destroy'])->middleware('permission:category.delete');
-    // Products
+    // --- Products & Variants ---
     Route::get('products', [AdminProductController::class, 'index'])->middleware('permission:product.view');
-
     Route::post('products', [AdminProductController::class, 'store'])->middleware('permission:product.create');
-
     Route::put('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:product.update');
-
     Route::delete('products/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:product.delete');
-    // Product Tier
-    Route::post('products/{variant}/tier-prices', [ProductTierPriceController::class, 'store']);
 
-    Route::delete('products/{variant}/tier-prices/{tierId}',  [ProductTierPriceController::class, 'destroy']);
-    // Shipping Zone
-    Route::apiResource('shipping-zones', AdminShippingZoneController::class);
-    // Coupons
-    Route::apiResource('coupons', AdminCouponController::class);
-    // Order Management
+    // --- Product Tier Prices ---
+    Route::group(['middleware' => 'permission:product.update'], function () {
+        Route::post('products/{variant}/tier-prices', [ProductTierPriceController::class, 'store']);
+        Route::delete('products/{variant}/tier-prices/{tierId}', [ProductTierPriceController::class, 'destroy']);
+
+        // Product Relations 
+        Route::post('/product-relations', [ProductRelationController::class, 'store']);
+        Route::delete('/product-relations', [ProductRelationController::class, 'destroy']);
+    });
+
+    // --- Shipping Zones ---
+    Route::group(['prefix' => 'shipping-zones'], function () {
+        Route::middleware('permission:shipping.view')->group(function () {
+            Route::get('/', [AdminShippingZoneController::class, 'index']);
+            Route::get('/{shipping_zone}', [AdminShippingZoneController::class, 'show']);
+        });
+
+        Route::post('/', [AdminShippingZoneController::class, 'store'])->middleware('permission:shipping.create');
+        Route::put('/{shipping_zone}', [AdminShippingZoneController::class, 'update'])->middleware('permission:shipping.update');
+        Route::delete('/{shipping_zone}', [AdminShippingZoneController::class, 'destroy'])->middleware('permission:shipping.delete');
+    });
+
+    // --- Coupons ---
+    Route::group(['prefix' => 'coupons'], function () {
+        Route::middleware('permission:coupon.view')->group(function () {
+            Route::get('/', [AdminCouponController::class, 'index']);
+            Route::get('/{coupon}', [AdminCouponController::class, 'show']);
+        });
+
+        Route::post('/', [AdminCouponController::class, 'store'])->middleware('permission:coupon.create');
+        Route::put('/{coupon}', [AdminCouponController::class, 'update'])->middleware('permission:coupon.update');
+        Route::delete('/{coupon}', [AdminCouponController::class, 'destroy'])->middleware('permission:coupon.delete');
+    });
+
+    // --- Order Management ---
     Route::get('orders', [AdminOrderController::class, 'index'])->middleware('permission:order.view');
-
     Route::get('orders/{order}', [AdminOrderController::class, 'show'])->middleware('permission:order.view');
-
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
-    // Product Relation
-    Route::post('/product-relations', [ProductRelationController::class, 'store']);
-    Route::delete('/product-relations', [ProductRelationController::class, 'destroy']);
 
-    Route::get('/webhooks', [AdminWebhookController::class, 'index']);
-
-    Route::post('/webhooks', [AdminWebhookController::class, 'store']);
-
-    Route::delete('/webhooks/{webhook}', [AdminWebhookController::class, 'destroy']);
+    // --- System / Webhooks ---
+    Route::group(['middleware' => 'permission:system.webhooks'], function () {
+        Route::get('/webhooks', [AdminWebhookController::class, 'index']);
+        Route::post('/webhooks', [AdminWebhookController::class, 'store']);
+        Route::delete('/webhooks/{webhook}', [AdminWebhookController::class, 'destroy']);
+    });
 });
-
-
-// Route::middleware(['auth:sanctum', 'permission:product.create'])
-//     ->post('/admin/products', [ProductController::class, 'store']);

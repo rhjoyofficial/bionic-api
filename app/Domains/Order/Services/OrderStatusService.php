@@ -13,21 +13,29 @@ class OrderStatusService
 {
     public function changeStatus(Order $order, OrderStatus $newStatus): Order
     {
-        $oldStatus = $order->order_status;
+        $oldStatusStr = $order->order_status;
 
-        if (!$this->isValidTransition($oldStatus, $newStatus->value)) {
-            throw new Exception("Invalid status transition from {$oldStatus} to {$newStatus->value}");
+        if (!$this->isValidTransition($oldStatusStr, $newStatus->value)) {
+            throw new Exception("Invalid status transition from {$oldStatusStr} to {$newStatus->value}");
         }
 
         try {
-            return DB::transaction(function () use ($order, $newStatus, $oldStatus) {
+            return DB::transaction(function () use ($order, $newStatus, $oldStatusStr) {
+                // Lock the order for update to prevent race conditions during status changes
                 $order = Order::lockForUpdate()->findOrFail($order->id);
-                $oldStatus = $order->order_status;
 
-                if (!$this->isValidTransition($oldStatus, $newStatus->value)) {
-                    throw new Exception("Invalid status transition from {$oldStatus} to {$newStatus->value}");
+                // 1. Inventory Logic: Handle Transitions
+                // Only fulfill stock if we are moving TO Shipped from a non-shipped state
+                if ($newStatus === OrderStatus::Shipped && $oldStatusStr !== 'shipped') {
+                    $this->fulfillStock($order);
                 }
-                // 1. Update Status & Timestamps
+
+                // Handle Cancellation
+                if ($newStatus === OrderStatus::Cancelled) {
+                    $this->releaseStock($order);
+                }
+
+                // 2. Update Status & Timestamps
                 $order->order_status = $newStatus->value;
 
                 match ($newStatus) {
@@ -39,14 +47,9 @@ class OrderStatusService
                     default => null
                 };
 
-                // 2. Inventory Logic: Handle Cancellation
-                if ($newStatus === OrderStatus::Cancelled) {
-                    $this->releaseStock($order);
-                }
-
                 $order->save();
 
-                event(new OrderStatusChanged($order, $oldStatus, $newStatus->value));
+                event(new OrderStatusChanged($order, $oldStatusStr, $newStatus->value));
 
                 return $order;
             });
@@ -57,19 +60,42 @@ class OrderStatusService
     }
 
     /**
-     * Release reserved stock back to the available pool.
+     * Finalize the inventory: Move items out of 'reserved' and out of 'physical stock'.
+     */
+    private function fulfillStock(Order $order): void
+    {
+        foreach ($order->items as $item) {
+            if ($item->variant) {
+                // Atomic update: Reduce physical stock and clear the reservation
+                $item->variant->decrement('stock', $item->quantity);
+                $item->variant->decrement('reserved_stock', $item->quantity);
+            }
+
+            // If you have Combo items, you must also deduct stock for each variant inside the combo
+            if ($item->combo_id && $item->combo) {
+                foreach ($item->combo->items as $comboItem) {
+                    $comboItem->variant->decrement('stock', $comboItem->quantity * $item->quantity);
+                    $comboItem->variant->decrement('reserved_stock', $comboItem->quantity * $item->quantity);
+                }
+            }
+        }
+    }
+
+    /**
+     * Release reserved stock back to the available pool (for cancellations).
      */
     private function releaseStock(Order $order): void
     {
         foreach ($order->items as $item) {
             if ($item->variant) {
-                // Use atomic increments/decrements to avoid race conditions
+                // Only reduce the reservation. The physical 'stock' stays the same because it never left.
                 $item->variant->decrement('reserved_stock', $item->quantity);
+            }
 
-                // Note: We only increment 'stock' if the item was already deducted 
-                // from physical inventory (e.g., at shipping). 
-                // If it was just 'reserved', we only decrease reservation.
-                // Assuming reservation-only logic for pending orders:
+            if ($item->combo_id && $item->combo) {
+                foreach ($item->combo->items as $comboItem) {
+                    $comboItem->variant->decrement('reserved_stock', $comboItem->quantity * $item->quantity);
+                }
             }
         }
     }
@@ -79,7 +105,7 @@ class OrderStatusService
         $allowed = [
             'pending'    => ['confirmed', 'cancelled'],
             'confirmed'  => ['processing', 'cancelled'],
-            'processing' => ['shipped', 'cancelled'], // Added cancelled to processing
+            'processing' => ['shipped', 'cancelled'],
             'shipped'    => ['delivered', 'returned'],
             'delivered'  => [],
             'cancelled'  => [],
