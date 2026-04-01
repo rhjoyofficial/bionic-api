@@ -3,8 +3,9 @@
 namespace App\Domains\Cart\Services;
 
 use App\Domains\Cart\Models\Cart;
+use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Models\ProductVariant;
-use App\Models\Combo;
+
 use Exception;
 use Illuminate\Support\Facades\DB;
 use App\Domains\Product\Services\PricingService;
@@ -168,7 +169,7 @@ class CartService
 
             // 1. Handle Combo Items (Usually fixed price, but we refresh the snapshot anyway)
             if ($item->combo_id) {
-                $combo = \App\Models\Combo::with('items.variant')->findOrFail($item->combo_id);
+                $combo = Combo::with('items.variant')->findOrFail($item->combo_id);
 
                 if ($diff > 0 && $combo->available_stock < $diff) {
                     throw new Exception("Insufficient stock for bundle update.");

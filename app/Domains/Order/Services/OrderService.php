@@ -13,7 +13,7 @@ use App\Domains\Product\Services\PricingService;
 use App\Domains\Shipping\Models\ShippingZone;
 use App\Domains\Shipping\Services\ShippingCalculator;
 use App\Events\OrderCreated;
-use App\Models\Combo;
+use App\Domains\Product\Models\Combo;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;

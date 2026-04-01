@@ -8,7 +8,7 @@ use App\Domains\Store\Models\HeroBanner;
 use App\Http\Controllers\Controller;
 use App\Domains\Product\Resources\ProductTierResource;
 use App\Domains\Product\Resources\ProductVariantResource;
-use App\Models\Combo;
+use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Resources\ProductResource;
 use Illuminate\Http\Request;
 
