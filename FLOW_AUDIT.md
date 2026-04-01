@@ -271,3 +271,401 @@ The regex `/^[a-zA-Z0-9\-]{32,}$/` has no upper bound on length. An attacker cou
 2. CRIT-2 (pricing path split) -- customers see wrong prices after qty change
 3. CRIT-4 (ineffective locking) -- race conditions under concurrent load
 4. HIGH-4 (negative reserved_stock) -- can enable overselling
+
+---
+---
+
+## Checkout Flow Audit
+
+**Scope:** Cart -> Checkout -> Coupon -> Shipping -> Payment -> Order
+**Date:** 2026-04-01
+
+---
+
+### Critical Issues
+
+#### CRIT-5: OrderItem model missing `combo_id` in $fillable — combo orders silently broken
+
+**Files:**
+- `app/Domains/Order/Models/OrderItem.php:9-22` ($fillable)
+- `app/Domains/Order/Services/OrderService.php:107-115` (combo item creation)
+
+`OrderService::create()` creates order items with `'combo_id' => $combo->id` (line 108), but the `OrderItem` model's `$fillable` array does **not** include `combo_id`. Eloquent silently strips unfillable attributes, so `combo_id` is **never saved** to the database.
+
+**Downstream impact:**
+- `OrderStatusService::fulfillStock()` checks `$item->combo_id` (line 75) — always null, so combo stock is **never deducted** on shipment.
+- `OrderStatusService::releaseStock()` checks `$item->combo_id` (line 95) — always null, so combo reserved_stock is **never released** on cancellation.
+- Combo inventory permanently leaks on every combo order.
+
+**Fix:** Add `'combo_id'` to `OrderItem::$fillable` and add a `combo()` BelongsTo relationship.
+
+---
+
+#### CRIT-6: OrderItem has no combo() relationship — fulfillStock and releaseStock crash
+
+**Files:**
+- `app/Domains/Order/Models/OrderItem.php` (missing relationship)
+- `app/Domains/Order/Services/OrderStatusService.php:75-79` (fulfillStock)
+- `app/Domains/Order/Services/OrderStatusService.php:95-99` (releaseStock)
+
+Both `fulfillStock()` and `releaseStock()` access `$item->combo` and `$item->combo->items`, but `OrderItem` has no `combo()` relationship defined. Even if CRIT-5 is fixed and `combo_id` is saved, these methods would throw `BadMethodCallException` or return null.
+
+**Fix:** Add to `OrderItem`:
+```php
+public function combo(): BelongsTo
+{
+    return $this->belongsTo(\App\Domains\Product\Models\Combo::class);
+}
+```
+
+---
+
+#### CRIT-7: Cart cleared before order items are validated — race window for stock
+
+**File:** `app/Domains/Order/Services/OrderService.php:41-43`
+
+```php
+if ($cart) {
+    $this->cartService->clearCart($cart);
+}
+```
+
+`clearCart()` is called at the **top** of the transaction, **before** `loadVariantsForItems()` acquires `lockForUpdate` on variants. `clearCart` releases all `reserved_stock` for cart items. Between this release and when `loadVariantsForItems` (line 62) acquires row-level locks, a concurrent transaction can see the freed stock and claim it.
+
+The correct sequence should be: lock variants first, then release cart stock, then validate and re-reserve for the order.
+
+**Fix:** Move `clearCart($cart)` to after `loadVariantsForItems()`, or better yet, after all order items are created and stock is re-reserved. Alternatively, have the order creation skip re-reserving and instead convert the cart's existing reservations directly into order reservations.
+
+---
+
+#### CRIT-8: Coupon usage recorded before verifying coupon was actually incremented
+
+**File:** `app/Domains/Order/Services/OrderService.php:175-188`
+
+```php
+$alreadyUsed = CouponUsage::where('order_id', $order->id)->where('coupon_id', $couponId)->exists();
+if (!$alreadyUsed) {
+    $affected = Coupon::where('id', $coupon->id)
+        ->whereColumn('used_count', '<', 'usage_limit')
+        ->increment('used_count');
+
+    CouponUsage::create([...]);  // Created BEFORE checking $affected
+
+    if (!$affected) {
+        throw new Exception("Coupon exhausted");
+    }
+}
+```
+
+`CouponUsage::create()` runs at line 179 **before** the `$affected` check at line 186. If the coupon is exhausted (`$affected === 0`), the exception rolls back the transaction, so the usage record is also rolled back — this is safe due to the transaction.
+
+**However**, the real issue is that `$couponDiscount` was already calculated at line 166-172 using `CouponValidationService::validate()` which reads `used_count` **without a lock**. The coupon's `isValidForUser()` check also reads without a lock. Between the validation read and the atomic increment, other concurrent checkouts can all pass validation and get discount amounts calculated, then only one succeeds the increment. The others throw "Coupon exhausted" — but they already computed and used the discount value in `$grandTotal` calculation at line 195. Since the exception rolls back the transaction, this is technically safe, but it means customers see a "coupon applied" state that fails at the last moment.
+
+**Fix:** Move the coupon increment + validation to happen atomically before calculating `$grandTotal`. Consider using `lockForUpdate` when reading the coupon.
+
+---
+
+#### CRIT-9: CheckoutRequest rejects combo orders — validation requires variant_id for all items
+
+**File:** `app/Domains/Order/Requests/CheckoutRequest.php:26-27`
+
+```php
+'items.*.variant_id' => 'required|exists:product_variants,id',
+'items.*.quantity' => 'required|integer|min:1',
+```
+
+`variant_id` is **required** for every item. But `OrderService::create()` (line 88) expects combo items to have `combo_id` instead of `variant_id`. Combo orders cannot pass request validation.
+
+**Fix:**
+```php
+'items.*.variant_id' => 'nullable|required_without:items.*.combo_id|exists:product_variants,id',
+'items.*.combo_id'   => 'nullable|required_without:items.*.variant_id|exists:combos,id',
+'items.*.quantity'   => 'required|integer|min:1',
+```
+
+---
+
+### High Issues
+
+#### HIGH-7: checkout_token idempotency has no unique constraint — duplicate orders possible
+
+**File:** `app/Domains/Order/Services/OrderService.php:45-49`
+
+```php
+if (!empty($data['checkout_token'])) {
+    $existing = Order::where('checkout_token', $data['checkout_token'])->first();
+    if ($existing) return $existing;
+}
+```
+
+This check-then-act is not atomic. Two concurrent requests with the same `checkout_token` can both pass the `->first()` check (both return null) and both create orders. There is no unique database constraint on `checkout_token` (it's nullable and in `$fillable` but not shown with a unique index).
+
+**Fix:** Add a unique index on `checkout_token` (where not null) in a migration. Catch the unique constraint violation as a fallback.
+
+---
+
+#### HIGH-8: fulfillStock double-deducts stock for combo items that also have variant_id
+
+**File:** `app/Domains/Order/Services/OrderStatusService.php:66-80`
+
+```php
+foreach ($order->items as $item) {
+    if ($item->variant) {                    // Block A: processes variant
+        $item->variant->decrement('stock', $item->quantity);
+        $item->variant->decrement('reserved_stock', $item->quantity);
+    }
+    if ($item->combo_id && $item->combo) {   // Block B: processes combo
+        foreach ($item->combo->items as $comboItem) { ... }
+    }
+}
+```
+
+Block A and Block B are **not mutually exclusive** (`if`, not `elseif`). If an order item has both `variant_id` and `combo_id` set, stock is deducted twice: once via Block A (variant-level) and once via Block B (combo component-level). The same pattern exists in `releaseStock()`.
+
+Currently CRIT-5 prevents `combo_id` from being saved, masking this bug. Once CRIT-5 is fixed, this will surface.
+
+**Fix:** Use `elseif` or prioritize combo processing:
+```php
+if ($item->combo_id && $item->combo) {
+    // combo logic
+} elseif ($item->variant) {
+    // variant logic
+}
+```
+
+---
+
+#### HIGH-9: fulfillStock and releaseStock don't lock variants
+
+**File:** `app/Domains/Order/Services/OrderStatusService.php:65-80, 87-100`
+
+Neither `fulfillStock()` nor `releaseStock()` use `lockForUpdate()` when decrementing `stock` and `reserved_stock`. Concurrent status changes (e.g., admin clicks "Ship" twice rapidly) can corrupt inventory counts. While `changeStatus()` locks the **order** row (line 25), the **variant** rows are not locked.
+
+**Fix:** Lock variant rows before decrementing:
+```php
+$variant = ProductVariant::lockForUpdate()->find($item->variant_id);
+$variant->decrement('stock', $item->quantity);
+$variant->decrement('reserved_stock', $item->quantity);
+```
+
+---
+
+#### HIGH-10: Coupon fixed-amount discount not capped at order subtotal
+
+**Files:**
+- `app/Domains/Coupon/Services/CouponValidationService.php:42-43`
+- `app/Domains/Order/Services/OrderService.php:195`
+
+```php
+// CouponValidationService
+return $coupon->value;  // No cap — returns full value even if it exceeds order amount
+```
+
+A fixed coupon of BDT 500 on a BDT 200 order returns `discount = 500`. While `max(0, ...)` at OrderService line 195 prevents a negative grand_total, the stored `discount_total` (line 199) will be `$discountTotal + 500` which exceeds the subtotal. The `CouponUsage.discount_amount` also records 500, inflating discount analytics.
+
+**Fix:** Cap in CouponValidationService:
+```php
+return min($coupon->value, $amount);
+```
+
+---
+
+#### HIGH-11: Shipping free-shipping threshold evaluated before coupon discount
+
+**File:** `app/Domains/Order/Services/OrderService.php:192-193`
+
+```php
+$shippingCost = $this->shippingCalculator
+    ->calculate($zone, $subtotal - $discountTotal);  // $discountTotal = tier discounts only (no coupon yet)
+```
+
+Shipping is calculated using `$subtotal - $discountTotal` which only includes tier pricing discounts, **not** the coupon discount. If the free shipping threshold is BDT 1000, and the order is BDT 1200 before coupon but BDT 800 after a BDT 400 coupon, the customer still gets free shipping.
+
+This may be intentional (free shipping based on pre-coupon amount), but if not:
+
+**Fix:** Calculate shipping after coupon is applied:
+```php
+$amountAfterAllDiscounts = $subtotal - $discountTotal - $couponDiscount;
+$shippingCost = $this->shippingCalculator->calculate($zone, $amountAfterAllDiscounts);
+```
+
+---
+
+#### HIGH-12: Order hardcoded to COD — no payment method selection
+
+**Files:**
+- `app/Domains/Order/Services/OrderService.php:73` (`'payment_method' => 'cod'`)
+- `app/Domains/Order/Requests/CheckoutRequest.php` (no `payment_method` field)
+
+Every order is created with `payment_method = 'cod'` regardless of user intent. The `CheckoutRequest` has no field for payment method. The `OrderTransaction` model exists but is never used during checkout. There is no SSL/online payment integration path.
+
+**Fix:** Add `'payment_method' => 'required|in:cod,online'` to CheckoutRequest. Branch the order flow: for COD, proceed as now; for online, set `payment_status = 'pending'` and integrate a payment gateway callback that calls `ConfirmOrderAction`.
+
+---
+
+#### HIGH-13: Combo order items use stale combo data — not using locked variants
+
+**File:** `app/Domains/Order/Services/OrderService.php:89, 237`
+
+`loadVariantsForItems()` (line 237) correctly loads and locks all variant IDs including combo component variants via `lockForUpdate()`. But the combo processing loop at line 89 loads the combo fresh:
+
+```php
+$combo = Combo::with('items.variant')->findOrFail($item['combo_id']);
+```
+
+This loads variant data **without a lock** and into **separate model instances** from the ones locked by `loadVariantsForItems()`. The stock checks at line 97 and increments at line 101-104 operate on these unlocked instances, bypassing the row-level locks entirely.
+
+**Fix:** Use the already-locked variants from `$variants` collection:
+```php
+$combo = Combo::with('items')->findOrFail($item['combo_id']);
+foreach ($combo->items as $comboItem) {
+    $component = $variants->get($comboItem->product_variant_id);
+    // ...use the locked $component for stock checks and increments
+}
+```
+
+---
+
+### Medium Issues
+
+#### MED-7: Order subtotal uses base price, discount_total conflates tier + coupon
+
+**File:** `app/Domains/Order/Services/OrderService.php:134, 199`
+
+```php
+$subtotal += $variant->price * $item['quantity'];        // line 134: raw base price
+$discountTotal += $pricing['discount_amount'];            // line 135: tier discount
+// ...
+'discount_total' => $discountTotal + $couponDiscount,     // line 199: tier + coupon merged
+```
+
+The order's `subtotal` is the sum of raw base prices (before any discount), and `discount_total` combines tier discounts and coupon discounts into a single value. There is no way to distinguish tier discounts from coupon discounts on the order record. The `coupon_discount` field exists on the Order model (`$fillable`) but is never populated.
+
+**Fix:** Store `coupon_discount` separately:
+```php
+$order->update([
+    'subtotal'        => $subtotal,
+    'discount_total'  => $discountTotal,         // tier discounts only
+    'coupon_discount' => $couponDiscount,         // coupon discount separately
+    'shipping_cost'   => $shippingCost,
+    'grand_total'     => $grandTotal,
+    'coupon_id'       => $couponId,
+]);
+```
+
+---
+
+#### MED-8: Coupon validation doesn't lock the coupon row — TOCTOU on used_count
+
+**File:** `app/Domains/Coupon/Services/CouponValidationService.php:17`
+
+```php
+$coupon = Coupon::where('code', $code)->first();  // No lock
+```
+
+The coupon is read without `lockForUpdate`. Between this read and the atomic `increment` in `OrderService` (line 177), the `used_count` can change. While the atomic increment itself is safe (it rechecks the condition), the `isValidForUser()` check (which reads `used_count`) can pass for multiple concurrent requests even when only one slot remains.
+
+**Fix:** Use `lockForUpdate()`:
+```php
+$coupon = Coupon::where('code', $code)->lockForUpdate()->first();
+```
+Note: This requires the caller to already be inside a DB transaction, which `OrderService::create()` provides.
+
+---
+
+#### MED-9: Guest per-user coupon limit not enforced
+
+**File:** `app/Domains/Coupon/Models/Coupon.php:52-58`
+
+```php
+if ($user && $this->limit_per_user) {
+    $userUsageCount = $this->usages()->where('user_id', $user->id)->count();
+    if ($userUsageCount >= $this->limit_per_user) return false;
+}
+```
+
+The per-user limit only applies when `$user` is not null. Guest checkouts (where `$user = null`) bypass the per-user limit entirely. A guest can use a `limit_per_user: 1` coupon unlimited times by providing different session tokens.
+
+**Fix:** For guest users, track usage by `checkout_token`, phone number, or IP address.
+
+---
+
+#### MED-10: order_number collision possible under high concurrency
+
+**File:** `app/Domains/Order/Services/OrderService.php:68`
+
+```php
+'order_number' => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(10)),
+```
+
+`Str::random(10)` with uppercase alphanumeric gives ~36^10 combinations (~3.6 trillion), making collision unlikely but not impossible. There is no unique constraint shown on `order_number`. Under high concurrency (flash sales), the same-second random collision risk increases.
+
+**Fix:** Add a unique DB constraint on `order_number`. Use a sequence or UUID as fallback.
+
+---
+
+#### MED-11: Combo order items don't snapshot component details
+
+**File:** `app/Domains/Order/Services/OrderService.php:107-115`
+
+```php
+$order->items()->create([
+    'combo_id' => $combo->id,
+    'product_name_snapshot' => $combo->title,
+    'variant_title_snapshot' => 'Bundle',
+    'original_unit_price'   => $combo->base_price,  // Combo has no 'base_price' attribute
+    ...
+]);
+```
+
+1. `$combo->base_price` is referenced but the `Combo` model has no `base_price` attribute — it has `manual_price` and `auto_price`. This likely stores `null`.
+2. Individual combo components (which products, which variants, what quantities) are not snapshotted. If the combo's composition changes later, the order history is meaningless.
+3. `'variant_title_snapshot' => 'Bundle'` is a hardcoded string, not actual data.
+
+**Fix:** Use `$combo->auto_price` or `$combo->manual_price` for `original_unit_price`. Create `OrderComboItem` records to snapshot individual components.
+
+---
+
+#### MED-12: OrderStatusService reads stale order status after locking
+
+**File:** `app/Domains/Order/Services/OrderStatusService.php:17-25`
+
+```php
+$oldStatusStr = $order->order_status;                           // line 17: read BEFORE lock
+
+if (!$this->isValidTransition($oldStatusStr, $newStatus->value)) {  // line 18: validate with old data
+    throw new Exception("Invalid status transition...");
+}
+
+// Inside transaction:
+$order = Order::lockForUpdate()->findOrFail($order->id);       // line 25: re-fetch with lock
+```
+
+The transition validation at line 18 uses `$oldStatusStr` captured **before** the lock. By the time the lock is acquired at line 25, another request may have already changed the status. The validation passes based on stale data.
+
+**Fix:** Move the `isValidTransition` check inside the transaction, after `lockForUpdate`:
+```php
+return DB::transaction(function () use ($order, $newStatus) {
+    $order = Order::lockForUpdate()->findOrFail($order->id);
+    $oldStatusStr = $order->order_status;  // Read AFTER lock
+    if (!$this->isValidTransition($oldStatusStr, $newStatus->value)) { ... }
+    // ...
+});
+```
+
+---
+
+### Summary
+
+| Severity | Count | Key Theme |
+|----------|-------|-----------|
+| Critical | 5 | Broken combo persistence, stock race window, validation blocks combos |
+| High | 7 | Duplicate orders, double stock deduction, missing locks, uncapped discounts |
+| Medium | 6 | Conflated discounts, coupon TOCTOU, guest limit bypass, stale status |
+
+**Most urgent fixes:**
+1. CRIT-5 + CRIT-6 (combo_id not saved + no relationship) — combo orders are fundamentally broken; inventory never adjusts
+2. CRIT-7 (cart cleared before locking) — stock race condition during checkout
+3. CRIT-9 (validation blocks combos) — combo checkout is impossible via API
+4. HIGH-7 (checkout_token not unique) — duplicate orders under concurrent requests
+5. HIGH-8 (double stock deduction) — will surface once CRIT-5 is fixed
