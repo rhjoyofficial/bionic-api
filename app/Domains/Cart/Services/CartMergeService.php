@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class CartMergeService
 {
+    public function __construct(
+        private CartService $cartService
+    ) {}
+
     public function merge(string $sessionToken, int $userId): void
     {
         DB::transaction(function () use ($sessionToken, $userId) {
@@ -24,6 +28,16 @@ class CartMergeService
                 'user_id' => $userId,
                 'status'  => 'active'
             ]);
+
+            // Release stock for guest items so it returns to 'available'
+            foreach ($guestCart->items as $guestItem) {
+                $this->cartService->releaseReservedStock($guestItem);
+            }
+
+            // Release stock for existing user items to avoid double-counting during the update
+            foreach ($userCart->items as $userItem) {
+                $this->cartService->releaseReservedStock($userItem);
+            }
 
             // 2. Create a dynamic identifier for cart items so Combos and Variants don't collide
             $resolveItemKey = fn($item) => $item->combo_id ? 'combo_' . $item->combo_id : 'variant_' . $item->variant_id;
@@ -76,7 +90,9 @@ class CartMergeService
                 }
             }
 
-            // Clean up the old guest cart
+            $userCart->load('items');
+            $this->cartService->reserveStock($userCart);
+
             $guestCart->delete();
         });
     }

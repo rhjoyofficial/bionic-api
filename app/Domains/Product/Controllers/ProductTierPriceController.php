@@ -22,7 +22,8 @@ class ProductTierPriceController extends Controller
             $validated = $request->validate([
                 'min_quantity' => 'required|integer|min:1',
                 'discount_type' => 'required|in:percentage,fixed',
-                'discount_value' => 'required|numeric|min:0'
+                'discount_value' => 'required|numeric|min:0' . ($request->discount_type === 'percentage' ? '|max:100' : '')
+
             ]);
 
             // Check if a tier for this quantity already exists to avoid confusion

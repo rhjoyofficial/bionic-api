@@ -12,7 +12,7 @@ class PricingService
         int $quantity,
         ?Collection $tiers = null
     ): array {
-        $basePrice = $variant->price;
+        $basePrice = $variant->final_price;
         $total = $basePrice * $quantity;
         $tiers = $tiers ?? $variant->tierPrices;
 
