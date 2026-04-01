@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Domains\Product\Models\ProductVariant as ModelsProductVariant;
-use App\Models\Combo;
-use App\Models\ComboItem;
+use App\Domains\Product\Models\Combo;
+use App\Domains\Product\Models\ComboItem;
 use App\Models\ProductVariant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;

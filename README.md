@@ -59,10 +59,14 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT). 
 
 
+
 ```
 bionic-api
 ├─ .editorconfig
 ├─ app
+│  ├─ Console
+│  │  └─ Commands
+│  │     └─ AbandonExpiredCarts.php
 │  ├─ Core
 │  │  ├─ BaseController.php
 │  │  ├─ BaseRepository.php
@@ -78,6 +82,8 @@ bionic-api
 │  │  │  ├─ Requests
 │  │  │  │  ├─ LoginRequest.php
 │  │  │  │  └─ RegisterRequest.php
+│  │  │  ├─ Resources
+│  │  │  │  └─ UserResource.php
 │  │  │  └─ Services
 │  │  │     └─ AuthService.php
 │  │  ├─ Cart
@@ -186,7 +192,6 @@ bionic-api
 │  │  │  │  ├─ ProductRelation.php
 │  │  │  │  ├─ ProductTierPrice.php
 │  │  │  │  └─ ProductVariant.php
-│  │  │  ├─ Repositories
 │  │  │  ├─ Requests
 │  │  │  │  ├─ ProductSearchRequest.php
 │  │  │  │  ├─ StoreProductRequest.php
@@ -218,9 +223,8 @@ bionic-api
 │  │  │  ├─ Controllers
 │  │  │  │  ├─ HomeController.php
 │  │  │  │  └─ ProductPageController.php
-│  │  │  ├─ Models
-│  │  │  │  └─ HeroBanner.php
-│  │  │  └─ Services
+│  │  │  └─ Models
+│  │  │     └─ HeroBanner.php
 │  │  └─ Webhook
 │  │     ├─ Controllers
 │  │     │  └─ AdminWebhookController.php
@@ -237,7 +241,8 @@ bionic-api
 │  │  ├─ Controllers
 │  │  │  └─ Controller.php
 │  │  └─ Middleware
-│  │     └─ SecureHeaders.php
+│  │     ├─ SecureHeaders.php
+│  │     └─ SecurityHeaders.php
 │  ├─ Infrastructure
 │  │  ├─ Courier
 │  │  │  ├─ CourierInterface.php
@@ -262,6 +267,7 @@ bionic-api
 │  │  └─ SendWhatsAppJob.php
 │  ├─ Listeners
 │  │  ├─ CreateCourierShipmentListener.php
+│  │  ├─ OrderStatusNotificationListener.php
 │  │  ├─ SendOrderConfirmationEmail.php
 │  │  ├─ SendOrderSMSListener.php
 │  │  ├─ SendOrderSMSNotification.php
@@ -271,6 +277,8 @@ bionic-api
 │  ├─ Models
 │  │  ├─ Combo.php
 │  │  ├─ ComboItem.php
+│  │  ├─ Commission.php
+│  │  ├─ OrderTransaction.php
 │  │  └─ User.php
 │  ├─ Notifications
 │  │  └─ OrderStatusPushNotification.php
@@ -284,7 +292,6 @@ bionic-api
 │  ├─ app.php
 │  ├─ cache
 │  │  ├─ packages.php
-│  │  ├─ serB3CD.tmp
 │  │  └─ services.php
 │  └─ providers.php
 ├─ composer.json
@@ -321,6 +328,8 @@ bionic-api
 │  │  ├─ 2026_02_27_153731_create_product_variants_table.php
 │  │  ├─ 2026_02_27_153804_create_product_tier_prices_table.php
 │  │  ├─ 2026_02_27_153805_create_product_relations_table.php
+│  │  ├─ 2026_02_27_153806_create_combos_table.php
+│  │  ├─ 2026_02_27_153807_create_combo_items_table.php
 │  │  ├─ 2026_02_27_153821_create_shipping_zones_table.php
 │  │  ├─ 2026_02_27_153842_create_coupons_table.php
 │  │  ├─ 2026_02_27_153902_create_orders_table.php
@@ -334,8 +343,8 @@ bionic-api
 │  │  ├─ 2026_03_07_153203_create_courier_shipments_table.php
 │  │  ├─ 2026_03_07_154330_create_webhooks_table.php
 │  │  ├─ 2026_03_14_074212_create_hero_banners_table.php
-│  │  ├─ 2026_03_15_153426_create_combos_table.php
-│  │  └─ 2026_03_15_153527_create_combo_items_table.php
+│  │  ├─ 2026_03_28_155636_create_order_transactions_table.php
+│  │  └─ 2026_03_28_155815_create_commissions_table.php
 │  ├─ schema
 │  │  └─ mysql-schema.sql
 │  └─ seeders
@@ -346,11 +355,9 @@ bionic-api
 │     ├─ ProductSeeder.php
 │     ├─ RoleSeeder.php
 │     └─ UserSeeder.php
-├─ notes
 ├─ package-lock.json
 ├─ package.json
 ├─ phpunit.xml
-├─ PRODUCT_AUDIT.md
 ├─ public
 │  ├─ .htaccess
 │  ├─ assets
@@ -575,15 +582,14 @@ bionic-api
 │  │     ├─ offer
 │  │     │  └─ products.gif
 │  │     ├─ products
-│  │     │  ├─ edible-virgin-coconut-oil.jpg
-│  │     │  ├─ floral-gold-honey.jpg
+│  │     │  ├─ default-products.jpg
 │  │     │  ├─ honey-jar.png
-│  │     │  ├─ honey.jpg
-│  │     │  ├─ mangrove-gold-honey.jpg
 │  │     │  ├─ product-1.jpg
+│  │     │  ├─ product-2.jpg
 │  │     │  ├─ product-3.jpg
 │  │     │  ├─ product-4.jpg
-│  │     │  ├─ product-5.jpg
+│  │     │  ├─ product-6.jpg
+│  │     │  ├─ product-7.jpg
 │  │     │  └─ product-8.jpg
 │  │     ├─ review
 │  │     │  ├─ review-1.jpeg
@@ -598,24 +604,6 @@ bionic-api
 │  │  ├─ sessions
 │  │  ├─ testing
 │  │  └─ views
-│  │     ├─ 078b54b02a68659e6397f1e516b780ee.php
-│  │     ├─ 0978eb187b2f6e5abd91ef8940481c43.php
-│  │     ├─ 1e6cbbc15bc47c63d0f14e35f0c2b01c.php
-│  │     ├─ 394f92b630eac525c254e6379778cdd8.php
-│  │     ├─ 4cde8096cb1c8ceca049bdfba26785ff.php
-│  │     ├─ 5441415c95962af9f9127580912b95bb.php
-│  │     ├─ 5ac6e21b3023c607c4869f7c6eccd2c8.php
-│  │     ├─ 60de5b31477eed2c917cb94f66259bcf.php
-│  │     ├─ 73be8f2acefae7b615c99ca834e36a55.php
-│  │     ├─ 7faeacc0118cb9aa78a261b93a6f0bf3.php
-│  │     ├─ 9a4a61a52c6f07271fd54eab27bb4624.php
-│  │     ├─ 9ba4e17c1b9389d766fdaf0e168540e0.php
-│  │     ├─ 9d44be4ca158697c403a005eb9b44001.php
-│  │     ├─ b24f7823960397adaf09d5fdc96cfaac.php
-│  │     ├─ b8d5e7c616a797308060736cd70f44b9.php
-│  │     ├─ d21e7b8d471798023792595ba3e5d834.php
-│  │     ├─ e1da0da6368228eb4ca60cb3f64bb1e7.php
-│  │     └─ e71be9fee3e1d45128db6c7691a89f74.php
 │  └─ logs
 ├─ tests
 │  ├─ Feature

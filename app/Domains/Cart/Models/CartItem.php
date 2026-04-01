@@ -4,7 +4,7 @@ namespace App\Domains\Cart\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Domains\Product\Models\ProductVariant;
-use App\Models\Combo;
+use App\Domains\Product\Models\Combo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CartItem extends Model
