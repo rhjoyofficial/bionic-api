@@ -14,19 +14,23 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'user_id',
+        'customer_name',
+        'customer_phone',
+        'customer_email',
         'zone_id',
         'subtotal',
         'discount_total',
         'shipping_cost',
         'grand_total',
         'coupon_id',
+        'coupon_code_snapshot',
+        'coupon_discount',
+        'payment_method',
+        'payment_status',
+        'order_status',
         'placed_at',
-        'confirmed_at',
-        'shipped_at',
-        'delivered_at',
-        'cancelled_at',
         'notes',
-        'checkout_token',
+        'checkout_token'
     ];
 
     protected $casts = [

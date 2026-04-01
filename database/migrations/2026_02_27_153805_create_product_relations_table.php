@@ -23,7 +23,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['product_id', 'related_product_id', 'relation_type']);
+            $table->unique(['product_id', 'related_product_id', 'relation_type'], 'prod_rel_unique');
         });
     }
 

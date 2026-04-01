@@ -55,6 +55,7 @@ export default class CartManager {
             const res = await fetch(`/api/v1/cart`, {
                 headers: {
                     "X-Session-Token": this.token,
+                    Accept: "application/json",
                 },
             });
             const json = await res.json();
@@ -73,6 +74,15 @@ export default class CartManager {
         // console.log("All Items:", payload.items);
         // console.log("Subtotal:", payload.totals.subtotal);
         // console.log("Total Quantity:", payload.totals.total_qty);
+        if (payload.prices_updated && typeof flash === "function") {
+            flash(
+                "Price Alert",
+                "warning",
+                5000,
+                "Prices in your cart have been updated to reflect current rates.",
+            );
+        }
+
         this.state = {
             items: payload.items || [],
             subtotal: payload.totals.subtotal || 0,
@@ -87,11 +97,19 @@ export default class CartManager {
     }
 
     async add(variantId, qty = 1, button = null) {
-        return this._perfomCartAction("/add", { variant_id: variantId, quantity: qty }, button);
+        return this._perfomCartAction(
+            "/add",
+            { variant_id: variantId, quantity: qty },
+            button,
+        );
     }
 
     async addCombo(comboId, qty = 1, button = null) {
-        return this._perfomCartAction("/add-combo", { combo_id: comboId, quantity: qty }, button);
+        return this._perfomCartAction(
+            "/add-combo",
+            { combo_id: comboId, quantity: qty },
+            button,
+        );
     }
 
     async _perfomCartAction(endpoint, data, button) {
@@ -106,10 +124,12 @@ export default class CartManager {
         try {
             const res = await this.api(endpoint, data);
             this.setState(res.data);
-            if (typeof flash === "function") flash("Added to cart");
+            if (typeof flash === "function" && !res.data.prices_updated)
+                flash("Added to cart");
             this.open();
         } catch (e) {
-            if (typeof flash === "function") flash(e.message || "Action failed", "error");
+            if (typeof flash === "function")
+                flash(e.message || "Action failed", "error");
         } finally {
             this.pending = false;
             if (button) {
@@ -121,10 +141,14 @@ export default class CartManager {
 
     async update(cartItemId, qty) {
         try {
-            const res = await this.api("/update", { cart_item_id: cartItemId, quantity: qty });
+            const res = await this.api("/update", {
+                cart_item_id: cartItemId,
+                quantity: qty,
+            });
             this.setState(res.data);
         } catch (e) {
-            if (typeof flash === "function") flash(e.message || "Update failed", "error");
+            if (typeof flash === "function")
+                flash(e.message || "Update failed", "error");
         }
     }
 
@@ -133,28 +157,28 @@ export default class CartManager {
             const res = await this.api("/remove", { cart_item_id: cartItemId });
             this.setState(res.data);
         } catch (e) {
-            if (typeof flash === "function") flash(e.message || "Remove failed", "error");
+            if (typeof flash === "function")
+                flash(e.message || "Remove failed", "error");
         }
     }
 
     async clear() {
         try {
             await this.api("/clear", {}, "DELETE");
-            await this.refresh(); this.flash("Cart cleared");
-        }
-        catch {
+            await this.refresh();
+            this.flash("Cart cleared");
+        } catch {
             this.flash("Clear failed", "error");
         }
     }
 
     async checkout() {
         try {
-            const res = await fetch("/api/v1/checkout", { method: "POST", });
+            const res = await fetch("/api/v1/checkout", { method: "POST" });
             const json = await res.json();
-            if (!res.ok)
-                throw json; window.location.href = json.data.redirect_url;
-        }
-        catch {
+            if (!res.ok) throw json;
+            window.location.href = json.data.redirect_url;
+        } catch {
             this.flash("Checkout failed", "error");
         }
     }

@@ -12,35 +12,41 @@ class PricingService
         int $quantity,
         ?Collection $tiers = null
     ): array {
-
         $basePrice = $variant->price;
         $total = $basePrice * $quantity;
-
         $tiers = $tiers ?? $variant->tierPrices;
 
         $tier = $tiers
-            ->where('min_quantity', '<=', $quantity)
+            ?->where('min_quantity', '<=', $quantity)
             ->sortByDesc('min_quantity')
             ->first();
 
         if (! $tier) {
             return [
-                'unit_price' => $basePrice,
-                'discount' => 0,
-                'total' => $total
+                'original_unit_price' => $basePrice,
+                'unit_price'          => $basePrice, // No discount, so same as original
+                'discount_amount'     => 0,
+                'total'               => $total,
+                'discount_type'       => 'none',
+                'discount_value'      => 0,
             ];
         }
 
         if ($tier->discount_type === 'percentage') {
-            $discount = ($basePrice * $tier->discount_value / 100) * $quantity;
+            $discountAmount = ($basePrice * $tier->discount_value / 100) * $quantity;
         } else {
-            $discount = $tier->discount_value * $quantity;
+            $discountAmount = $tier->discount_value * $quantity;
         }
 
+        $finalTotal = max(0, $total - $discountAmount);
+
         return [
-            'unit_price' => $basePrice,
-            'discount' => min($discount, $total),
-            'total' => max(0, $total - $discount),
+            'original_unit_price' => $basePrice,
+            'unit_price'          => $finalTotal / $quantity, // Discounted unit price
+            'discount_amount'     => min($discountAmount, $total),
+            'total'               => $finalTotal,
+            'discount_type'       => $tier->discount_type, // e.g., 'percentage'
+            'discount_value'      => $tier->discount_value, // e.g., 10.00
         ];
     }
 }

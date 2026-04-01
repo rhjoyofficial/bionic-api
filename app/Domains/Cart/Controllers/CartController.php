@@ -23,12 +23,16 @@ class CartController extends Controller
     public function view(Request $request)
     {
         try {
-
             $cart = $this->resolveCart($request);
 
+            // Sync prices and get the result
+            $wasUpdated = $this->cartService->syncCartPrices($cart);
+
             return ApiResponse::success(
-                $this->payload($cart),
-                'Cart loaded'
+                array_merge($this->payload($cart->fresh()), [
+                    'prices_updated' => $wasUpdated // The key flag for frontend
+                ]),
+                $wasUpdated ? 'Prices in your cart have been updated.' : 'Cart loaded'
             );
         } catch (Exception $e) {
             return $this->fail($e, 'Could not retrieve cart');
@@ -175,7 +179,7 @@ class CartController extends Controller
 
     private function resolveCart(Request $request)
     {
-        if (Auth::check()) {            
+        if (Auth::check()) {
             return $this->cartService->getCart(Auth::id(), null);
         }
 

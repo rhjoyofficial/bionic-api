@@ -21,7 +21,7 @@ class Combo extends Model
         });
     }
 
-    public function getFinalPriceAttribute()
+    public function getFinalPriceAttribute(): float
     {
         $basePrice = ($this->pricing_mode === 'manual')
             ? ($this->manual_price ?? 0)

@@ -21,18 +21,9 @@ class CheckoutController extends Controller
     public function store(CheckoutRequest $request)
     {
         try {
-
-            $order = $this->service->create(
-                $request->validated()
-            );
-
-            return ApiResponse::success(
-                new OrderResource($order),
-                'Order placed successfully',
-                201
-            );
+            $order = $this->service->create($request->validated());
+            return ApiResponse::success(new OrderResource($order),  'Order placed successfully',   201);
         } catch (Exception $e) {
-
             Log::error('Checkout Error: ' . $e->getMessage(), [
                 'customer_phone' => $request->input('customer_phone'),
                 'zone_id' => $request->input('zone_id'),
