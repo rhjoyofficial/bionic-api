@@ -193,3 +193,20 @@
         stroke 0.3s ease,
         stroke-width 0.3s ease;
 }
+
+@keyframes shimmer {
+    0% {
+        background-position: -600px 0;
+    }
+
+    100% {
+        background-position: 600px 0;
+    }
+}
+
+.skeleton-line {
+    background: linear-gradient(90deg, #efefef 25%, #e4e4e4 50%, #efefef 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+}

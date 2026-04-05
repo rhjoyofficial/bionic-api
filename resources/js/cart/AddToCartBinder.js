@@ -18,7 +18,7 @@ export default function bindAddToCart() {
         const btn = e.target.closest(".addComboBtn");
         if (!btn) return;
 
-        Cart.addCombo(btn.dataset.combo, 1, btn);
+        window.Cart?.addCombo(btn.dataset.combo, 1, btn);
 
     });
 }

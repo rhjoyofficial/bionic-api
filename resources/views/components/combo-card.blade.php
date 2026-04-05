@@ -1,18 +1,18 @@
 @props(['combo'])
 
 <div
-    class="group bg-white rounded-xl border border-gray-100 overflow-hidden active:bg-gray-50 transition-all duration-300 hover:shadow-md hover:border-primary/20">
+    class="group/card bg-white rounded-xl border border-gray-100 overflow-hidden active:bg-gray-50 transition-all duration-300 hover:shadow-md hover:border-primary/20">
     <div class="flex flex-row items-stretch h-full">
         <div class="w-2/5 sm:w-32 md:w-5/12 aspect-square shrink-0 overflow-hidden">
             <img src="{{ asset('assets/combo-products/combo.jpg') }}" alt="{{ $combo->title }}"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
         </div>
 
         <div class="flex-1 p-3 flex flex-col min-w-0">
             <div class="grow">
                 <div class="flex items-start justify-between gap-2 mb-1 relative">
                     <a href="#"
-                        class="font-bengali text-left text-gray-800 font-medium leading-snug line-clamp-2 min-h-8 group-hover:text-primary transition-colors truncate-2 hover:underline">
+                        class="font-bengali text-left text-gray-800 font-medium leading-snug line-clamp-2 min-h-8 group-hover/card:text-primary transition-colors truncate-2 hover:underline">
                         {{ $combo->title }}
                     </a>
                     @if ($combo->total_savings > 0)
@@ -35,7 +35,7 @@
             </div>
 
             <button
-                class="addComboBtn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold group-hover:bg-primary group-hover:text-white transition-all duration-300 active:scale-95 cursor-pointer focus:outline-none"
+                class="addComboBtn group w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold hover:bg-primary hover:text-white transition-all duration-300 active:scale-95 cursor-pointer focus:outline-none"
                 data-combo="{{ $combo->id }}">
                 <svg class="md:block hidden w-4.5 h-full fill-current group-hover:text-white"
                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">

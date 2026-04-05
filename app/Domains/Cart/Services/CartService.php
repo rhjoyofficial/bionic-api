@@ -32,13 +32,13 @@ class CartService
     {
         return DB::transaction(function () use ($cart, $comboId, $qty) {
             $combo = Combo::with('items')->findOrFail($comboId);
+
             $variants = ProductVariant::whereIn('id', $combo->items->pluck('product_variant_id'))
                 ->lockForUpdate()->get()->keyBy('id');
 
             foreach ($combo->items as $comboItem) {
-                $variant = $variants->get($comboItem->variant_id);
+                $variant = $variants->get($comboItem->product_variant_id);
                 $neededForThisAdd = $comboItem->quantity * $qty;
-
                 if (!$variant || !$variant->hasStock($neededForThisAdd)) {
                     throw new Exception("Insufficient stock for component in bundle: {$combo->title}");
                 }
@@ -61,7 +61,7 @@ class CartService
             }
 
             foreach ($combo->items as $comboItem) {
-                $variants->get($comboItem->variant_id)
+                $variants->get($comboItem->product_variant_id)
                     ->increment('reserved_stock', $comboItem->quantity * $qty);
             }
 

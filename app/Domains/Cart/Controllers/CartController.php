@@ -26,7 +26,6 @@ class CartController extends Controller
 
             // Sync prices and get the result
             $wasUpdated = $this->cartService->syncCartPrices($cart);
-
             return ApiResponse::success(
                 array_merge($this->payload($cart->fresh()), [
                     'prices_updated' => $wasUpdated // The key flag for frontend

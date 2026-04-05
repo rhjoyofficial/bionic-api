@@ -46,18 +46,24 @@ export default class CartRenderer {
 
     row(i) {
         // Determine name and title based on type
-        // console.log("Rendering item:", i);
-        const displayName = i.combo_id
+        console.log("Rendering item:", i);
+        const isCombo = !!i.combo_name_snapshot;
+        const displayName = isCombo
             ? i.combo_name_snapshot
             : i.product_name_snapshot;
-        const displayVariant = i.combo_id
+        const displayVariant = isCombo
             ? "Bundle Offer"
             : i.variant_title_snapshot;
+        const imageUrl =
+            i.image_url ||
+            (isCombo
+                ? "assets/combo-products/combo.jpg"
+                : "{{ asset('images/product-placeholder.png') }}");
 
         return `
     <div class="cartRow group flex items-start gap-4 border-b border-gray-100 p-4 transition-all hover:bg-gray-50/50" data-item-id="${i.id}">
         <div class="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
-            <img src="${i.image_url}" alt="${displayName}" class="h-full w-full object-cover">
+            <img src="${imageUrl}" alt="${displayName}" class="h-full w-full object-cover">
         </div>
 
         <div class="flex flex-1 flex-col gap-1">

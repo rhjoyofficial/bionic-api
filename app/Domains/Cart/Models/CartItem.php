@@ -16,7 +16,8 @@ class CartItem extends Model
         'quantity',
         'unit_price_snapshot',
         'product_name_snapshot',
-        'variant_title_snapshot'
+        'variant_title_snapshot',
+        'combo_name_snapshot',
     ];
 
     public function getSubtotalAttribute(): float
