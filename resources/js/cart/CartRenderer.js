@@ -46,9 +46,13 @@ export default class CartRenderer {
 
     row(i) {
         // Determine name and title based on type
-        console.log("Rendering item:", i);
-        const displayName = i.combo_id ? i.combo_name_snapshot : i.product_name_snapshot;
-        const displayVariant = i.combo_id ? "Bundle Offer" : i.variant_title_snapshot;
+        // console.log("Rendering item:", i);
+        const displayName = i.combo_id
+            ? i.combo_name_snapshot
+            : i.product_name_snapshot;
+        const displayVariant = i.combo_id
+            ? "Bundle Offer"
+            : i.variant_title_snapshot;
 
         return `
     <div class="cartRow group flex items-start gap-4 border-b border-gray-100 p-4 transition-all hover:bg-gray-50/50" data-item-id="${i.id}">
@@ -69,9 +73,9 @@ export default class CartRenderer {
 
             <div class="mt-2 flex items-center justify-between">
                 <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-                    <button class="minus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-100 transition-colors border-r border-gray-200">-</button>
+                    <button class="minus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-100 transition-colors border-r border-gray-200 cursor-pointer">-</button>
                     <div class="w-8 h-7 flex items-center justify-center text-xs font-bold text-gray-800">${i.quantity}</div>
-                    <button class="plus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-100 transition-colors border-l border-gray-200">+</button>
+                    <button class="plus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-100 transition-colors border-l border-gray-200 cursor-pointer">+</button>
                 </div>
 
                 <div class="text-right">

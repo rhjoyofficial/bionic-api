@@ -11,13 +11,12 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
     public function __construct(
         private CartService $cartService,
-        private CartPricingService $pricing
+        private CartPricingService $cartPricingService
     ) {}
 
     public function view(Request $request)
@@ -32,7 +31,7 @@ class CartController extends Controller
                 array_merge($this->payload($cart->fresh()), [
                     'prices_updated' => $wasUpdated // The key flag for frontend
                 ]),
-                $wasUpdated ? 'Prices in your cart have been updated.' : 'Cart loaded'
+                $wasUpdated ? 'Prices updated' : 'Cart loaded'
             );
         } catch (Exception $e) {
             return $this->fail($e, 'Could not retrieve cart');
@@ -48,6 +47,7 @@ class CartController extends Controller
                 'quantity' => 'required|integer|min:1'
             ]);
 
+
             $cart = $this->resolveCart($request);
 
             $this->cartService->addItem(
@@ -62,6 +62,7 @@ class CartController extends Controller
                 201
             );
         } catch (Exception $e) {
+            Log::error('Add to cart failed: ' . $e->getMessage());
             return $this->fail($e, 'Add failed');
         }
     }
@@ -183,14 +184,11 @@ class CartController extends Controller
             return $this->cartService->getCart(Auth::id(), null);
         }
 
-        $sessionToken = $request->header('X-Session-Token') ?? $request->session_token;
+        // Trust the token provided by the HandleCartSession middleware
+        $sessionToken = $request->attributes->get('cart_token');
 
         if (!$sessionToken) {
-            throw new \Exception('Guest session token is required.');
-        }
-
-        if (!preg_match('/^[a-zA-Z0-9\-]{32,}$/', $sessionToken)) {
-            throw new \InvalidArgumentException('Invalid session token format');
+            throw new \Exception('Guest session token is missing.');
         }
 
         return $this->cartService->getCart(null, $sessionToken);
@@ -201,7 +199,7 @@ class CartController extends Controller
         $cart->load(['items.variant.product', 'items.variant.tierPrices', 'items.combo']);
         return [
             'items' => CartItemResource::collection($cart->items),
-            'totals' => $this->pricing->calculate($cart),
+            'totals' => $this->cartPricingService->calculate($cart),
             'cart_id' => $cart->id,
         ];
     }

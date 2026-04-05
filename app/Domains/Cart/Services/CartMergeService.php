@@ -29,15 +29,8 @@ class CartMergeService
                 'status'  => 'active'
             ]);
 
-            // Release stock for guest items so it returns to 'available'
-            foreach ($guestCart->items as $guestItem) {
-                $this->cartService->releaseReservedStock($guestItem);
-            }
-
-            // Release stock for existing user items to avoid double-counting during the update
-            foreach ($userCart->items as $userItem) {
-                $this->cartService->releaseReservedStock($userItem);
-            }
+            $this->cartService->releaseReservedStock($guestCart);
+            $this->cartService->releaseReservedStock($userCart);
 
             // 2. Create a dynamic identifier for cart items so Combos and Variants don't collide
             $resolveItemKey = fn($item) => $item->combo_id ? 'combo_' . $item->combo_id : 'variant_' . $item->variant_id;
@@ -84,6 +77,7 @@ class CartMergeService
                         'unit_price_snapshot'    => $item->unit_price_snapshot,
                         'product_name_snapshot'  => $item->product_name_snapshot,
                         'variant_title_snapshot' => $item->variant_title_snapshot,
+                        'combo_name_snapshot' => $item->combo_name_snapshot,
                     ]);
 
                     $existingItems->put($itemKey, $created);
@@ -92,7 +86,7 @@ class CartMergeService
 
             $userCart->load('items');
             $this->cartService->reserveStock($userCart);
-
+            $this->cartService->syncCartPrices($userCart);
             $guestCart->delete();
         });
     }

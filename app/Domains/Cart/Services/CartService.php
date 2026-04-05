@@ -3,17 +3,20 @@
 namespace App\Domains\Cart\Services;
 
 use App\Domains\Cart\Models\Cart;
+use App\Domains\Cart\Resources\CartItemResource;
+use App\Domains\Cart\Services\CartPricingService;
 use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Models\ProductVariant;
-
-use Exception;
-use Illuminate\Support\Facades\DB;
 use App\Domains\Product\Services\PricingService;
+use Exception;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CartService
 {
     public function __construct(
-        private PricingService $pricingService
+        private PricingService $pricingService,
+        private CartPricingService $cartPricingService
     ) {}
 
     public function getCart(?int $userId, ?string $sessionToken): Cart
@@ -289,5 +292,15 @@ class CartService
                     ->increment('reserved_stock', $item->quantity);
             }
         }
+    }
+
+    public function formatCartDetails(Cart      $cart)
+    {
+        $cart->load(['items.variant.product', 'items.variant.tierPrices', 'items.combo']);
+        return [
+            'items' => CartItemResource::collection($cart->items),
+            'totals' => $this->cartPricingService->calculate($cart),
+            'cart_id' => $cart->id,
+        ];
     }
 }

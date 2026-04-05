@@ -16,9 +16,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->encryptCookies(except: [
+            'bionic_cart_token',
+        ]);
         $middleware->append(\App\Http\Middleware\SecureHeaders::class);
 
         $middleware->alias([
+            'cart.session' => \App\Http\Middleware\HandleCartSession::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
