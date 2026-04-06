@@ -10,6 +10,7 @@ import VideoManager from "./managers/video-manager";
 
 import CartManager from "./cart/CartManager";
 import CartRenderer from "./cart/CartRenderer";
+import CartPageRenderer from "./cart/CartPageRenderer";
 import bindAddToCart from "./cart/AddToCartBinder";
 import initProductCards from "./cart/product-card";
 
@@ -67,7 +68,14 @@ document.addEventListener("DOMContentLoaded", () => {
     ============================ */
 
     window.Cart = new CartManager();
+
+    // CartRenderer — powers the sidebar drawer (every page)
     window.CartUI = new CartRenderer();
+
+    // CartPageRenderer — powers the full /cart page (only when the skeleton exists)
+    if (document.getElementById("pageCartItems")) {
+        window.CartPage = new CartPageRenderer();
+    }
 
     bindAddToCart();
     initProductCards();
