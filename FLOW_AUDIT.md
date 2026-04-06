@@ -669,3 +669,112 @@ return DB::transaction(function () use ($order, $newStatus) {
 3. CRIT-9 (validation blocks combos) — combo checkout is impossible via API
 4. HIGH-7 (checkout_token not unique) — duplicate orders under concurrent requests
 5. HIGH-8 (double stock deduction) — will surface once CRIT-5 is fixed
+
+---
+
+## Fixes Applied — 2026-04-06
+
+All fixes below were written to the branch `claude/flow-audit`.
+
+### FIXED: CRIT-5 + CRIT-6 — OrderItem missing combo_id + no combo() relationship
+
+**File:** `app/Domains/Order/Models/OrderItem.php`
+
+Added `combo_id` to `$fillable` and added the `combo()` BelongsTo relationship.  
+Combo orders now persist `combo_id` to the database. `OrderStatusService::fulfillStock` and `releaseStock` can now load `$item->combo` without throwing `BadMethodCallException`.
+
+---
+
+### FIXED: CRIT-7 — Idempotency check moved before clearCart
+
+**File:** `app/Domains/Order/Services/OrderService.php`
+
+Moved the `checkout_token` duplicate-order guard to run **before** `clearCart()`.  
+Previously, a retry request would clear the cart (decrement `reserved_stock`) and then return the existing order — permanently leaking stock on every duplicate POST.
+
+---
+
+### FIXED: CRIT-8 — CouponUsage::create reordered after $affected confirmation
+
+**File:** `app/Domains/Order/Services/OrderService.php`
+
+`CouponUsage::create()` is now called only after `$affected` is confirmed non-zero.  
+Previously it was called one line before the `if (!$affected)` check. Both paths were safe within the transaction rollback, but the intent was inverted.
+
+---
+
+### FIXED: HIGH-13 — Combo stock check/reserve uses locked variant instances
+
+**File:** `app/Domains/Order/Services/OrderService.php`
+
+The combo processing loop now fetches components via `$variants->get($comboItem->product_variant_id)` — the same locked collection returned by `loadVariantsForItems()` — instead of loading fresh, unlocked variant instances via `Combo::with('items.variant')`.  
+This eliminates the TOCTOU window where two concurrent checkouts could both pass the combo stock check before either incremented `reserved_stock`.
+
+---
+
+### FIXED: HIGH-8 — Double stock deduction in fulfillStock / releaseStock
+
+**File:** `app/Domains/Order/Services/OrderStatusService.php`
+
+Changed `if ($item->variant) { ... } if ($item->combo_id && ...)` to `if ($item->combo_id && ...) { ... } elseif ($item->variant_id)`.  
+Once CRIT-5 was fixed and `combo_id` persists, an item could satisfy both conditions, deducting stock twice. The `elseif` makes them mutually exclusive.
+
+---
+
+### FIXED: HIGH-9 — fulfillStock / releaseStock now lock variant rows
+
+**File:** `app/Domains/Order/Services/OrderStatusService.php`
+
+Both methods now use `ProductVariant::lockForUpdate()->find(...)` before decrementing `stock` / `reserved_stock`.  
+Previously, concurrent admin status changes (double-click "Ship") could race on the same variant row and corrupt inventory counts.
+
+---
+
+### FIXED: MED-12 — isValidTransition check moved inside transaction after lockForUpdate
+
+**File:** `app/Domains/Order/Services/OrderStatusService.php`
+
+The old code read `$order->order_status` before the transaction, validated, then re-fetched with `lockForUpdate`. The stale pre-lock status was used for the transition guard, allowing a race where another request could have already advanced the status.  
+Fixed by reading `$oldStatusStr` from the locked order instance inside the transaction.
+
+---
+
+### FIXED: HIGH-10 — Fixed coupon discount capped at order amount
+
+**File:** `app/Domains/Coupon/Services/CouponValidationService.php`
+
+`calculateDiscount()` for `type = 'fixed'` now returns `min($coupon->value, $amount)`.  
+Previously a ৳500 coupon on a ৳200 order stored `discount_total = 500` and `CouponUsage.discount_amount = 500`, overstating discounts in analytics while `max(0,...)` in grand_total masked the error.
+
+---
+
+### FIXED: MED-8 — Coupon row locked before validation
+
+**File:** `app/Domains/Coupon/Services/CouponValidationService.php`
+
+Added `lockForUpdate()` to the coupon SELECT inside `validate()`.  
+This runs within `OrderService`'s outer transaction, so the lock is held for the full checkout. Previously two concurrent checkouts could both read `used_count = 4` against a `usage_limit = 5` coupon, both pass `isValidForUser()`, and then one throws a late "coupon exhausted" after the discount was already shown to the customer.
+
+---
+
+### FIXED: HIGH-2 (partial) — clearCart uses product_variant_id for combo items
+
+**File:** `app/Domains/Cart/Services/CartService.php`
+
+`clearCart()` was calling `->pluck('variant_id')` and `$variants->get($ci->variant_id)` for combo component rows. `ComboItem` stores the foreign key as `product_variant_id`, so both lookups always returned null — meaning `reserved_stock` was **never decremented** when a cart containing combos was cleared.  
+Fixed both the pluck and the get to use `product_variant_id`.
+
+---
+
+### Still Open (not fixed in this pass)
+
+| Ref | Description | Reason deferred |
+|-----|-------------|-----------------|
+| CRIT-9 | CheckoutRequest validation | Already fixed in current codebase (variant_id is `nullable`) |
+| HIGH-7 | checkout_token unique constraint | Already has `->unique()` in migration |
+| HIGH-11 | Shipping evaluated before coupon | May be intentional business rule; flagged for product decision |
+| HIGH-12 | SSLCommerz stub routes to failure URL | Payment gateway integration not yet scoped |
+| MED-9 | Guest per-user coupon limit not enforced | Requires session/phone-based tracking; design decision needed |
+| MED-10 | order_number collision under concurrency | Already has `->unique()` in migration; acceptable risk at current scale |
+| MED-11 | Combo snapshot missing component details | Schema change required (OrderComboItem table) |
+

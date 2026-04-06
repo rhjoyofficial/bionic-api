@@ -37,14 +37,15 @@ class OrderService
         try {
             return DB::transaction(function () use ($data, $cart) {
 
-                if ($cart) {
-                    $this->cartService->clearCart($cart);
-                }
-
                 // Idempotency guard — prevent double orders on retry
+                // Must run BEFORE clearCart so we don't decrement reserved_stock on a duplicate hit
                 if (!empty($data['checkout_token'])) {
                     $existing = Order::where('checkout_token', $data['checkout_token'])->first();
                     if ($existing) return $existing;
+                }
+
+                if ($cart) {
+                    $this->cartService->clearCart($cart);
                 }
 
                 $user      = Auth::user();
@@ -82,13 +83,15 @@ class OrderService
 
                 foreach ($items as $item) {
                     if (!empty($item['combo_id'])) {
-                        $combo      = Combo::with('items.variant')->findOrFail($item['combo_id']);
+                        // Load combo without re-fetching variants — use the already-locked $variants collection
+                        $combo      = Combo::with('items')->findOrFail($item['combo_id']);
                         $comboPrice = $combo->final_price;
                         $subtotal  += $comboPrice * $item['quantity'];
 
                         foreach ($combo->items as $comboItem) {
-                            $component = $comboItem->variant;
-                            if (!$component->hasStock($comboItem->quantity * $item['quantity'])) {
+                            // Use locked variant instance from loadVariantsForItems()
+                            $component = $variants->get($comboItem->product_variant_id);
+                            if (!$component || !$component->hasStock($comboItem->quantity * $item['quantity'])) {
                                 throw new Exception("Component stock exhausted for bundle: {$combo->title}");
                             }
                             $component->increment('reserved_stock', $comboItem->quantity * $item['quantity']);
@@ -171,6 +174,7 @@ class OrderService
                             throw new Exception('Coupon limit has been reached.');
                         }
 
+                        // Create usage record AFTER confirming increment succeeded
                         CouponUsage::create([
                             'coupon_id'       => $couponId,
                             'user_id'         => Auth::id(),

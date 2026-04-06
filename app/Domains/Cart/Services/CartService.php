@@ -150,7 +150,8 @@ class CartService
             $variantIds = collect();
             foreach ($cart->items as $item) {
                 if ($item->combo_id && $item->combo) {
-                    $variantIds = $variantIds->merge($item->combo->items->pluck('variant_id'));
+                    // ComboItem uses product_variant_id, not variant_id
+                    $variantIds = $variantIds->merge($item->combo->items->pluck('product_variant_id'));
                 } elseif ($item->variant_id) {
                     $variantIds->push($item->variant_id);
                 }
@@ -164,7 +165,8 @@ class CartService
             foreach ($cart->items as $item) {
                 if ($item->combo_id && $item->combo) {
                     foreach ($item->combo->items as $ci) {
-                        $variants->get($ci->variant_id)
+                        // Use product_variant_id to match the locked collection key
+                        $variants->get($ci->product_variant_id)
                             ?->decrement('reserved_stock', $ci->quantity * $item->quantity);
                     }
                 } elseif ($item->variant_id) {
