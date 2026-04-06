@@ -38,12 +38,18 @@ class Combo extends Model
         return max(0, $basePrice - $this->discount_value);
     }
 
-    public function getAvailableStockAttribute()
+    public function getAvailableStockAttribute(): int
     {
-        if ($this->items->isEmpty()) return 0;
+        if ($this->items->isEmpty()) {
+            return 0;
+        }
 
-        return $this->items->map(function ($item) {
-            return floor($item->variant->available_stock / $item->quantity);
-        })->min();
+        return $this->items->min(function ($item) {
+            if ($item->quantity <= 0) {
+                return 0;
+            }
+
+            return (int) floor($item->variant->available_stock / $item->quantity);
+        });
     }
 }

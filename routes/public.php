@@ -33,26 +33,13 @@ Route::get('/shipping-zones', [PublicShippingZoneController::class, 'index']);
 
 Route::post('/coupon/validate', [PublicCouponController::class, 'validateCoupon'])->middleware('throttle:20,1');
 
-Route::middleware('throttle:60,1')->group(function () {
-  // AUTHENTICATED CART ROUTES
-  Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
-    Route::get('/', [CartController::class, 'view']);
-    Route::post('/add', [CartController::class, 'add']);
-    Route::post('/add-combo', [CartController::class, 'addCombo']);
-    Route::post('/update', [CartController::class, 'update']);
-    Route::post('/remove', [CartController::class, 'remove']);
-    Route::delete('/clear', [CartController::class, 'clear']);
-  });
-
-  // GUEST CART ROUTES
-  Route::prefix('guest/cart')->group(function () {
-    Route::get('/', [CartController::class, 'view']);
-    Route::post('/add', [CartController::class, 'add']);
-    Route::post('/add-combo', [CartController::class, 'addCombo']);
-    Route::post('/update', [CartController::class, 'update']);
-    Route::post('/remove', [CartController::class, 'remove']);
-    Route::delete('/clear', [CartController::class, 'clear']);
-  });
+Route::middleware(['throttle:60,1', 'cart.session'])->prefix('cart')->group(function () {
+  Route::get('/', [CartController::class, 'view']);
+  Route::post('/add', [CartController::class, 'add']);
+  Route::post('/add-combo', [CartController::class, 'addCombo']);
+  Route::post('/update', [CartController::class, 'update']);
+  Route::post('/remove', [CartController::class, 'remove']);
+  Route::delete('/clear', [CartController::class, 'clear']);
 });
 
 Route::get('/landing/{slug}', [ProductLandingController::class, 'show']);

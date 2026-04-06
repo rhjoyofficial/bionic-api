@@ -29,7 +29,7 @@ class ProductSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
-            'thumbnail' => 'mangrove-gold-honey.jpg',
+            'thumbnail' => 'products/mangrove-gold-honey.jpg',
             'meta_title' => 'Buy Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) Online',
             'meta_description' => 'Pure Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) with medicinal properties. 100% natural and unprocessed.',
         ])->variants()->create([
@@ -46,7 +46,7 @@ class ProductSeeder extends Seeder
         // Variable Product - Honey with multiple sizes
         $honeyVariable = Product::create([
             'category_id' => $categories['Honey']->id,
-            'name' => 'Organic Raw Honey',
+            'name' => 'Organic Raw Honey (অর্গানিক রো হানি)',
             'slug' => 'organic-raw-honey',
             'short_description' => 'Certified organic raw honey, unprocessed and unfiltered',
             'description' => 'Our organic raw honey is sourced from certified organic farms. It retains all natural enzymes and nutrients.',
@@ -55,7 +55,7 @@ class ProductSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
-            'thumbnail' => 'honey.jpg',
+            'thumbnail' => 'products/honey.jpg',
         ]);
 
         // Variants for Organic Honey
@@ -89,12 +89,12 @@ class ProductSeeder extends Seeder
         // Simple Honey Product
         Product::create([
             'category_id' => $categories['Honey']->id,
-            'name' => 'Floral Gold Honey',
+            'name' => 'Floral Gold Honey (ফ্লোরাল গোল্ড হানি)',
             'slug' => 'floral-gold-honey',
             'base_price' => 950,
             'sku' => 'HON-FOR-001',
             'is_active' => true,
-            'thumbnail' => 'floral-gold-honey.jpg',
+            'thumbnail' => 'products/floral-gold-honey.jpg',
         ])->variants()->create([
             'title' => '1kg',
             'sku' => 'HON-FOR-1KG',
@@ -109,7 +109,7 @@ class ProductSeeder extends Seeder
         // Simple Date Product
         Product::create([
             'category_id' => $categories['Dates']->id,
-            'name' => 'Medjool Dates',
+            'name' => 'Medjool Dates (মেজুল খেজুর)',
             'slug' => 'medjool-dates',
             'short_description' => 'Premium Medjool dates from Jordan',
             'base_price' => 1800,
@@ -117,6 +117,7 @@ class ProductSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
+            'thumbnail' => 'products/medjool-dates.jpg',
         ])->variants()->create([
             'title' => '1kg',
             'sku' => 'DATE-MED-1KG',
@@ -129,7 +130,7 @@ class ProductSeeder extends Seeder
         // Variable Date Product with multiple sizes
         $ajwaDates = Product::create([
             'category_id' => $categories['Dates']->id,
-            'name' => 'Ajwa Dates',
+            'name' => 'Ajwa Dates (আজওয়া খেজুর)',
             'slug' => 'ajwa-dates',
             'short_description' => 'Premium Ajwa dates from Madinah',
             'base_price' => 2500,
@@ -137,6 +138,7 @@ class ProductSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
+            'thumbnail' => 'products/ajwa-dates.jpg',
         ]);
 
         $ajwaVariant = $ajwaDates->variants()->create([
@@ -158,11 +160,12 @@ class ProductSeeder extends Seeder
         // Another simple date product
         Product::create([
             'category_id' => $categories['Dates']->id,
-            'name' => 'Sukkary Dates',
+            'name' => 'Sukkary Dates (সুক্কারি খেজুর)',
             'slug' => 'sukkary-dates',
             'base_price' => 1600,
             'sku' => 'DATE-SUK-001',
             'is_active' => true,
+            'thumbnail' => 'products/sukkary-dates.jpg',
         ])->variants()->create([
             'title' => '1kg',
             'sku' => 'DATE-SUK-1KG',
@@ -177,13 +180,13 @@ class ProductSeeder extends Seeder
         // Variable Oil Product - multiple sizes
         $coconutOil = Product::create([
             'category_id' => $categories['Oils']->id,
-            'name' => 'Edible Virgin Coconut Oil',
+            'name' => 'Edible Virgin Coconut Oil (খাদ্য উপযোগী ভার্জিন নারকেল তেল)',
             'slug' => 'edible-virgin-coconut-oil',
             'short_description' => 'Cold-pressed virgin coconut oil',
             'base_price' => 600,
             'sku' => 'OIL-COC-001',
             'is_active' => true,
-            'thumbnail' => 'edible-virgin-coconut-oil.jpg',
+            'thumbnail' => 'products/edible-virgin-coconut-oil.jpg',
         ]);
 
         $coconutOil->variants()->createMany([
@@ -208,13 +211,14 @@ class ProductSeeder extends Seeder
         // Simple Oil Product
         Product::create([
             'category_id' => $categories['Oils']->id,
-            'name' => 'Extra Virgin Olive Oil',
+            'name' => 'Extra Virgin Olive Oil (এক্সট্রা ভার্জিন অলিভ অয়েল)',
             'slug' => 'extra-virgin-olive-oil',
             'base_price' => 1200,
             'sku' => 'OIL-OLV-001',
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
+            'thumbnail' => 'products/extra-virgin-olive-oil.jpg',
         ])->variants()->create([
             'title' => '1L',
             'sku' => 'OIL-OLV-1L',
@@ -229,7 +233,7 @@ class ProductSeeder extends Seeder
         // Variable Nuts Product - Example with Apple (as requested)
         $appleProduct = Product::create([
             'category_id' => $categories['Nuts']->id,
-            'name' => 'Fresh Apples',
+            'name' => 'Fresh Apples (তাজা আপেল)',
             'slug' => 'fresh-apples',
             'short_description' => 'Premium quality fresh apples',
             'description' => 'Crisp and juicy apples sourced from the best orchards. Available in different sizes.',
@@ -238,6 +242,7 @@ class ProductSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
+            'thumbnail' => 'products/fresh-apples.jpg',
         ]);
 
         // Apple variants with different prices per kg
@@ -271,11 +276,14 @@ class ProductSeeder extends Seeder
         // Mixed Nuts with variants
         $mixedNuts = Product::create([
             'category_id' => $categories['Nuts']->id,
-            'name' => 'Mixed Premium Nuts',
+            'name' => 'Mixed Premium Nuts (মিশ্র প্রিমিয়াম বাদাম)',
             'slug' => 'mixed-premium-nuts',
             'base_price' => 850,
             'sku' => 'NUT-MIX-001',
             'is_active' => true,
+            'is_featured' => true,
+            'is_trending' => true,
+            'thumbnail' => 'products/mixed-premium-nuts.jpg',
         ]);
 
         $mixedNuts->variants()->createMany([
@@ -308,11 +316,12 @@ class ProductSeeder extends Seeder
         // Simple Almonds
         Product::create([
             'category_id' => $categories['Nuts']->id,
-            'name' => 'California Almonds',
+            'name' => 'California Almonds (ক্যালিফোর্নিয়া বাদাম)',
             'slug' => 'california-almonds',
             'base_price' => 950,
             'sku' => 'NUT-ALM-001',
             'is_active' => true,
+            'thumbnail' => 'products/california-almonds.jpg',
         ])->variants()->create([
             'title' => '500g',
             'sku' => 'ALM-500G',
@@ -323,49 +332,52 @@ class ProductSeeder extends Seeder
         ]);
 
         // Simple Cashews
-        Product::create([
-            'category_id' => $categories['Nuts']->id,
-            'name' => 'W240 Cashew Nuts',
-            'slug' => 'w240-cashew-nuts',
-            'base_price' => 1100,
-            'sku' => 'NUT-CAS-001',
-            'is_active' => true,
-        ])->variants()->create([
-            'title' => '500g',
-            'sku' => 'CAS-500G',
-            'price' => 1100,
-            'stock' => 55,
-            'weight_grams' => 500,
-            'is_active' => true,
-        ]);
+        // Product::create([
+        //     'category_id' => $categories['Nuts']->id,
+        //     'name' => 'W240 Cashew Nuts',
+        //     'slug' => 'w240-cashew-nuts',
+        //     'base_price' => 1100,
+        //     'sku' => 'NUT-CAS-001',
+        //     'is_active' => true,
+        //     'thumbnail' => 'products/w240-cashew-nuts.jpg',
+        // ])->variants()->create([
+        //     'title' => '500g',
+        //     'sku' => 'CAS-500G',
+        //     'price' => 1100,
+        //     'stock' => 55,
+        //     'weight_grams' => 500,
+        //     'is_active' => true,
+        // ]);
 
         // Walnuts
-        Product::create([
-            'category_id' => $categories['Nuts']->id,
-            'name' => 'English Walnuts',
-            'slug' => 'english-walnuts',
-            'base_price' => 1200,
-            'sku' => 'NUT-WAL-001',
-            'is_active' => true,
-        ])->variants()->create([
-            'title' => '500g',
-            'sku' => 'WAL-500G',
-            'price' => 1200,
-            'stock' => 40,
-            'weight_grams' => 500,
-            'is_active' => true,
-        ]);
+        // Product::create([
+        //     'category_id' => $categories['Nuts']->id,
+        //     'name' => 'English Walnuts',
+        //     'slug' => 'english-walnuts',
+        //     'base_price' => 1200,
+        //     'sku' => 'NUT-WAL-001',
+        //     'is_active' => true,
+        //     'thumbnail' => 'products/english-walnuts.jpg',
+        // ])->variants()->create([
+        //     'title' => '500g',
+        //     'sku' => 'WAL-500G',
+        //     'price' => 1200,
+        //     'stock' => 40,
+        //     'weight_grams' => 500,
+        //     'is_active' => true,
+        // ]);
 
         // ==================== SEEDS PRODUCTS ====================
 
         // Chia Seeds with variants
         $chiaSeeds = Product::create([
             'category_id' => $categories['Seeds']->id,
-            'name' => 'Organic Chia Seeds',
+            'name' => 'Organic Chia Seeds (অর্গানিক চিয়া সিডস)',
             'slug' => 'organic-chia-seeds',
             'base_price' => 450,
             'sku' => 'SED-CHA-001',
             'is_active' => true,
+            'thumbnail' => 'products/organic-chia-seeds.jpg',
         ]);
 
         $chiaSeeds->variants()->createMany([
@@ -388,35 +400,37 @@ class ProductSeeder extends Seeder
         ]);
 
         // Flax Seeds
-        Product::create([
-            'category_id' => $categories['Seeds']->id,
-            'name' => 'Brown Flax Seeds',
-            'slug' => 'brown-flax-seeds',
-            'base_price' => 280,
-            'sku' => 'SED-FLA-001',
-            'is_active' => true,
-        ])->variants()->create([
-            'title' => '500g',
-            'sku' => 'FLA-500G',
-            'price' => 280,
-            'stock' => 85,
-            'weight_grams' => 500,
-            'is_active' => true,
-        ]);
+        // Product::create([
+        //     'category_id' => $categories['Seeds']->id,
+        //     'name' => 'Brown Flax Seeds',
+        //     'slug' => 'brown-flax-seeds',
+        //     'base_price' => 280,
+        //     'sku' => 'SED-FLA-001',
+        //     'is_active' => true,
+        //     'thumbnail' => 'products/brown-flax-seeds.jpg',
+        // ])->variants()->create([
+        //     'title' => '500g',
+        //     'sku' => 'FLA-500G',
+        //     'price' => 280,
+        //     'stock' => 85,
+        //     'weight_grams' => 500,
+        //     'is_active' => true,
+        // ]);
 
         // ==================== GHEE PRODUCTS ====================
 
         // Variable Ghee Product
         $gheeProduct = Product::create([
             'category_id' => $categories['Ghee']->id,
-            'name' => 'Pure Desi Ghee',
-            'slug' => 'pure-desi-ghee',
-            'short_description' => 'Traditional desi ghee made from cow milk',
+            'name' => 'Royal Essence Pure Desi Ghee (রয়্যাল এসেন্স বিশুদ্ধ দেশী ঘি)',
+            'slug' => 'royal-essence-ghee',
+            'short_description' => 'Traditional desi ghee made from deshi cow milk',
             'base_price' => 1800,
             'sku' => 'GHE-DES-001',
             'is_active' => true,
             'is_featured' => true,
             'is_trending' => true,
+            'thumbnail' => 'products/royal-essence-ghee.jpg',
         ]);
 
         $gheeProduct->variants()->createMany([
@@ -451,11 +465,12 @@ class ProductSeeder extends Seeder
         // Apricots
         Product::create([
             'category_id' => $categories['Dry Fruits']->id,
-            'name' => 'Dried Apricots',
+            'name' => 'Dried Apricots (শুকনো খুরমা)',
             'slug' => 'dried-apricots',
             'base_price' => 650,
             'sku' => 'DRY-APR-001',
             'is_active' => true,
+            'thumbnail' => 'products/dried-apricots.jpg',
         ])->variants()->create([
             'title' => '500g',
             'sku' => 'APR-500G',
@@ -466,32 +481,34 @@ class ProductSeeder extends Seeder
         ]);
 
         // Raisins
-        Product::create([
-            'category_id' => $categories['Dry Fruits']->id,
-            'name' => 'Golden Raisins',
-            'slug' => 'golden-raisins',
-            'base_price' => 400,
-            'sku' => 'DRY-RAI-001',
-            'is_active' => true,
-        ])->variants()->create([
-            'title' => '500g',
-            'sku' => 'RAI-500G',
-            'price' => 400,
-            'stock' => 60,
-            'weight_grams' => 500,
-            'is_active' => true,
-        ]);
+        // Product::create([
+        //     'category_id' => $categories['Dry Fruits']->id,
+        //     'name' => 'Golden Raisins',
+        //     'slug' => 'golden-raisins',
+        //     'base_price' => 400,
+        //     'sku' => 'DRY-RAI-001',
+        //     'is_active' => true,
+        //     'thumbnail' => 'products/golden-raisins.jpg',
+        // ])->variants()->create([
+        //     'title' => '500g',
+        //     'sku' => 'RAI-500G',
+        //     'price' => 400,
+        //     'stock' => 60,
+        //     'weight_grams' => 500,
+        //     'is_active' => true,
+        // ]);
 
         // ==================== SPICES ====================
 
         // Cardamom
         Product::create([
             'category_id' => $categories['Spices']->id,
-            'name' => 'Green Cardamom',
+            'name' => 'Green Cardamom (সবুজ এলাচ)',
             'slug' => 'green-cardamom',
             'base_price' => 1200,
             'sku' => 'SPI-CAR-001',
             'is_active' => true,
+            'thumbnail' => 'products/green-cardamom.jpg',
         ])->variants()->create([
             'title' => '100g',
             'sku' => 'CAR-100G',
@@ -504,11 +521,12 @@ class ProductSeeder extends Seeder
         // Cinnamon
         Product::create([
             'category_id' => $categories['Spices']->id,
-            'name' => 'Ceylon Cinnamon',
+            'name' => 'Ceylon Cinnamon (সিলন দারুচিনি)',
             'slug' => 'ceylon-cinnamon',
             'base_price' => 350,
             'sku' => 'SPI-CIN-001',
             'is_active' => true,
+            'thumbnail' => 'products/ceylon-cinnamon.jpg',
         ])->variants()->create([
             'title' => '250g',
             'sku' => 'CIN-250G',

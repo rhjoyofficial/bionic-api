@@ -6,11 +6,8 @@ use App\Domains\Category\Models\Category;
 use App\Domains\Product\Models\Product;
 use App\Domains\Store\Models\HeroBanner;
 use App\Http\Controllers\Controller;
-use App\Domains\Product\Resources\ProductTierResource;
-use App\Domains\Product\Resources\ProductVariantResource;
 use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Resources\ProductResource;
-use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {

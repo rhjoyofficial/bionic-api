@@ -35,93 +35,85 @@ class OrderService
         $itemCount = count($data['items']);
 
         try {
-
             return DB::transaction(function () use ($data, $cart) {
+
+                // Idempotency guard — prevent double orders on retry
+                // Must run BEFORE clearCart so we don't decrement reserved_stock on a duplicate hit
+                if (!empty($data['checkout_token'])) {
+                    $existing = Order::where('checkout_token', $data['checkout_token'])->first();
+                    if ($existing) return $existing;
+                }
 
                 if ($cart) {
                     $this->cartService->clearCart($cart);
                 }
 
-                if (!empty($data['checkout_token'])) {
-
-                    $existing = Order::where('checkout_token', $data['checkout_token'])->first();
-
-                    if ($existing) return $existing;
-                }
-
-                $user = Auth::user();
-
-                $subtotal = 0;
+                $user      = Auth::user();
+                $subtotal  = 0;
                 $discountTotal = 0;
-
 
                 $items = $data['items'];
                 unset($data['items']);
 
-                $zone = ShippingZone::findOrFail($data['zone_id']);
+                $zone     = ShippingZone::findOrFail($data['zone_id']);
                 $variants = $this->loadVariantsForItems($items);
 
                 $order = Order::create([
                     ...$data,
-                    'user_id' => $user?->id,
+                    'user_id'        => $user?->id,
                     'checkout_token' => $data['checkout_token'] ?? null,
-                    'order_number' => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(10)),
-                    'subtotal' => 0,
+                    'order_number'   => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(10)),
+                    'subtotal'       => 0,
                     'discount_total' => 0,
-                    'shipping_cost' => 0,
-                    'grand_total' => 0,
-                    'payment_method' => 'cod',
+                    'shipping_cost'  => 0,
+                    'grand_total'    => 0,
+                    'payment_method' => $data['payment_method'],   // use from request
                     'payment_status' => 'unpaid',
-                    'order_status' => 'pending',
-                    'placed_at' => now(),
+                    'order_status'   => 'pending',
+                    'placed_at'      => now(),
                 ]);
 
                 $order->shippingAddress()->create([
-                    'type' => 'shipping',
-                    'customer_name' => $data['customer_name'],
+                    'type'           => 'shipping',
+                    'customer_name'  => $data['customer_name'],
                     'customer_phone' => $data['customer_phone'],
-                    'address_line' => $data['address_line'],
-                    'city' => $data['city'],
+                    'address_line'   => $data['address_line'],
+                    'city'           => $data['city'],
                 ]);
 
                 foreach ($items as $item) {
                     if (!empty($item['combo_id'])) {
-                        $combo = Combo::with('items.variant')->findOrFail($item['combo_id']);
-
+                        // Load combo without re-fetching variants — use the already-locked $variants collection
+                        $combo      = Combo::with('items')->findOrFail($item['combo_id']);
                         $comboPrice = $combo->final_price;
-                        $subtotal += $comboPrice * $item['quantity'];
+                        $subtotal  += $comboPrice * $item['quantity'];
 
                         foreach ($combo->items as $comboItem) {
-                            $component = $comboItem->variant;
-
-                            if (!$component->hasStock($comboItem->quantity * $item['quantity'])) {
+                            // Use locked variant instance from loadVariantsForItems()
+                            $component = $variants->get($comboItem->product_variant_id);
+                            if (!$component || !$component->hasStock($comboItem->quantity * $item['quantity'])) {
                                 throw new Exception("Component stock exhausted for bundle: {$combo->title}");
                             }
-
-                            $component->increment(
-                                'reserved_stock',
-                                $comboItem->quantity * $item['quantity']
-                            );
+                            $component->increment('reserved_stock', $comboItem->quantity * $item['quantity']);
                         }
 
                         $order->items()->create([
-                            'combo_id' => $combo->id,
-                            'product_name_snapshot' => $combo->title,
+                            'combo_id'               => $combo->id,
+                            'product_name_snapshot'  => $combo->title,
                             'variant_title_snapshot' => 'Bundle',
-                            'original_unit_price'   => $combo->base_price,
-                            'quantity' => $item['quantity'],
-                            'unit_price' => $comboPrice,
-                            'total_price' => $comboPrice * $item['quantity'],
+                            'original_unit_price'    => $comboPrice,
+                            'quantity'               => $item['quantity'],
+                            'unit_price'             => $comboPrice,
+                            'total_price'            => $comboPrice * $item['quantity'],
                         ]);
                     } else {
-
                         $variant = $variants->get($item['variant_id']);
 
-                        if (! $variant) {
+                        if (!$variant) {
                             throw new Exception('Invalid product variant selected.');
                         }
 
-                        if (! $variant->hasStock($item['quantity'])) {
+                        if (!$variant->hasStock($item['quantity'])) {
                             throw new Exception("Insufficient stock for {$variant->title}");
                         }
 
@@ -131,92 +123,96 @@ class OrderService
                             $variant->tierPrices
                         );
 
-                        $subtotal += $variant->price * $item['quantity'];
+                        $subtotal      += $variant->price * $item['quantity'];
                         $discountTotal += $pricing['discount_amount'];
 
                         $order->items()->create([
-                            'product_id'             => $variant->product->id,
-                            'variant_id'             => $variant->id,
-                            'sku_snapshot'           => $variant->sku, // REQUIRED by your migration
-                            'product_name_snapshot'  => $variant->product->name,
-                            'variant_title_snapshot' => $variant->title,
-                            'quantity'               => $item['quantity'],
-
-                            // Financial Snapshots - Now perfectly aligned with migration
-                            'original_unit_price'    => $pricing['original_unit_price'],
-                            'unit_price'             => $pricing['unit_price'],
-                            'total_price'            => $pricing['total'],
-
-                            // Discount Snapshots
-                            'discount_type_snapshot' => $pricing['discount_type'],
+                            'product_id'              => $variant->product->id,
+                            'variant_id'              => $variant->id,
+                            'sku_snapshot'            => $variant->sku,
+                            'product_name_snapshot'   => $variant->product->name,
+                            'variant_title_snapshot'  => $variant->title,
+                            'quantity'                => $item['quantity'],
+                            'original_unit_price'     => $pricing['original_unit_price'],
+                            'unit_price'              => $pricing['unit_price'],
+                            'total_price'             => $pricing['total'],
+                            'discount_type_snapshot'  => $pricing['discount_type'],
                             'discount_value_snapshot' => $pricing['discount_value'],
                         ]);
 
-                        // reserve stock (NOT decrement real stock)
                         $variant->increment('reserved_stock', $item['quantity']);
                     }
                 }
 
+                // Coupon
                 $couponDiscount = 0;
-                $couponId = null;
+                $couponId       = null;
+                $couponCode     = null;
 
-                if (! empty($data['coupon_code'])) {
-
-                    $couponResult = $this->couponService->validate(
+                if (!empty($data['coupon_code'])) {
+                    $couponResult   = $this->couponService->validate(
                         $data['coupon_code'],
                         $subtotal - $discountTotal,
                         Auth::user()
                     );
 
-                    $coupon = $couponResult['coupon'];
+                    $coupon         = $couponResult['coupon'];
                     $couponDiscount = $couponResult['discount'];
-                    $couponId = $coupon->id;
+                    $couponId       = $coupon->id;
+                    $couponCode     = $coupon->code;
 
-                    $alreadyUsed = CouponUsage::where('order_id', $order->id)->where('coupon_id', $couponId)->exists();
+                    $alreadyUsed = CouponUsage::where('order_id', $order->id)
+                        ->where('coupon_id', $couponId)
+                        ->exists();
+
                     if (!$alreadyUsed) {
-                        $affected = Coupon::where('id', $coupon->id)->whereColumn('used_count', '<', 'usage_limit')->increment('used_count');
-
-                        CouponUsage::create([
-                            'coupon_id' => $couponId,
-                            'user_id' => Auth::id(),
-                            'order_id' => $order->id,
-                            'discount_amount' => $couponDiscount,
-                        ]);
+                        $affected = Coupon::where('id', $coupon->id)
+                            ->whereColumn('used_count', '<', 'usage_limit')
+                            ->increment('used_count');
 
                         if (!$affected) {
-                            throw new Exception("Coupon exhausted");
+                            throw new Exception('Coupon limit has been reached.');
                         }
+
+                        // Create usage record AFTER confirming increment succeeded
+                        CouponUsage::create([
+                            'coupon_id'       => $couponId,
+                            'user_id'         => Auth::id(),
+                            'order_id'        => $order->id,
+                            'discount_amount' => $couponDiscount,
+                        ]);
                     }
                 }
 
-                $shippingCost = $this->shippingCalculator
-                    ->calculate($zone, $subtotal - $discountTotal);
+                $shippingCost = $this->shippingCalculator->calculate(
+                    $zone,
+                    $subtotal - $discountTotal
+                );
 
                 $grandTotal = max(0, $subtotal - $discountTotal - $couponDiscount) + $shippingCost;
 
                 $order->update([
-                    'subtotal' => $subtotal,
-                    'discount_total' => $discountTotal + $couponDiscount,
-                    'shipping_cost' => $shippingCost,
-                    'grand_total' => $grandTotal,
-                    'coupon_id' => $couponId,
+                    'subtotal'              => $subtotal,
+                    'discount_total'        => $discountTotal + $couponDiscount,
+                    'shipping_cost'         => $shippingCost,
+                    'grand_total'           => $grandTotal,
+                    'coupon_id'             => $couponId,
+                    'coupon_code_snapshot'  => $couponCode,   // fixed: was missing
+                    'coupon_discount'       => $couponDiscount,
                 ]);
 
                 $order->load('items');
-
                 event(new OrderCreated($order));
 
                 return $order;
             });
         } catch (Exception $e) {
-
             Log::error('Order Service Error: ' . $e->getMessage(), [
                 'customer_phone' => $data['customer_phone'] ?? null,
                 'checkout_token' => $data['checkout_token'] ?? null,
-                'zone_id' => $data['zone_id'] ?? null,
-                'item_count' => $itemCount,
+                'zone_id'        => $data['zone_id'] ?? null,
+                'item_count'     => $itemCount,
             ]);
-
             throw $e;
         }
     }
@@ -234,6 +230,11 @@ class OrderService
             $variantIds = $variantIds->merge($comboVariantIds)->unique();
         }
 
-        return ProductVariant::query()->with(['product', 'tierPrices'])->whereIn('id', $variantIds)->lockForUpdate()->get()->keyBy('id');
+        return ProductVariant::query()
+            ->with(['product', 'tierPrices'])
+            ->whereIn('id', $variantIds)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
     }
 }

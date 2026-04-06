@@ -18,11 +18,30 @@ export default class CartManager {
     }
 
     ensureToken() {
-        let cartToken = localStorage.getItem("bionic_cart_token");
+        // Helper to read cookie
+        const getCookie = (name) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        };
 
+        // Helper to set cookie
+        const setCookie = (name, value, days = 30) => {
+            const date = new Date();
+            date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/;SameSite=Lax`;
+        };
+
+        const cookieName = "bionic_cart_token";
+        let cartToken = getCookie(cookieName);
+
+        // If no cookie, check localStorage or generate a new one
         if (!cartToken) {
-            cartToken = crypto.randomUUID();
-            localStorage.setItem("bionic_cart_token", cartToken);
+            cartToken = localStorage.getItem(cookieName) || crypto.randomUUID();
+            // Sync it to both places
+            setCookie(cookieName, cartToken);
+            localStorage.setItem(cookieName, cartToken);
         }
 
         return cartToken;
@@ -31,11 +50,7 @@ export default class CartManager {
     async api(url, data = {}, method = "POST") {
         const res = await fetch(`/api/v1/cart${url}`, {
             method,
-            headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                "X-Session-Token": this.token,
-            },
+            headers: this._getHeaders(),
             body: method === "GET" ? null : JSON.stringify(data),
         });
 
@@ -53,10 +68,7 @@ export default class CartManager {
     async refresh() {
         try {
             const res = await fetch(`/api/v1/cart`, {
-                headers: {
-                    "X-Session-Token": this.token,
-                    Accept: "application/json",
-                },
+                headers: this._getHeaders(),
             });
             const json = await res.json();
             this.setState(json.data);
@@ -110,6 +122,21 @@ export default class CartManager {
             { combo_id: comboId, quantity: qty },
             button,
         );
+    }
+
+    _getHeaders() {
+        const headers = {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-Session-Token": this.token,
+        };
+
+        // Only add CSRF if available (Blade context)
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (csrf) headers["X-CSRF-TOKEN"] = csrf;
+        // console.log("Request Headers:", headers);
+
+        return headers;
     }
 
     async _perfomCartAction(endpoint, data, button) {
@@ -174,13 +201,27 @@ export default class CartManager {
 
     async checkout() {
         try {
-            const res = await fetch("/api/v1/checkout", { method: "POST" });
+            const res = await fetch("/api/v1/checkout", {
+                method: "POST",
+                headers: {
+                    "X-Session-Token": this.token,
+                    "Content-Type": "application/json",
+                },
+            });
             const json = await res.json();
             if (!res.ok) throw json;
             window.location.href = json.data.redirect_url;
         } catch {
             this.flash("Checkout failed", "error");
         }
+    }
+
+    /**
+    * Navigate to the checkout page.
+    * The actual order submission is handled by CheckoutManager on /checkout.
+    */
+    checkout() {
+        window.location.href = "/checkout";
     }
 
     open() {

@@ -4,6 +4,7 @@ namespace App\Domains\Order\Services;
 
 use App\Domains\Order\Models\Order;
 use App\Domains\Order\Enums\OrderStatus;
+use App\Domains\Product\Models\ProductVariant;
 use App\Events\OrderStatusChanged;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,16 +14,17 @@ class OrderStatusService
 {
     public function changeStatus(Order $order, OrderStatus $newStatus): Order
     {
-        $oldStatusStr = $order->order_status;
-
-        if (!$this->isValidTransition($oldStatusStr, $newStatus->value)) {
-            throw new Exception("Invalid status transition from {$oldStatusStr} to {$newStatus->value}");
-        }
-
         try {
-            return DB::transaction(function () use ($order, $newStatus, $oldStatusStr) {
+            return DB::transaction(function () use ($order, $newStatus) {
                 // Lock the order for update to prevent race conditions during status changes
                 $order = Order::lockForUpdate()->findOrFail($order->id);
+
+                // Read status AFTER acquiring lock so transition check uses current data
+                $oldStatusStr = $order->order_status;
+
+                if (!$this->isValidTransition($oldStatusStr, $newStatus->value)) {
+                    throw new Exception("Invalid status transition from {$oldStatusStr} to {$newStatus->value}");
+                }
 
                 // 1. Inventory Logic: Handle Transitions
                 // Only fulfill stock if we are moving TO Shipped from a non-shipped state
@@ -65,17 +67,20 @@ class OrderStatusService
     private function fulfillStock(Order $order): void
     {
         foreach ($order->items as $item) {
-            if ($item->variant) {
-                // Atomic update: Reduce physical stock and clear the reservation
-                $item->variant->decrement('stock', $item->quantity);
-                $item->variant->decrement('reserved_stock', $item->quantity);
-            }
-
-            // If you have Combo items, you must also deduct stock for each variant inside the combo
+            // Combo and variant are mutually exclusive — use elseif to prevent double deduction
             if ($item->combo_id && $item->combo) {
                 foreach ($item->combo->items as $comboItem) {
-                    $comboItem->variant->decrement('stock', $comboItem->quantity * $item->quantity);
-                    $comboItem->variant->decrement('reserved_stock', $comboItem->quantity * $item->quantity);
+                    $variant = ProductVariant::lockForUpdate()->find($comboItem->product_variant_id);
+                    if ($variant) {
+                        $variant->decrement('stock', $comboItem->quantity * $item->quantity);
+                        $variant->decrement('reserved_stock', $comboItem->quantity * $item->quantity);
+                    }
+                }
+            } elseif ($item->variant_id) {
+                $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
+                if ($variant) {
+                    $variant->decrement('stock', $item->quantity);
+                    $variant->decrement('reserved_stock', $item->quantity);
                 }
             }
         }
@@ -87,15 +92,15 @@ class OrderStatusService
     private function releaseStock(Order $order): void
     {
         foreach ($order->items as $item) {
-            if ($item->variant) {
-                // Only reduce the reservation. The physical 'stock' stays the same because it never left.
-                $item->variant->decrement('reserved_stock', $item->quantity);
-            }
-
+            // Combo and variant are mutually exclusive — use elseif to prevent double release
             if ($item->combo_id && $item->combo) {
                 foreach ($item->combo->items as $comboItem) {
-                    $comboItem->variant->decrement('reserved_stock', $comboItem->quantity * $item->quantity);
+                    $variant = ProductVariant::lockForUpdate()->find($comboItem->product_variant_id);
+                    $variant?->decrement('reserved_stock', $comboItem->quantity * $item->quantity);
                 }
+            } elseif ($item->variant_id) {
+                $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
+                $variant?->decrement('reserved_stock', $item->quantity);
             }
         }
     }

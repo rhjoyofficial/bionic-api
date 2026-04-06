@@ -8,16 +8,42 @@ class CartItemResource extends JsonResource
 {
   public function toArray($request)
   {
+    $originalUnitPrice = null;
+    $tierSaving        = null;
+    $tiers             = [];
+
+    if ($this->variant_id && $this->variant) {
+      $originalUnitPrice = (float) $this->variant->final_price;
+      $diff = $originalUnitPrice - (float) $this->unit_price_snapshot;
+      if ($diff > 0.001) {
+        $tierSaving = round($diff, 2);
+      }
+
+      $tiers = $this->variant->tierPrices
+        ->sortBy('min_quantity')
+        ->map(fn($t) => [
+          'qty'   => (int)   $t->min_quantity,
+          'type'  =>         $t->discount_type,
+          'value' => (float) $t->discount_value,
+        ])
+        ->values()
+        ->toArray();
+    }
+
     return [
-      'id' => $this->id,
-      'variant_id' => $this->variant_id,
-      'quantity' => $this->quantity,
-      'product_name_snapshot' => $this->product_name_snapshot,
+      'id'                     => $this->id,
+      'variant_id'             => $this->variant_id,
+      'combo_id'               => $this->combo_id,   
+      'quantity'               => $this->quantity,
+      'product_name_snapshot'  => $this->product_name_snapshot,
       'variant_title_snapshot' => $this->variant_title_snapshot,
-      'combo_name_snapshot' => $this->combo_name_snapshot,
-      'unit_price' => (float) $this->unit_price_snapshot,
-      'subtotal' => (float) $this->subtotal,
-      'image_url' => $this->combo_id
+      'combo_name_snapshot'    => $this->combo_name_snapshot,
+      'unit_price'             => (float) $this->unit_price_snapshot,
+      'original_unit_price'    => $originalUnitPrice,
+      'tier_saving'            => $tierSaving,
+      'tiers'                  => $tiers,
+      'subtotal'               => (float) $this->subtotal,
+      'image_url'              => $this->combo_id
         ? ($this->combo->image ?? null)
         : ($this->variant->product->image_url ?? null),
     ];

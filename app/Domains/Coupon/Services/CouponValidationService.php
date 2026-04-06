@@ -14,7 +14,8 @@ class CouponValidationService
         ?User $user = null
     ): array {
 
-        $coupon = Coupon::where('code', $code)->first();
+        // lockForUpdate requires the caller to be inside a DB transaction (OrderService provides this)
+        $coupon = Coupon::where('code', $code)->lockForUpdate()->first();
 
         if (! $coupon) {
             throw new Exception('Invalid coupon code');
@@ -40,6 +41,7 @@ class CouponValidationService
             return ($amount * $coupon->value) / 100;
         }
 
-        return $coupon->value;
+        // Cap fixed discount at order amount to prevent discount_total exceeding subtotal
+        return min($coupon->value, $amount);
     }
 }

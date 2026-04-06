@@ -44,39 +44,103 @@ export default class CartRenderer {
         this.bind();
     }
 
+    /**
+     * Returns the tier nudge HTML for a cart item.
+     * - If a tier is already active  → green "saving ৳X/unit" badge
+     * - If next tier is reachable    → amber "add N more to save X" nudge
+     * - No tiers at all              → empty string
+     */
+    tierHtml(i, compact = true) {
+        if (!i.tiers || !i.tiers.length) return "";
+
+        // Tier currently applied
+        if (i.tier_saving) {
+            return compact
+                ? `<span class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
+                       <svg class="w-2.5 h-2.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                       Saving ৳${i.tier_saving}/unit
+                   </span>`
+                : `<span class="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                       <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                       Bulk deal active — saving ৳${i.tier_saving} per unit
+                   </span>`;
+        }
+
+        // Find the next tier the customer hasn't unlocked yet
+        const nextTier = i.tiers.find((t) => t.qty > i.quantity);
+        if (!nextTier) return "";
+
+        const need = nextTier.qty - i.quantity;
+        const reward =
+            nextTier.type === "percentage"
+                ? `${nextTier.value}% off`
+                : `৳${nextTier.value} off/unit`;
+
+        return compact
+            ? `<span class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
+                   <svg class="w-2.5 h-2.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                   Add ${need} more → ${reward}
+               </span>`
+            : `<span class="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                   <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                   Add ${need} more to unlock ${reward}
+               </span>`;
+    }
+
     row(i) {
-        // Determine name and title based on type
-        console.log("Rendering item:", i);
-        const displayName = i.combo_id ? i.combo_name_snapshot : i.product_name_snapshot;
-        const displayVariant = i.combo_id ? "Bundle Offer" : i.variant_title_snapshot;
+        const isCombo = !!i.combo_name_snapshot;
+        const displayName = isCombo
+            ? i.combo_name_snapshot
+            : i.product_name_snapshot;
+        const displayVariant = isCombo
+            ? "Bundle Offer"
+            : i.variant_title_snapshot;
+        const imageUrl =
+            i.image_url ||
+            (isCombo
+                ? "assets/combo-products/combo.jpg"
+                : "/images/product-placeholder.png");
+
+        const tierNudge = !isCombo
+            ? `<div class="mt-1">${this.tierHtml(i, true)}</div>`
+            : "";
+
+        // Strikethrough original price when tier discount is active
+        const priceHtml =
+            !isCombo && i.tier_saving && i.original_unit_price
+                ? `<p class="text-[10px] text-gray-400 line-through leading-none">৳${i.original_unit_price} x ${i.quantity}</p>
+               <p class="text-[10px] text-emerald-600 font-semibold leading-none">৳${i.unit_price} x ${i.quantity}</p>
+               <p class="text-sm font-bold text-primary font-bengali">৳${(i.unit_price * i.quantity).toFixed(2)}</p>`
+                : `<p class="text-[10px] text-gray-400 font-medium">৳${i.unit_price} x ${i.quantity}</p>
+               <p class="text-sm font-bold text-primary font-bengali">৳${(i.unit_price * i.quantity).toFixed(2)}</p>`;
 
         return `
     <div class="cartRow group flex items-start gap-4 border-b border-gray-100 p-4 transition-all hover:bg-gray-50/50" data-item-id="${i.id}">
         <div class="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
-            <img src="${i.image_url}" alt="${displayName}" class="h-full w-full object-cover">
+            <img src="${imageUrl}" alt="${displayName}" class="h-full w-full object-cover">
         </div>
 
         <div class="flex flex-1 flex-col gap-1">
             <div class="flex justify-between items-start">
-                <div>
+                <div class="min-w-0 flex-1 pr-1">
                     <h4 class="text-sm font-bold text-gray-900 line-clamp-1 font-bengali">${displayName}</h4>
-                    <p class="text-[11px] text-gray-500 font-bengali">${displayVariant}</p>
+                    <p class="text-[11px] text-gray-500 font-bengali">${displayVariant ?? ""}</p>
+                    ${tierNudge}
                 </div>
-                <button class="remove text-gray-400 hover:text-red-500 transition-colors p-1">
+                <button class="remove text-gray-400 hover:text-red-500 transition-colors p-1 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
             <div class="mt-2 flex items-center justify-between">
                 <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-                    <button class="minus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-100 transition-colors border-r border-gray-200">-</button>
+                    <button class="minus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-100 transition-colors border-r border-gray-200 cursor-pointer">-</button>
                     <div class="w-8 h-7 flex items-center justify-center text-xs font-bold text-gray-800">${i.quantity}</div>
-                    <button class="plus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-100 transition-colors border-l border-gray-200">+</button>
+                    <button class="plus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-100 transition-colors border-l border-gray-200 cursor-pointer">+</button>
                 </div>
 
                 <div class="text-right">
-                    <p class="text-[10px] text-gray-400 font-medium">৳${i.unit_price} x ${i.quantity}</p>
-                    <p class="text-sm font-bold text-primary font-bengali">৳${(i.unit_price * i.quantity).toFixed(2)}</p>
+                    ${priceHtml}
                 </div>
             </div>
         </div>

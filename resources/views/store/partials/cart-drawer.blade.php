@@ -67,7 +67,7 @@
         <!-- CTA BUTTONS -->
         <div class="flex gap-3">
 
-            <a href="/cart"
+            <a href="{{ route('cart.view') }}"
                 class="flex-1 border border-primary text-primary font-semibold text-sm py-3 rounded-full text-center hover:bg-primary/5 transition">
                 View Cart
             </a>

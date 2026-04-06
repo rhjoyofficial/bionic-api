@@ -51,16 +51,28 @@
 
         {{-- VARIANT SELECT --}}
         @if ($variants->count() > 1)
-            <div class="variant-container flex flex-wrap gap-2 mb-3">
-                @foreach ($variants as $v)
-                    <button type="button" data-variant-id="{{ $v->id }}"
-                        class="variant-capsule cursor-pointer px-3 py-1.5 rounded-md md:rounded-lg border text-sm font-medium text-gray-900 font-bengali transition-all duration-200 leading-tight
-                {{ $loop->first
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-primary/50' }}">
-                        {{ $v->title }} {{ format_currency($v->final_price) }}
-                    </button>
-                @endforeach
+            <div class="relative mb-2 group">
+                {{-- The Animated SVG Border - Positioned behind the select --}}
+                <svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                    <rect rx="12" ry="12" class="animated-border-line" height="100%" width="100%"
+                        fill="transparent" stroke-linejoin="round" />
+                </svg>
+
+                <select
+                    class="variantSelect relative z-10 w-full appearance-none bg-gray-50/40 border border-gray-200 hover:bg-white/80 rounded-xl px-4 py-2 text-sm font-medium text-gray-900 font-bengali focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer">
+                    @foreach ($variants as $v)
+                        <option value="{{ $v->id }}" {{ $loop->first ? 'selected' : '' }}>
+                            {{ $v->title }} — {{ format_currency($v->final_price) }}
+                        </option>
+                    @endforeach
+                </select>
+
+                {{-- Chevron Icon --}}
+                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-primary z-20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
             </div>
         @else
             {{-- PRICE (Only shows if there is 1 variant) --}}

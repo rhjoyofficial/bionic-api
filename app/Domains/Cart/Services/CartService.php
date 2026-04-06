@@ -3,18 +3,22 @@
 namespace App\Domains\Cart\Services;
 
 use App\Domains\Cart\Models\Cart;
+use App\Domains\Cart\Resources\CartItemResource;
+use App\Domains\Cart\Services\CartPricingService;
 use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Models\ProductVariant;
-
-use Exception;
-use Illuminate\Support\Facades\DB;
 use App\Domains\Product\Services\PricingService;
+use Exception;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CartService
 {
     public function __construct(
-        private PricingService $pricingService
+        private PricingService $pricingService,
+        private CartPricingService $cartPricingService
     ) {}
+
     public function getCart(?int $userId, ?string $sessionToken): Cart
     {
         if ($userId) {
@@ -27,18 +31,26 @@ class CartService
     public function addCombo(Cart $cart, int $comboId, int $qty = 1)
     {
         return DB::transaction(function () use ($cart, $comboId, $qty) {
-            $combo = Combo::with(['items.variant' => function ($q) {
-                $q->lockForUpdate();
-            }])->findOrFail($comboId);
+            $combo = Combo::with('items')->findOrFail($comboId);
 
-            if ($combo->available_stock < $qty) {
-                throw new Exception("Insufficient stock for this bundle.");
+            $variants = ProductVariant::whereIn('id', $combo->items->pluck('product_variant_id'))
+                ->lockForUpdate()->get()->keyBy('id');
+
+            foreach ($combo->items as $comboItem) {
+                $variant = $variants->get($comboItem->product_variant_id);
+                $neededForThisAdd = $comboItem->quantity * $qty;
+                if (!$variant || !$variant->hasStock($neededForThisAdd)) {
+                    throw new Exception("Insufficient stock for component in bundle: {$combo->title}");
+                }
             }
 
             $cartItem = $cart->items()->where('combo_id', $comboId)->first();
 
             if ($cartItem) {
-                $cartItem->increment('quantity', $qty);
+                $cartItem->update([
+                    'quantity' => $cartItem->quantity + $qty,
+                    'unit_price_snapshot' => $combo->final_price,
+                ]);
             } else {
                 $cartItem = $cart->items()->create([
                     'combo_id' => $comboId,
@@ -48,8 +60,9 @@ class CartService
                 ]);
             }
 
-            foreach ($combo->items as $item) {
-                $item->variant->increment('reserved_stock', $item->quantity * $qty);
+            foreach ($combo->items as $comboItem) {
+                $variants->get($comboItem->product_variant_id)
+                    ->increment('reserved_stock', $comboItem->quantity * $qty);
             }
 
             return $cartItem;
@@ -71,14 +84,15 @@ class CartService
             if ($item) {
                 $newQty = $item->quantity + $qty;
 
-                if (!$variant->hasStock($newQty)) {
-                    throw new \Exception("Stock limit reached. Only {$variant->available_stock} left.");
+                if (!$variant->hasStock($qty)) {
+                    throw new \Exception("Stock limit reached. Only {$variant->available_stock} more available.");
                 }
 
-                // $item->increment('quantity', $qty);
+                $pricing = $this->pricingService->calculate($variant, $newQty);
+
                 $item->update([
                     'quantity' => $newQty,
-                    'unit_price_snapshot' => $variant->final_price,
+                    'unit_price_snapshot' => $pricing['unit_price'],
                     'product_name_snapshot' => $variant->product->name,
                     'variant_title_snapshot' => $variant->title,
                 ]);
@@ -89,11 +103,11 @@ class CartService
 
             $variant->increment('reserved_stock', $qty);
 
-
+            $pricing = $this->pricingService->calculate($variant, $qty);
             return $cart->items()->create([
                 'variant_id' => $variantId,
                 'quantity' => $qty,
-                'unit_price_snapshot' => $variant->final_price,
+                'unit_price_snapshot' => $pricing['unit_price'],
                 'product_name_snapshot' => $variant->product->name,
                 'variant_title_snapshot' => $variant->title,
             ]);
@@ -103,22 +117,11 @@ class CartService
     public function updateItem(Cart $cart, int $variantId, int $qty)
     {
         return DB::transaction(function () use ($cart, $variantId, $qty) {
+            $item = $cart->items()
+                ->where('variant_id', $variantId)
+                ->firstOrFail();
 
-            $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
-
-            $item = $cart->items()->where('variant_id', $variantId)->firstOrFail();
-
-            $diff = $qty - $item->quantity;
-
-            if ($diff > 0 && ! $variant->hasStock($diff)) {
-                throw new Exception("Stock limit reached");
-            }
-
-            $item->update(['quantity' => $qty]);
-
-            $variant->increment('reserved_stock', $diff);
-
-            return $item;
+            return $this->updateItemQuantity($cart, $item->id, $qty);
         });
     }
 
@@ -142,19 +145,36 @@ class CartService
     public function clearCart(Cart $cart)
     {
         return DB::transaction(function () use ($cart) {
+            $cart->load('items.combo.items');
+
+            $variantIds = collect();
             foreach ($cart->items as $item) {
-                if ($item->combo_id) {
-                    $combo = Combo::with('items.variant')->find($item->combo_id);
-                    if ($combo) {
-                        foreach ($combo->items as $ci) {
-                            $ci->variant->decrement('reserved_stock', $ci->quantity * $item->quantity);
-                        }
-                    }
-                } else {
-                    $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
-                    $variant?->decrement('reserved_stock', $item->quantity);
+                if ($item->combo_id && $item->combo) {
+                    // ComboItem uses product_variant_id, not variant_id
+                    $variantIds = $variantIds->merge($item->combo->items->pluck('product_variant_id'));
+                } elseif ($item->variant_id) {
+                    $variantIds->push($item->variant_id);
                 }
             }
+
+            $variants = ProductVariant::whereIn('id', $variantIds->unique())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($cart->items as $item) {
+                if ($item->combo_id && $item->combo) {
+                    foreach ($item->combo->items as $ci) {
+                        // Use product_variant_id to match the locked collection key
+                        $variants->get($ci->product_variant_id)
+                            ?->decrement('reserved_stock', $ci->quantity * $item->quantity);
+                    }
+                } elseif ($item->variant_id) {
+                    $variants->get($item->variant_id)
+                        ?->decrement('reserved_stock', $item->quantity);
+                }
+            }
+
             $cart->items()->delete();
         });
     }
@@ -212,19 +232,22 @@ class CartService
 
     public function releaseReservedStock(Cart $cart)
     {
-        foreach ($cart->items as $item) {
-            if ($item->combo_id) {
-                $combo = Combo::with('items.variant')->find($item->combo_id);
-                if ($combo) {
-                    foreach ($combo->items as $ci) {
-                        $ci->variant->decrement('reserved_stock', $ci->quantity * $item->quantity);
+        DB::transaction(function () use ($cart) {
+            $cart->load('items.combo.items');
+            foreach ($cart->items as $item) {
+                if ($item->combo_id) {
+                    $combo = Combo::with('items.variant')->find($item->combo_id);
+                    if ($combo) {
+                        foreach ($combo->items as $ci) {
+                            $ci->variant->decrement('reserved_stock', $ci->quantity * $item->quantity);
+                        }
                     }
+                } elseif ($item->variant_id) {
+                    ProductVariant::where('id', $item->variant_id)
+                        ->decrement('reserved_stock', $item->quantity);
                 }
-            } elseif ($item->variant_id) {
-                ProductVariant::where('id', $item->variant_id)
-                    ->decrement('reserved_stock', $item->quantity);
             }
-        }
+        });
     }
 
     public function syncCartPrices(Cart $cart): bool
@@ -246,7 +269,7 @@ class CartService
                 }
 
                 // Check if the price shifted
-                if ((float)$currentPrice !== (float)$newPrice) {
+                if (abs((float)$currentPrice - (float)$newPrice) > 0.001) {
                     $item->update(['unit_price_snapshot' => $newPrice]);
                     $anyPriceChanged = true;
                 }
@@ -254,5 +277,32 @@ class CartService
         });
 
         return $anyPriceChanged;
+    }
+
+    public function reserveStock(Cart $cart)
+    {
+        foreach ($cart->items as $item) {
+            if ($item->combo_id) {
+                $combo = Combo::with('items.variant')->find($item->combo_id);
+                if ($combo) {
+                    foreach ($combo->items as $ci) {
+                        $ci->variant->increment('reserved_stock', $ci->quantity * $item->quantity);
+                    }
+                }
+            } elseif ($item->variant_id) {
+                ProductVariant::where('id', $item->variant_id)
+                    ->increment('reserved_stock', $item->quantity);
+            }
+        }
+    }
+
+    public function formatCartDetails(Cart      $cart)
+    {
+        $cart->load(['items.variant.product', 'items.variant.tierPrices', 'items.combo']);
+        return [
+            'items' => CartItemResource::collection($cart->items),
+            'totals' => $this->cartPricingService->calculate($cart),
+            'cart_id' => $cart->id,
+        ];
     }
 }

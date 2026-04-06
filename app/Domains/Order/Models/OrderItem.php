@@ -10,6 +10,7 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'variant_id',
+        'combo_id',
         'sku_snapshot',
         'product_name_snapshot',
         'variant_title_snapshot',
@@ -29,5 +30,10 @@ class OrderItem extends Model
     public function variant()
     {
         return $this->belongsTo(\App\Domains\Product\Models\ProductVariant::class, 'variant_id');
+    }
+
+    public function combo()
+    {
+        return $this->belongsTo(\App\Domains\Product\Models\Combo::class);
     }
 }
