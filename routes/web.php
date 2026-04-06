@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Cart\Controllers\PublicCartController;
+use App\Domains\Order\Controllers\CheckoutController;
 use App\Domains\Store\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Domains\Store\Controllers\ProductPageController;
@@ -40,9 +41,7 @@ Route::get('/landing/{slug}', function () {
 
 Route::get('/cart', [PublicCartController::class, 'view'])->middleware(['cart.session'])->name('cart.view');
 
-Route::get('/checkout', function () {
-    return view('store.checkout');
-})->name('checkout');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 
 Route::get('/order-success/{order}', function () {
     return view('store.order-success');

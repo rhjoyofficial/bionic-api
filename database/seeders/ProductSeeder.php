@@ -46,7 +46,7 @@ class ProductSeeder extends Seeder
         // Variable Product - Honey with multiple sizes
         $honeyVariable = Product::create([
             'category_id' => $categories['Honey']->id,
-            'name' => 'Organic Raw Honey',
+            'name' => 'Organic Raw Honey (অর্গানিক রো হানি)',
             'slug' => 'organic-raw-honey',
             'short_description' => 'Certified organic raw honey, unprocessed and unfiltered',
             'description' => 'Our organic raw honey is sourced from certified organic farms. It retains all natural enzymes and nutrients.',
@@ -89,7 +89,7 @@ class ProductSeeder extends Seeder
         // Simple Honey Product
         Product::create([
             'category_id' => $categories['Honey']->id,
-            'name' => 'Floral Gold Honey',
+            'name' => 'Floral Gold Honey (ফ্লোরাল গোল্ড হানি)',
             'slug' => 'floral-gold-honey',
             'base_price' => 950,
             'sku' => 'HON-FOR-001',
@@ -109,7 +109,7 @@ class ProductSeeder extends Seeder
         // Simple Date Product
         Product::create([
             'category_id' => $categories['Dates']->id,
-            'name' => 'Medjool Dates',
+            'name' => 'Medjool Dates (মেজুল খেজুর)',
             'slug' => 'medjool-dates',
             'short_description' => 'Premium Medjool dates from Jordan',
             'base_price' => 1800,
@@ -130,7 +130,7 @@ class ProductSeeder extends Seeder
         // Variable Date Product with multiple sizes
         $ajwaDates = Product::create([
             'category_id' => $categories['Dates']->id,
-            'name' => 'Ajwa Dates',
+            'name' => 'Ajwa Dates (আজওয়া খেজুর)',
             'slug' => 'ajwa-dates',
             'short_description' => 'Premium Ajwa dates from Madinah',
             'base_price' => 2500,
@@ -160,7 +160,7 @@ class ProductSeeder extends Seeder
         // Another simple date product
         Product::create([
             'category_id' => $categories['Dates']->id,
-            'name' => 'Sukkary Dates',
+            'name' => 'Sukkary Dates (সুক্কারি খেজুর)',
             'slug' => 'sukkary-dates',
             'base_price' => 1600,
             'sku' => 'DATE-SUK-001',
@@ -180,7 +180,7 @@ class ProductSeeder extends Seeder
         // Variable Oil Product - multiple sizes
         $coconutOil = Product::create([
             'category_id' => $categories['Oils']->id,
-            'name' => 'Edible Virgin Coconut Oil',
+            'name' => 'Edible Virgin Coconut Oil (খাদ্য উপযোগী ভার্জিন নারকেল তেল)',
             'slug' => 'edible-virgin-coconut-oil',
             'short_description' => 'Cold-pressed virgin coconut oil',
             'base_price' => 600,
@@ -211,7 +211,7 @@ class ProductSeeder extends Seeder
         // Simple Oil Product
         Product::create([
             'category_id' => $categories['Oils']->id,
-            'name' => 'Extra Virgin Olive Oil',
+            'name' => 'Extra Virgin Olive Oil (এক্সট্রা ভার্জিন অলিভ অয়েল)',
             'slug' => 'extra-virgin-olive-oil',
             'base_price' => 1200,
             'sku' => 'OIL-OLV-001',
@@ -233,7 +233,7 @@ class ProductSeeder extends Seeder
         // Variable Nuts Product - Example with Apple (as requested)
         $appleProduct = Product::create([
             'category_id' => $categories['Nuts']->id,
-            'name' => 'Fresh Apples',
+            'name' => 'Fresh Apples (তাজা আপেল)',
             'slug' => 'fresh-apples',
             'short_description' => 'Premium quality fresh apples',
             'description' => 'Crisp and juicy apples sourced from the best orchards. Available in different sizes.',
@@ -276,7 +276,7 @@ class ProductSeeder extends Seeder
         // Mixed Nuts with variants
         $mixedNuts = Product::create([
             'category_id' => $categories['Nuts']->id,
-            'name' => 'Mixed Premium Nuts',
+            'name' => 'Mixed Premium Nuts (মিশ্র প্রিমিয়াম বাদাম)',
             'slug' => 'mixed-premium-nuts',
             'base_price' => 850,
             'sku' => 'NUT-MIX-001',
@@ -316,7 +316,7 @@ class ProductSeeder extends Seeder
         // Simple Almonds
         Product::create([
             'category_id' => $categories['Nuts']->id,
-            'name' => 'California Almonds',
+            'name' => 'California Almonds (ক্যালিফোর্নিয়া বাদাম)',
             'slug' => 'california-almonds',
             'base_price' => 950,
             'sku' => 'NUT-ALM-001',
@@ -372,7 +372,7 @@ class ProductSeeder extends Seeder
         // Chia Seeds with variants
         $chiaSeeds = Product::create([
             'category_id' => $categories['Seeds']->id,
-            'name' => 'Organic Chia Seeds',
+            'name' => 'Organic Chia Seeds (অর্গানিক চিয়া সিডস)',
             'slug' => 'organic-chia-seeds',
             'base_price' => 450,
             'sku' => 'SED-CHA-001',
@@ -422,7 +422,7 @@ class ProductSeeder extends Seeder
         // Variable Ghee Product
         $gheeProduct = Product::create([
             'category_id' => $categories['Ghee']->id,
-            'name' => 'Royal Essence Pure Desi Ghee',
+            'name' => 'Royal Essence Pure Desi Ghee (রয়্যাল এসেন্স বিশুদ্ধ দেশী ঘি)',
             'slug' => 'royal-essence-ghee',
             'short_description' => 'Traditional desi ghee made from deshi cow milk',
             'base_price' => 1800,
@@ -465,7 +465,7 @@ class ProductSeeder extends Seeder
         // Apricots
         Product::create([
             'category_id' => $categories['Dry Fruits']->id,
-            'name' => 'Dried Apricots',
+            'name' => 'Dried Apricots (শুকনো খুরমা)',
             'slug' => 'dried-apricots',
             'base_price' => 650,
             'sku' => 'DRY-APR-001',
@@ -503,7 +503,7 @@ class ProductSeeder extends Seeder
         // Cardamom
         Product::create([
             'category_id' => $categories['Spices']->id,
-            'name' => 'Green Cardamom',
+            'name' => 'Green Cardamom (সবুজ এলাচ)',
             'slug' => 'green-cardamom',
             'base_price' => 1200,
             'sku' => 'SPI-CAR-001',
@@ -521,7 +521,7 @@ class ProductSeeder extends Seeder
         // Cinnamon
         Product::create([
             'category_id' => $categories['Spices']->id,
-            'name' => 'Ceylon Cinnamon',
+            'name' => 'Ceylon Cinnamon (সিলন দারুচিনি)',
             'slug' => 'ceylon-cinnamon',
             'base_price' => 350,
             'sku' => 'SPI-CIN-001',

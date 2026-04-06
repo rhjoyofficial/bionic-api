@@ -14,13 +14,11 @@ class CartItemResource extends JsonResource
 
     if ($this->variant_id && $this->variant) {
       $originalUnitPrice = (float) $this->variant->final_price;
-
       $diff = $originalUnitPrice - (float) $this->unit_price_snapshot;
       if ($diff > 0.001) {
         $tierSaving = round($diff, 2);
       }
 
-      // Always expose all tiers so the frontend can show "add N more to unlock X% off"
       $tiers = $this->variant->tierPrices
         ->sortBy('min_quantity')
         ->map(fn($t) => [
@@ -35,14 +33,15 @@ class CartItemResource extends JsonResource
     return [
       'id'                     => $this->id,
       'variant_id'             => $this->variant_id,
+      'combo_id'               => $this->combo_id,   
       'quantity'               => $this->quantity,
       'product_name_snapshot'  => $this->product_name_snapshot,
       'variant_title_snapshot' => $this->variant_title_snapshot,
       'combo_name_snapshot'    => $this->combo_name_snapshot,
       'unit_price'             => (float) $this->unit_price_snapshot,
       'original_unit_price'    => $originalUnitPrice,
-      'tier_saving'            => $tierSaving,   // non-null = tier currently active
-      'tiers'                  => $tiers,        // all available tiers for this variant
+      'tier_saving'            => $tierSaving,
+      'tiers'                  => $tiers,
       'subtotal'               => (float) $this->subtotal,
       'image_url'              => $this->combo_id
         ? ($this->combo->image ?? null)

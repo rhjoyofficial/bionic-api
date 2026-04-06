@@ -25,7 +25,7 @@ class ComboSeeder extends Seeder
     // --- COMBO 1: The "Daily Essentials" (Auto-Pricing) ---
     // This combo will automatically sum the prices of the variants inside it.
     $combo1 = Combo::create([
-      'title' => 'Daily Essentials Pack',
+      'title' => 'Daily Essentials Pack (দৈনিক প্রয়োজনীয় প্যাক)',
       'slug' => Str::slug('Daily Essentials Pack'),
       'description' => 'A curated collection of our best-selling daily items.',
       'pricing_mode' => 'auto',
@@ -51,8 +51,8 @@ class ComboSeeder extends Seeder
     // --- COMBO 2: The "Mega Saver Bundle" (Manual Pricing) ---
     // This combo has a strictly defined price regardless of individual item costs.
     $combo2 = Combo::create([
-      'title' => 'Mega Saver Electronics Bundle',
-      'slug' => Str::slug('Mega Saver Electronics Bundle'),
+      'title' => 'Ramadan Power Box (রমজান পাওয়ার বক্স)',
+      'slug' => Str::slug('Ramadan Power Box'),
       'description' => 'Get everything you need in one go at a massive discount.',
       'pricing_mode' => 'manual',
       'manual_price' => 1500.00, // Fixed price for the whole set

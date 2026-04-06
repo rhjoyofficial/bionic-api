@@ -216,6 +216,14 @@ export default class CartManager {
         }
     }
 
+    /**
+    * Navigate to the checkout page.
+    * The actual order submission is handled by CheckoutManager on /checkout.
+    */
+    checkout() {
+        window.location.href = "/checkout";
+    }
+
     open() {
         const overlay = document.getElementById("overlay");
         this.sidebar?.classList.remove("translate-x-full");
