@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use App\Services\Webhook\WebhookService;
+use App\Infrastructure\Webhook\WebhookService;
 
 class SendWebhookJob implements ShouldQueue
 {
