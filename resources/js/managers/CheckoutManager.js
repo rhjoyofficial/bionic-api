@@ -108,7 +108,7 @@ export default class CheckoutManager {
     renderTotals() {
         if (this.previewData) {
             const p = this.previewData;
-            const discount = p.tier_discount_total + p.coupon_discount;
+            const discount = (p.tier_discount ?? 0) + (p.coupon_discount ?? 0);
 
             if (this.subtotalEl)
                 this.subtotalEl.textContent = "৳" + p.subtotal.toFixed(2);

@@ -11,11 +11,12 @@ use App\Domains\Store\Controllers\ProductPageController;
 | Storefront Routes
 |--------------------------------------------------------------------------
 */
+// 1. Give the route a name
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/', [HomeController::class, 'index']);
-
+// 2. Redirect using that name
 Route::get('/shop', function () {
-    return view('store.shop');
+    return redirect()->route('home');
 })->name('shop');
 
 Route::get('/category/{slug}', function () {

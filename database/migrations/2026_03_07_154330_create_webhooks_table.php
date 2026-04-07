@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->string('url');
 
-            $table->string('secret')->nullable();
+            $table->text('secret')->nullable();
 
             $table->boolean('is_active')->default(true);
 
