@@ -97,7 +97,8 @@
                                 @endforeach
                             </div>
 
-                            <div id="shippingZones" class="space-y-3">
+                            <div id="shippingZones"
+                                class="flex flex-col md:flex-row flex-1 items-center justify-between gap-4">
                                 {{-- Rendered by CheckoutManager --}}
                             </div>
                         </div>
@@ -111,7 +112,7 @@
                                 <h3 class="text-lg font-bold text-gray-800">Payment Method</h3>
                             </div>
 
-                            <div class="space-y-3">
+                            <div class="flex flex-col md:flex-row flex-1 items-center gap-4">
                                 {{-- COD --}}
                                 <label
                                     class="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-green-300 transition-all has-[:checked]:border-green-600 has-[:checked]:bg-green-50">
