@@ -14,12 +14,11 @@ class CartPricingService
     {
         $cart->load(['items.variant.tierPrices', 'items.combo']);
 
-        $items = $cart->items->map(function ($item) {
-            if ($item->combo_id) {
-                return ['combo_id' => $item->combo_id, 'quantity' => $item->quantity];
-            }
-            return ['variant_id' => $item->variant_id, 'quantity' => $item->quantity];
-        })->values()->toArray();
+        $items = $cart->items->map(fn($item) => [
+            'variant_id' => $item->variant_id,
+            'combo_id'   => $item->combo_id,
+            'quantity'   => $item->quantity,
+        ])->toArray();
 
         if (empty($items)) {
             return [
@@ -30,18 +29,20 @@ class CartPricingService
             ];
         }
 
+        // Use the single pricing engine — no coupon, no zone for cart display
         $result = $this->checkoutPricing->calculate(
             items: $items,
+            couponCode: null,
+            zoneId: null,
+            user: null,
             withLock: false,
         );
 
-        $afterDiscount = $result->subtotal - $result->tierDiscountTotal;
-
         return [
             'total_qty' => $cart->items->sum('quantity'),
-            'subtotal'  => round($afterDiscount, 2),
-            'discount'  => round($result->tierDiscountTotal, 2),
-            'total'     => round($afterDiscount, 2),
+            'subtotal'  => $result->subtotal,
+            'discount'  => $result->tierDiscountTotal,
+            'total'     => $result->subtotal - $result->tierDiscountTotal,
         ];
     }
 }

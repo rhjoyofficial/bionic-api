@@ -41,7 +41,10 @@ Route::get('/landing/{slug}', function () {
 
 Route::get('/cart', [PublicCartController::class, 'view'])->middleware(['cart.session'])->name('cart.view');
 
-Route::get('/checkout', [CheckoutController::class, 'index'])->middleware(['cart.session'])->name('checkout.index');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout', [CheckoutController::class, 'store'])
+    ->middleware(['cart.session', 'throttle:10,1'])
+    ->name('checkout.store');
 
 Route::get('/order-success/{order}', function ($orderNumber) {
     $order = \App\Domains\Order\Models\Order::with(['items', 'shippingAddress'])

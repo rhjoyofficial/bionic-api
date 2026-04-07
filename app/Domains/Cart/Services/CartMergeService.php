@@ -68,14 +68,18 @@ class CartMergeService
                     }
                 }
 
-                // 5. Update or Create
+                // 5. Update or Create (refresh price snapshot on merge)
                 if ($existing) {
-                    // Refresh unit_price_snapshot with tier pricing for combined quantity
                     $updateData = ['quantity' => $newQuantity];
-                    if (!$item->combo_id && $item->variant) {
+
+                    // Refresh price snapshot with new quantity so tier pricing is accurate
+                    if ($existing->variant_id && $item->variant) {
                         $pricing = $this->pricingService->calculate($item->variant, $newQuantity);
                         $updateData['unit_price_snapshot'] = $pricing['unit_price'];
+                    } elseif ($existing->combo_id && $item->combo) {
+                        $updateData['unit_price_snapshot'] = $item->combo->final_price;
                     }
+
                     $existing->update($updateData);
                 } else {
                     $created = $userCart->items()->create([

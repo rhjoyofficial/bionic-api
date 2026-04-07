@@ -23,7 +23,18 @@ class CheckoutPricingService
     ) {}
 
     /**
-     * Single pricing engine for cart display, checkout preview, and order creation.
+     * Single source of truth for all pricing calculations.
+     *
+     * Used by:
+     *  - POST /checkout         (order creation — inside transaction with locks)
+     *  - POST /checkout/preview (display — inside transaction with locks)
+     *  - GET  /cart             (cart totals — without coupon/zone)
+     *
+     * @param  array       $items      [{variant_id, combo_id, quantity}]
+     * @param  string|null $couponCode Coupon to apply (null = skip)
+     * @param  int|null    $zoneId     Shipping zone (null = skip shipping)
+     * @param  User|null   $user       Authenticated user (null = guest)
+     * @param  bool        $withLock   Acquire row-level locks on variants
      */
     public function calculate(
         array $items,
@@ -32,44 +43,48 @@ class CheckoutPricingService
         ?User $user = null,
         bool $withLock = true,
     ): CheckoutPricingResult {
+
+        // 1. Load all referenced variants (with optional pessimistic lock)
         $variants = $this->loadVariants($items, $withLock);
 
-        $lineItems        = [];
-        $subtotal         = 0;
+        // 2. Process each item — build line items, accumulate totals
+        $lineItems      = [];
+        $subtotal       = 0;
         $tierDiscountTotal = 0;
 
         foreach ($items as $item) {
             if (!empty($item['combo_id'])) {
-                $line = $this->processComboItem($item, $variants);
+                $result = $this->processComboItem($item, $variants);
             } else {
-                $line = $this->processVariantItem($item, $variants);
+                $result = $this->processVariantItem($item, $variants);
             }
 
-            $lineItems[]       = $line;
-            $subtotal         += $line['original_line_total'];
-            $tierDiscountTotal += $line['tier_discount'];
+            $lineItems[]       = $result['line_item'];
+            $subtotal         += $result['line_subtotal'];
+            $tierDiscountTotal += $result['discount_amount'];
         }
 
-        $afterTierDiscount = $subtotal - $tierDiscountTotal;
-
-        // Coupon
+        // 3. Coupon (applied to subtotal AFTER tier discounts)
         $couponDiscount = 0;
-        $coupon         = null;
+        $coupon = null;
+
+        $discountedSubtotal = $subtotal - $tierDiscountTotal;
 
         if ($couponCode) {
-            $couponResult   = $this->couponService->validate($couponCode, $afterTierDiscount, $user);
+            $couponResult   = $this->couponService->validate($couponCode, $discountedSubtotal, $user);
             $coupon         = $couponResult['coupon'];
             $couponDiscount = $couponResult['discount'];
         }
 
-        // Shipping
+        // 4. Shipping (evaluated against subtotal after tier discounts, before coupon)
         $shippingCost = 0;
         if ($zoneId) {
-            $zone         = ShippingZone::findOrFail($zoneId);
-            $shippingCost = $this->shippingCalculator->calculate($zone, $afterTierDiscount - $couponDiscount);
+            $zone = ShippingZone::findOrFail($zoneId);
+            $shippingCost = $this->shippingCalculator->calculate($zone, $discountedSubtotal);
         }
 
-        $grandTotal = max(0, $afterTierDiscount - $couponDiscount) + $shippingCost;
+        // 5. Grand total
+        $grandTotal = max(0, $discountedSubtotal - $couponDiscount) + $shippingCost;
 
         return new CheckoutPricingResult(
             lineItems: $lineItems,
@@ -83,66 +98,89 @@ class CheckoutPricingService
         );
     }
 
+    /**
+     * Process a combo item: validate stock, compute price, return line item snapshot.
+     */
     private function processComboItem(array $item, Collection $variants): array
     {
         $combo      = Combo::with('items')->findOrFail($item['combo_id']);
         $comboPrice = $combo->final_price;
-        $quantity   = $item['quantity'];
+        $qty        = $item['quantity'];
 
+        // Validate stock for every component
         foreach ($combo->items as $comboItem) {
             $component = $variants->get($comboItem->product_variant_id);
-            if (!$component || !$component->hasStock($comboItem->quantity * $quantity)) {
+            if (!$component || !$component->hasStock($comboItem->quantity * $qty)) {
                 throw new Exception("Component stock exhausted for bundle: {$combo->title}");
             }
         }
 
         return [
-            'combo_id'            => $combo->id,
-            'variant_id'          => null,
-            'name'                => $combo->title,
-            'variant_title'       => 'Bundle',
-            'quantity'            => $quantity,
-            'original_unit_price' => $comboPrice,
-            'unit_price'          => $comboPrice,
-            'original_line_total' => $comboPrice * $quantity,
-            'line_total'          => $comboPrice * $quantity,
-            'tier_discount'       => 0,
-            'discount_type'       => 'none',
-            'discount_value'      => 0,
+            'line_item' => [
+                'combo_id'               => $combo->id,
+                'variant_id'             => null,
+                'product_id'             => null,
+                'sku_snapshot'           => null,
+                'product_name_snapshot'  => $combo->title,
+                'variant_title_snapshot' => 'Bundle',
+                'quantity'               => $qty,
+                'original_unit_price'    => $comboPrice,
+                'unit_price'             => $comboPrice,
+                'total_price'            => $comboPrice * $qty,
+                'discount_type_snapshot' => null,
+                'discount_value_snapshot' => null,
+            ],
+            'line_subtotal'  => $comboPrice * $qty,
+            'discount_amount' => 0,
         ];
     }
 
+    /**
+     * Process a variant item: validate stock, apply tier pricing, return line item snapshot.
+     */
     private function processVariantItem(array $item, Collection $variants): array
     {
-        $variant  = $variants->get($item['variant_id']);
-        $quantity = $item['quantity'];
+        $variant = $variants->get($item['variant_id']);
+        $qty     = $item['quantity'];
 
         if (!$variant) {
             throw new Exception('Invalid product variant selected.');
         }
 
-        if (!$variant->hasStock($quantity)) {
+        if (!$variant->hasStock($qty)) {
             throw new Exception("Insufficient stock for {$variant->title}");
         }
 
-        $pricing = $this->pricingService->calculate($variant, $quantity, $variant->tierPrices);
+        $pricing = $this->pricingService->calculate($variant, $qty, $variant->tierPrices);
+
+        // FIX: Use original_unit_price from PricingService (which uses variant.final_price)
+        // NOT variant.price directly. This ensures sale discounts are included in subtotal.
+        $lineSubtotal = $pricing['original_unit_price'] * $qty;
 
         return [
-            'combo_id'            => null,
-            'variant_id'          => $variant->id,
-            'name'                => $variant->product->name,
-            'variant_title'       => $variant->title,
-            'quantity'            => $quantity,
-            'original_unit_price' => $pricing['original_unit_price'],
-            'unit_price'          => $pricing['unit_price'],
-            'original_line_total' => $pricing['original_unit_price'] * $quantity,
-            'line_total'          => $pricing['total'],
-            'tier_discount'       => $pricing['discount_amount'],
-            'discount_type'       => $pricing['discount_type'],
-            'discount_value'      => $pricing['discount_value'],
+            'line_item' => [
+                'combo_id'               => null,
+                'variant_id'             => $variant->id,
+                'product_id'             => $variant->product->id,
+                'sku_snapshot'           => $variant->sku,
+                'product_name_snapshot'  => $variant->product->name,
+                'variant_title_snapshot' => $variant->title,
+                'quantity'               => $qty,
+                'original_unit_price'    => $pricing['original_unit_price'],
+                'unit_price'             => $pricing['unit_price'],
+                'total_price'            => $pricing['total'],
+                'discount_type_snapshot' => $pricing['discount_type'],
+                'discount_value_snapshot' => $pricing['discount_value'],
+            ],
+            'line_subtotal'   => $lineSubtotal,
+            'discount_amount' => $pricing['discount_amount'],
         ];
     }
 
+    /**
+     * Load all variants referenced by items (direct + combo components).
+     * Optionally acquires row-level exclusive locks for transactional safety.
+     */
     private function loadVariants(array $items, bool $withLock): Collection
     {
         $variantIds = collect($items)->pluck('variant_id')->filter()->unique();

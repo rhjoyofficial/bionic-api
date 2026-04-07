@@ -299,8 +299,14 @@ export default class CartPageRenderer {
         this.couponBtn.textContent = loading ? "Checking…" : (this.coupon ? "Remove" : "Apply");
     }
 
-    checkout() {
-        // Navigate to checkout page — actual order is placed there with full customer info
+    async checkout() {
+        if (this.checkoutBtn) {
+            this.checkoutBtn.disabled = true;
+            this.checkoutBtn.textContent = "Processing…";
+        }
+
+        // Do not place orders from cart page.
+        // Checkout page is responsible for collecting required fields and submitting.
         window.location.href = "/checkout";
     }
 

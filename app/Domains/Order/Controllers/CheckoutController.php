@@ -59,11 +59,16 @@ class CheckoutController extends Controller
     {
         try {
             $order = $this->service->create($request->validated());
+            $redirectUrl = $this->resolveRedirectUrl($order);
+
+            if (!$request->expectsJson()) {
+                return redirect()->to($redirectUrl);
+            }
 
             return ApiResponse::success(
                 array_merge(
                     (new OrderResource($order))->toArray($request),
-                    ['redirect_url' => $this->resolveRedirectUrl($order)]
+                    ['redirect_url' => $redirectUrl]
                 ),
                 'Order placed successfully',
                 201
@@ -74,6 +79,12 @@ class CheckoutController extends Controller
                 'zone_id'        => $request->input('zone_id'),
                 'item_count'     => count($request->input('items', [])),
             ]);
+
+            if (!$request->expectsJson()) {
+                return back()->withErrors([
+                    'checkout' => $e->getMessage() ?: 'Order could not be placed. Please try again.',
+                ])->withInput();
+            }
 
             return ApiResponse::error(
                 $e->getMessage() ?: 'Order could not be placed. Please try again.',

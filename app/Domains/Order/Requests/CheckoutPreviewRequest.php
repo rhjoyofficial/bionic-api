@@ -19,8 +19,9 @@ class CheckoutPreviewRequest extends FormRequest
             'items.*.variant_id' => 'nullable|exists:product_variants,id',
             'items.*.combo_id'   => 'nullable|exists:combos,id',
             'items.*.quantity'   => 'required|integer|min:1',
-            'coupon_code'        => 'nullable|string|max:50',
-            'zone_id'            => 'nullable|exists:shipping_zones,id',
+
+            'coupon_code' => 'nullable|string|max:50',
+            'zone_id'     => 'nullable|exists:shipping_zones,id',
         ];
     }
 

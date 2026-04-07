@@ -14,10 +14,10 @@ class ShippingZone extends Model
         'estimated_days',
         'is_active'
     ];
-
     protected $casts = [
         'base_charge' => 'float',
         'free_shipping_threshold' => 'float',
+        'estimated_days' => 'integer', 
         'is_active' => 'boolean'
     ];
 
