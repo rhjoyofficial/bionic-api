@@ -28,6 +28,7 @@ class ComboSeeder extends Seeder
       'title' => 'Daily Essentials Pack (দৈনিক প্রয়োজনীয় প্যাক)',
       'slug' => Str::slug('Daily Essentials Pack'),
       'description' => 'A curated collection of our best-selling daily items.',
+      'image' => 'combos/daily-essentials.jpg',
       'pricing_mode' => 'auto',
       'discount_type' => 'percentage',
       'discount_value' => 10, // 10% off the total sum
@@ -54,6 +55,7 @@ class ComboSeeder extends Seeder
       'title' => 'Ramadan Power Box (রমজান পাওয়ার বক্স)',
       'slug' => Str::slug('Ramadan Power Box'),
       'description' => 'Get everything you need in one go at a massive discount.',
+      'image' => 'combos/ramadan-power-box.jpg',
       'pricing_mode' => 'manual',
       'manual_price' => 1500.00, // Fixed price for the whole set
       'is_active' => true,
