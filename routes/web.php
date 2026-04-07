@@ -42,9 +42,16 @@ Route::get('/landing/{slug}', function () {
 Route::get('/cart', [PublicCartController::class, 'view'])->middleware(['cart.session'])->name('cart.view');
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout', [CheckoutController::class, 'store'])
+    ->middleware(['cart.session', 'throttle:10,1'])
+    ->name('checkout.store');
 
-Route::get('/order-success/{order}', function () {
-    return view('store.order-success');
+Route::get('/order-success/{order}', function ($orderNumber) {
+    $order = \App\Domains\Order\Models\Order::with(['items', 'shippingAddress'])
+        ->where('order_number', $orderNumber)
+        ->firstOrFail();
+
+    return view('store.order-success', compact('order'));
 })->name('order.success');
 
 Route::get('/order-failed', function () {

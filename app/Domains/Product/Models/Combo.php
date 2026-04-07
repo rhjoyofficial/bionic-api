@@ -52,4 +52,23 @@ class Combo extends Model
             return (int) floor($item->variant->available_stock / $item->quantity);
         });
     }
+
+    public function isInStock(): bool
+    {
+        return $this->available_stock > 0;
+    }
+    public function isOutOfStock(): bool
+    {
+        return !$this->isInStock();
+    }
+
+    public function isLowStock(): bool
+    {
+        return $this->available_stock > 0 && $this->available_stock <= 5;
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
 }

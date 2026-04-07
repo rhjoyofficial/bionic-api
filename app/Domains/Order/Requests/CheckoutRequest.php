@@ -2,12 +2,40 @@
 
 namespace App\Domains\Order\Requests;
 
+use App\Domains\Cart\Services\CartService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
 class CheckoutRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $cartToken = $this->attributes->get('cart_token')
+            ?? $this->header('X-Session-Token')
+            ?? $this->cookie('bionic_cart_token');
+
+        if (!$this->filled('checkout_token') && !Auth::check()) {
+            $this->merge(['checkout_token' => (string) Str::uuid()]);
+        }
+
+        if (!$this->has('items') || !is_array($this->input('items')) || count($this->input('items', [])) === 0) {
+            /** @var CartService $cartService */
+            $cartService = app(CartService::class);
+            $cart = $cartService->getCart(Auth::id(), Auth::check() ? null : $cartToken);
+            $cart->load('items');
+
+            $items = $cart->items->map(fn($item) => array_filter([
+                'variant_id' => $item->variant_id,
+                'combo_id'   => $item->combo_id,
+                'quantity'   => $item->quantity,
+            ], fn($value) => !is_null($value)))->values()->all();
+
+            $this->merge(['items' => $items]);
+        }
+    }
+
     public function authorize(): bool
     {
         return true; // guests allowed

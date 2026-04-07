@@ -33,7 +33,7 @@ class CartItemResource extends JsonResource
     return [
       'id'                     => $this->id,
       'variant_id'             => $this->variant_id,
-      'combo_id'               => $this->combo_id,   
+      'combo_id'               => $this->combo_id,
       'quantity'               => $this->quantity,
       'product_name_snapshot'  => $this->product_name_snapshot,
       'variant_title_snapshot' => $this->variant_title_snapshot,
@@ -44,7 +44,7 @@ class CartItemResource extends JsonResource
       'tiers'                  => $tiers,
       'subtotal'               => (float) $this->subtotal,
       'image_url'              => $this->combo_id
-        ? ($this->combo->image ?? null)
+        ? ($this->combo->image_url ?? null)
         : ($this->variant->product->image_url ?? null),
     ];
   }

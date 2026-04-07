@@ -14,14 +14,15 @@ class StoreCouponRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code'              => 'required|string|unique:coupons,code|max:50',
-            'type'              => 'required|in:fixed,percentage',
-            'value'             => 'required|numeric|min:0',
-            'min_order_amount'  => 'nullable|numeric|min:0',
-            'max_uses'          => 'nullable|integer|min:1',
-            'starts_at'         => 'nullable|date|after_or_equal:today',
-            'expires_at'        => 'nullable|date|after:starts_at',
-            'is_active'         => 'boolean'
+            'code'             => 'required|string|unique:coupons,code|max:50',
+            'type'             => 'required|in:fixed,percentage',
+            'value'            => 'required|numeric|min:0',
+            'min_purchase'     => 'nullable|numeric|min:0',
+            'usage_limit'      => 'nullable|integer|min:1',
+            'limit_per_user'   => 'nullable|integer|min:1',
+            'start_date'       => 'nullable|date|after_or_equal:today',
+            'end_date'         => 'nullable|date|after:start_date',
+            'is_active'        => 'boolean'
         ];
     }
 }

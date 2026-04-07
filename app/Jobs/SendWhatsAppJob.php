@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Services\WhatsApp\WhatsAppService;
+use App\Infrastructure\WhatsApp\WhatsAppService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 

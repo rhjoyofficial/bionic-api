@@ -2,20 +2,28 @@
 
 namespace App\Domains\Order\Controllers;
 
+use App\Domains\Cart\Services\CartService;
+use App\Domains\Order\Requests\CheckoutPreviewRequest;
 use App\Domains\Order\Requests\CheckoutRequest;
+use App\Domains\Order\Services\CheckoutPricingService;
 use App\Domains\Order\Services\OrderService;
 use App\Domains\Order\Resources\OrderResource;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class CheckoutController extends Controller
 {
     public function __construct(
-        private readonly OrderService $service
+        private readonly OrderService $service,
+        private readonly CheckoutPricingService $pricingService,
+        private readonly CartService $cartService,
     ) {}
 
     public function index()
@@ -23,15 +31,50 @@ class CheckoutController extends Controller
         return view('store.checkout');
     }
 
+    /**
+     * Returns authoritative pricing breakdown without creating an order.
+     * Frontend calls this on page load, zone change, or coupon change.
+     */
+    public function preview(CheckoutPreviewRequest $request)
+    {
+        try {
+            $validated = $request->validated();
+
+            $result = DB::transaction(fn() => $this->pricingService->calculate(
+                items: $validated['items'],
+                couponCode: $validated['coupon_code'] ?? null,
+                zoneId: $validated['zone_id'] ?? null,
+                user: Auth::user(),
+                withLock: false,
+            ));
+
+            return ApiResponse::success($result->toArray(), 'Pricing calculated');
+        } catch (Exception $e) {
+            return ApiResponse::error(
+                $e->getMessage() ?: 'Could not calculate pricing.',
+                null,
+                $this->resolveStatus($e),
+            );
+        }
+    }
+
     public function store(CheckoutRequest $request)
     {
         try {
-            $order = $this->service->create($request->validated());
+            $order = $this->service->create(
+                $request->validated(),
+                $this->resolveCheckoutCart($request),
+            );
+            $redirectUrl = $this->resolveRedirectUrl($order);
+
+            if (!$request->expectsJson()) {
+                return redirect()->to($redirectUrl);
+            }
 
             return ApiResponse::success(
                 array_merge(
                     (new OrderResource($order))->toArray($request),
-                    ['redirect_url' => $this->resolveRedirectUrl($order)]
+                    ['redirect_url' => $redirectUrl]
                 ),
                 'Order placed successfully',
                 201
@@ -42,6 +85,12 @@ class CheckoutController extends Controller
                 'zone_id'        => $request->input('zone_id'),
                 'item_count'     => count($request->input('items', [])),
             ]);
+
+            if (!$request->expectsJson()) {
+                return back()->withErrors([
+                    'checkout' => $e->getMessage() ?: 'Order could not be placed. Please try again.',
+                ])->withInput();
+            }
 
             return ApiResponse::error(
                 $e->getMessage() ?: 'Order could not be placed. Please try again.',
@@ -102,5 +151,27 @@ class CheckoutController extends Controller
             $e instanceof ModelNotFoundException   => 404,
             default                                => 500,
         };
+    }
+
+    private function resolveCheckoutCart(CheckoutRequest $request)
+    {
+        try {
+            if (Auth::check()) {
+                return $this->cartService->getCart(Auth::id(), null);
+            }
+
+            $token = $request->attributes->get('cart_token')
+                ?? $request->header('X-Session-Token')
+                ?? $request->cookie('bionic_cart_token')
+                ?? $request->input('checkout_token');
+
+            if (!$token) {
+                return null;
+            }
+
+            return $this->cartService->getCart(null, $token);
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

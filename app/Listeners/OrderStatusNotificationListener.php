@@ -14,8 +14,13 @@ class OrderStatusNotificationListener implements ShouldQueue
      */
     public function handle(OrderStatusChanged $event): void
     {
+        $user = $event->order->user;
+
+        // Guest orders have no user — skip push notification
+        if (!$user) return;
+
         Notification::send(
-            $event->order->user,
+            $user,
             new OrderStatusPushNotification($event->order)
         );
     }
