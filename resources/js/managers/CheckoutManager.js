@@ -18,6 +18,7 @@ export default class CheckoutManager {
 
         // ── DOM: Shipping ──────────────────────────────────────
         this.zonesContainer = document.getElementById("shippingZones");
+        this.zonesModule = document.getElementById("zonesModule");
         this.zonesLoader = document.getElementById("zonesLoader");
 
         // ── DOM: Coupon ────────────────────────────────────────
@@ -221,7 +222,7 @@ export default class CheckoutManager {
                     ? `${zone.estimated_days} day${zone.estimated_days > 1 ? "s" : ""}`
                     : "";
 
-                return `<label class="zoneOption flex items-start gap-3 p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-green-300 transition-all has-[:checked]:border-green-600 has-[:checked]:bg-green-50">
+                return `<label class="zoneOption flex items-start gap-3 p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-green-300 transition-all has-checked:border-green-600 has-checked:bg-green-50">
                 <input type="radio" name="zone_id" value="${zone.id}"
                     class="mt-0.5 accent-green-700 shrink-0" data-zone='${JSON.stringify(zone)}'>
                 <div class="flex-1 min-w-0 font-bengali">
@@ -373,7 +374,15 @@ export default class CheckoutManager {
     // ── Submit ──────────────────────────────────────────────────
 
     bindEvents() {
-        this.placeOrderBtn?.addEventListener("click", () => this.submit());
+        this.form?.addEventListener("submit", (e) => {
+            e.preventDefault();
+            this.submit();
+        });
+
+        this.placeOrderBtn?.addEventListener("click", (e) => {
+            e.preventDefault();
+            this.submit();
+        });
         this.couponBtn?.addEventListener("click", () => {
             if (this.coupon) this._removeCoupon();
             else this.applyCoupon();
@@ -469,6 +478,15 @@ export default class CheckoutManager {
         }
 
         if (!this.selectedZone) {
+            // window.flash?.("Please select a delivery zone.", "error");
+            zonesModule?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+            zonesModule.classList.add("ring-2", "ring-red-500");
+            setTimeout(() => {
+                zonesModule.classList.remove("ring-2", "ring-red-500");
+            }, 2000);
             return {
                 valid: false,
                 message: "Please select a delivery zone.",

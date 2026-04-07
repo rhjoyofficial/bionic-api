@@ -36,53 +36,78 @@
                                             Name <span class="text-red-400">*</span></label>
                                         <input id="co_name" name="customer_name" type="text"
                                             placeholder="Your full name"
-                                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
+                                            class="w-full rounded-xl border @error('customer_name') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
+                                        @error('customer_name')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                     <div>
                                         <label
                                             class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Phone
                                             Number <span class="text-red-400">*</span></label>
                                         <input id="co_phone" name="customer_phone" type="tel" placeholder="01XXXXXXXXX"
-                                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
+                                            class="w-full rounded-xl border @error('customer_phone') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
+                                        @error('customer_phone')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
 
-                                <div class="sm:col-span-2">
-                                    <label
-                                        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email
-                                        <span class="text-gray-300 font-normal normal-case">(optional)</span></label>
-                                    <input id="co_email" name="customer_email" type="email" placeholder="you@example.com"
-                                        class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
+                                <div class="sm:col-span-2 sm:grid sm:grid-cols-2 gap-4 flex flex-col">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email
+                                            <span class="text-gray-300 font-normal normal-case">(optional)</span></label>
+                                        <input id="co_email" name="customer_email" type="email"
+                                            placeholder="you@example.com"
+                                            class="w-full rounded-xl border @error('customer_email') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
+                                        @error('customer_email')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">City
+                                            <span class="text-red-400">*</span></label>
+                                        <input id="co_city" type="text" name="city" placeholder="Dhaka"
+                                            class="w-full rounded-xl border @error('city') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
+                                        @error('city')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
                                 </div>
 
-                                <div class="sm:col-span-2">
-                                    <label
-                                        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Delivery
-                                        Address <span class="text-red-400">*</span></label>
-                                    <textarea id="co_address" name="address_line" rows="2" placeholder="House no., road, area..."
-                                        class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all resize-none"></textarea>
+                                <div class="sm:col-span-2 sm:grid sm:grid-cols-2 gap-4 flex flex-col">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Delivery
+                                            Address <span class="text-red-400">*</span></label>
+                                        <textarea id="co_address" name="address_line" rows="2" placeholder="House no., road, area..."
+                                            class="w-full rounded-xl border @error('customer_address') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all resize-none"></textarea>
+                                        @error('address_line')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Order
+                                            Notes <span
+                                                class="text-gray-300 font-normal normal-case">(optional)</span></label>
+                                        <textarea id="co_notes" name="notes" rows="2" placeholder="Any special instructions…"
+                                            class="w-full rounded-xl border @error('notes') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all resize-none"></textarea>
+                                        @error('notes')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <label
-                                        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">City
-                                        <span class="text-red-400">*</span></label>
-                                    <input id="co_city" type="text" name="city" placeholder="Dhaka"
-                                        class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
-                                </div>
 
-                                <div>
-                                    <label
-                                        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Order
-                                        Notes <span class="text-gray-300 font-normal normal-case">(optional)</span></label>
-                                    <input id="co_notes" type="text" placeholder="Any special instructions…"
-                                        class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
-                                </div>
                             </div>
                         </div>
 
                         {{-- 2. Delivery Zone --}}
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div id="zonesModule" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div class="flex items-center gap-3 mb-5">
                                 <div
                                     class="w-7 h-7 rounded-full bg-green-800 text-white flex items-center justify-center text-xs font-bold shrink-0">
@@ -115,7 +140,7 @@
                             <div class="flex flex-col md:flex-row flex-1 items-center gap-4">
                                 {{-- COD --}}
                                 <label
-                                    class="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-green-300 transition-all has-[:checked]:border-green-600 has-[:checked]:bg-green-50">
+                                    class="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-green-300 transition-all has-checked:border-green-600 has-checked:bg-green-50">
                                     <input type="radio" name="payment_method" value="cod" checked
                                         class="accent-green-700 w-4 h-4 shrink-0">
                                     <div class="flex items-center gap-3">
@@ -136,7 +161,7 @@
 
                                 {{-- SSL Commerz --}}
                                 <label
-                                    class="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-green-300 transition-all has-[:checked]:border-green-600 has-[:checked]:bg-green-50">
+                                    class="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-green-300 transition-all has-checked:border-green-600 has-checked:bg-green-50">
                                     <input type="radio" name="payment_method" value="sslcommerz"
                                         class="accent-green-700 w-4 h-4 shrink-0">
                                     <div class="flex items-center gap-3">
@@ -169,7 +194,7 @@
                             </div>
 
                             <div
-                                class="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:border-green-400 focus-within:ring-2 focus-within:ring-green-100 transition-all">
+                                class="flex items-center bg-gray-50 rounded-xl border border-gray-200  overflow-hidden focus-within:border-green-400 focus-within:ring-2 focus-within:ring-green-100 transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600 ml-3 shrink-0"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -178,7 +203,7 @@
                                 <input id="co_coupon" type="text" placeholder="Enter promo code"
                                     class="bg-transparent flex-1 text-sm px-3 py-2.5 focus:outline-none text-gray-700 placeholder-gray-400 uppercase tracking-wider"
                                     autocomplete="off">
-                                <button id="co_couponBtn"
+                                <button id="co_couponBtn" type="button"
                                     class="bg-green-800 text-white px-4 py-2.5 text-sm font-semibold hover:bg-green-900 transition-colors shrink-0">
                                     Apply
                                 </button>
@@ -239,8 +264,8 @@
                             </div>
 
                             {{-- Place Order --}}
-                            <button id="placeOrderBtn"
-                                class="mt-5 w-full bg-green-800 text-white py-4 rounded-full font-bold text-base hover:bg-green-900 transition-all shadow-md shadow-green-100 active:scale-[.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <button id="placeOrderBtn" type="button"
+                                class="mt-5 w-full bg-green-800 text-white py-4 rounded-full font-bold text-base hover:bg-green-900 transition-all shadow-md shadow-green-100 active:scale-[.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer">
                                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
