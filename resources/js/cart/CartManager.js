@@ -199,23 +199,6 @@ export default class CartManager {
         }
     }
 
-    async checkout() {
-        try {
-            const res = await fetch("/api/v1/checkout", {
-                method: "POST",
-                headers: {
-                    "X-Session-Token": this.token,
-                    "Content-Type": "application/json",
-                },
-            });
-            const json = await res.json();
-            if (!res.ok) throw json;
-            window.location.href = json.data.redirect_url;
-        } catch {
-            this.flash("Checkout failed", "error");
-        }
-    }
-
     /**
     * Navigate to the checkout page.
     * The actual order submission is handled by CheckoutManager on /checkout.
