@@ -2,6 +2,7 @@
 
 namespace App\Domains\Order\Controllers;
 
+use App\Domains\Cart\Services\CartService;
 use App\Domains\Order\Requests\CheckoutPreviewRequest;
 use App\Domains\Order\Requests\CheckoutRequest;
 use App\Domains\Order\Services\CheckoutPricingService;
@@ -15,12 +16,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class CheckoutController extends Controller
 {
     public function __construct(
         private readonly OrderService $service,
         private readonly CheckoutPricingService $pricingService,
+        private readonly CartService $cartService,
     ) {}
 
     public function index()
@@ -58,7 +61,10 @@ class CheckoutController extends Controller
     public function store(CheckoutRequest $request)
     {
         try {
-            $order = $this->service->create($request->validated());
+            $order = $this->service->create(
+                $request->validated(),
+                $this->resolveCheckoutCart($request),
+            );
             $redirectUrl = $this->resolveRedirectUrl($order);
 
             if (!$request->expectsJson()) {
@@ -145,5 +151,27 @@ class CheckoutController extends Controller
             $e instanceof ModelNotFoundException   => 404,
             default                                => 500,
         };
+    }
+
+    private function resolveCheckoutCart(CheckoutRequest $request)
+    {
+        try {
+            if (Auth::check()) {
+                return $this->cartService->getCart(Auth::id(), null);
+            }
+
+            $token = $request->attributes->get('cart_token')
+                ?? $request->header('X-Session-Token')
+                ?? $request->cookie('bionic_cart_token')
+                ?? $request->input('checkout_token');
+
+            if (!$token) {
+                return null;
+            }
+
+            return $this->cartService->getCart(null, $token);
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="bg-[#f0f5f1] min-h-screen flex items-center justify-center py-12 px-4">
-        <div class="w-full max-w-xl">
+        <div class="w-full max-w-3xl">
 
             {{-- Success card --}}
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
@@ -32,29 +32,36 @@
                 <div class="px-8 py-6 space-y-6">
 
                     {{-- Customer info --}}
-                    @if($order->shippingAddress)
+                    @if ($order->shippingAddress)
                         <div>
                             <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Delivering to</h4>
                             <div class="bg-gray-50 rounded-xl p-4 space-y-1">
-                                <p class="font-semibold text-gray-800 text-sm">{{ $order->shippingAddress->customer_name }}</p>
+                                <p class="font-semibold text-gray-800 text-sm">{{ $order->shippingAddress->customer_name }}
+                                </p>
                                 <p class="text-gray-500 text-sm">{{ $order->shippingAddress->customer_phone }}</p>
-                                <p class="text-gray-500 text-sm">{{ collect([$order->shippingAddress->address_line, $order->shippingAddress->city])->filter()->join(', ') }}</p>
+                                <p class="text-gray-500 text-sm">
+                                    {{ collect([$order->shippingAddress->address_line, $order->shippingAddress->city])->filter()->join(', ') }}
+                                </p>
                             </div>
                         </div>
                     @endif
 
                     {{-- Items --}}
-                    @if($order->items->count())
+                    @if ($order->items->count())
                         <div>
                             <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Items Ordered</h4>
                             <div class="space-y-2">
-                                @foreach($order->items as $item)
-                                    <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                                @foreach ($order->items as $item)
+                                    <div
+                                        class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                                         <div>
-                                            <p class="text-sm font-semibold text-gray-800 font-bengali">{{ $item->product_name_snapshot }}</p>
-                                            <p class="text-xs text-gray-400">{{ $item->variant_title_snapshot }} &times; {{ $item->quantity }}</p>
+                                            <p class="text-sm font-semibold text-gray-800 font-bengali">
+                                                {{ $item->product_name_snapshot }}</p>
+                                            <p class="text-xs text-gray-400">{{ $item->variant_title_snapshot }} &times;
+                                                {{ $item->quantity }}</p>
                                         </div>
-                                        <p class="text-sm font-bold text-gray-800 font-bengali">{{ number_format($item->total_price, 2) }}</p>
+                                        <p class="text-sm font-bold text-gray-800 font-bengali">
+                                            {{ number_format($item->total_price, 2) }}</p>
                                     </div>
                                 @endforeach
                             </div>
@@ -65,26 +72,30 @@
                     <div class="space-y-2 pt-4 border-t border-gray-100">
                         <div class="flex justify-between text-sm text-gray-500">
                             <span>Subtotal</span>
-                            <span class="font-medium text-gray-800 font-bengali">{{ number_format($order->subtotal, 2) }}</span>
+                            <span
+                                class="font-medium text-gray-800 font-bengali">{{ number_format($order->subtotal, 2) }}</span>
                         </div>
-                        @if($order->discount_total > 0)
+                        @if ($order->discount_total > 0)
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">Discount</span>
-                                <span class="font-medium text-green-600 font-bengali">&minus;{{ number_format($order->discount_total, 2) }}</span>
+                                <span
+                                    class="font-medium text-green-600 font-bengali">&minus;{{ number_format($order->discount_total, 2) }}</span>
                             </div>
                         @endif
                         <div class="flex justify-between text-sm text-gray-500">
                             <span>Shipping</span>
-                            <span class="font-medium text-gray-800 font-bengali">{{ $order->shipping_cost == 0 ? 'Free' : number_format($order->shipping_cost, 2) }}</span>
+                            <span
+                                class="font-medium text-gray-800 font-bengali">{{ $order->shipping_cost == 0 ? 'Free' : number_format($order->shipping_cost, 2) }}</span>
                         </div>
                         <div class="flex justify-between items-center pt-2 border-t border-gray-100">
                             <span class="font-bold text-gray-800">Total</span>
-                            <span class="text-xl font-bold text-green-800 font-bengali">{{ number_format($order->grand_total, 2) }}</span>
+                            <span
+                                class="text-xl font-bold text-green-800 font-bengali">{{ number_format($order->grand_total, 2) }}</span>
                         </div>
                     </div>
 
                     {{-- Payment method --}}
-                    @if($order->payment_method === 'cod')
+                    @if ($order->payment_method === 'cod')
                         <div class="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-xl p-4">
                             <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -93,7 +104,8 @@
                             </svg>
                             <div>
                                 <p class="text-sm font-bold text-amber-800">Cash on Delivery</p>
-                                <p class="text-xs text-amber-600 mt-0.5">Please have the exact amount ready when your order arrives.</p>
+                                <p class="text-xs text-amber-600 mt-0.5">Please have the exact amount ready when your order
+                                    arrives.</p>
                             </div>
                         </div>
                     @endif

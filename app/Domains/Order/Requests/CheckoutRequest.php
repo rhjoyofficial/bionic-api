@@ -5,6 +5,7 @@ namespace App\Domains\Order\Requests;
 use App\Domains\Cart\Services\CartService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
 class CheckoutRequest extends FormRequest
@@ -15,8 +16,8 @@ class CheckoutRequest extends FormRequest
             ?? $this->header('X-Session-Token')
             ?? $this->cookie('bionic_cart_token');
 
-        if (!$this->filled('checkout_token') && !Auth::check() && $cartToken) {
-            $this->merge(['checkout_token' => $cartToken]);
+        if (!$this->filled('checkout_token') && !Auth::check()) {
+            $this->merge(['checkout_token' => (string) Str::uuid()]);
         }
 
         if (!$this->has('items') || !is_array($this->input('items')) || count($this->input('items', [])) === 0) {

@@ -76,16 +76,23 @@ export default class CartPageRenderer {
         }
 
         // Hide summary, show only empty state
-        if (this.summaryBox) this.summaryBox.classList.add("opacity-50", "pointer-events-none");
+        if (this.summaryBox)
+            this.summaryBox.classList.add("opacity-50", "pointer-events-none");
         if (this.subtotalEl) this.subtotalEl.textContent = "৳0";
         if (this.totalEl) this.totalEl.textContent = "৳0";
         if (this.discountRowEl) this.discountRowEl.classList.add("hidden");
     }
 
     _renderItems(items) {
-        if (this.summaryBox) this.summaryBox.classList.remove("opacity-50", "pointer-events-none");
+        if (this.summaryBox)
+            this.summaryBox.classList.remove(
+                "opacity-50",
+                "pointer-events-none",
+            );
 
-        this.itemsContainer.innerHTML = items.map((item) => this._row(item)).join("");
+        this.itemsContainer.innerHTML = items
+            .map((item) => this._row(item))
+            .join("");
         this._bindItemEvents();
     }
 
@@ -98,21 +105,22 @@ export default class CartPageRenderer {
         if (!i.tiers || !i.tiers.length) return "";
 
         if (i.tier_saving) {
-            return `<span class="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
+            return `<span class="font-bengali inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
                         <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                         Bulk deal active — saving ৳${i.tier_saving} per unit
                     </span>`;
         }
 
-        const nextTier = i.tiers.find(t => t.qty > i.quantity);
+        const nextTier = i.tiers.find((t) => t.qty > i.quantity);
         if (!nextTier) return "";
 
         const need = nextTier.qty - i.quantity;
-        const reward = nextTier.type === "percentage"
-            ? `${nextTier.value}% off`
-            : `৳${nextTier.value} off/unit`;
+        const reward =
+            nextTier.type === "percentage"
+                ? `${nextTier.value}% off`
+                : `৳${nextTier.value} off/unit`;
 
-        return `<span class="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+        return `<span class="font-bengali inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
                     <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                     Add ${need} more to unlock ${reward}
                 </span>`;
@@ -120,8 +128,12 @@ export default class CartPageRenderer {
 
     _row(i) {
         const isCombo = !!i.combo_name_snapshot;
-        const displayName = isCombo ? i.combo_name_snapshot : i.product_name_snapshot;
-        const displayVariant = isCombo ? "Bundle Offer" : i.variant_title_snapshot;
+        const displayName = isCombo
+            ? i.combo_name_snapshot
+            : i.product_name_snapshot;
+        const displayVariant = isCombo
+            ? "Bundle Offer"
+            : i.variant_title_snapshot;
         const imageUrl = i.image_url || "/images/placeholder.png";
         const lineTotal = (i.unit_price * i.quantity).toFixed(2);
 
@@ -129,13 +141,14 @@ export default class CartPageRenderer {
             ? `<div class="mt-2">${this._tierHtml(i)}</div>`
             : "";
 
-        const priceSection = (!isCombo && i.tier_saving && i.original_unit_price)
-            ? `<div class="text-right font-bengali">
+        const priceSection =
+            !isCombo && i.tier_saving && i.original_unit_price
+                ? `<div class="text-right font-bengali">
                    <p class="text-xs text-gray-400 line-through leading-none">৳${i.original_unit_price} × ${i.quantity}</p>
                    <p class="text-xs text-emerald-600 font-semibold font-bengali leading-none mt-0.5">৳${i.unit_price} × ${i.quantity}</p>
                    <p class="text-base font-bold text-gray-900 font-bengali mt-0.5">৳${lineTotal}</p>
                </div>`
-            : `<div class="text-right font-bengali">
+                : `<div class="text-right font-bengali">
                    <p class="text-xs text-gray-400">৳${i.unit_price} × ${i.quantity}</p>
                    <p class="text-base font-bold text-gray-900 font-bengali">৳${lineTotal}</p>
                </div>`;
@@ -165,9 +178,9 @@ export default class CartPageRenderer {
                 <div class="flex items-center justify-between mt-3">
                     <!-- Qty control -->
                     <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                        <button class="pageMinus w-9 h-9 flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors font-bold text-lg border-r border-gray-200">−</button>
+                        <button class="pageMinus cursor-pointer w-9 h-9 flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors font-bold text-lg border-r border-gray-200">−</button>
                         <div class="w-10 h-9 flex items-center justify-center text-sm font-bold text-gray-800 select-none">${i.quantity}</div>
-                        <button class="pagePlus w-9 h-9 flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors font-bold text-lg border-l border-gray-200">+</button>
+                        <button class="pagePlus cursor-pointer w-9 h-9 flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors font-bold text-lg border-l border-gray-200">+</button>
                     </div>
 
                     <!-- Price -->
@@ -206,11 +219,14 @@ export default class CartPageRenderer {
         const discount = this.coupon?.discount ?? 0;
         const total = Math.max(0, subtotal - discount);
 
-        if (this.subtotalEl) this.subtotalEl.textContent = "৳" + subtotal.toFixed(2);
+        if (this.subtotalEl)
+            this.subtotalEl.textContent = "৳" + subtotal.toFixed(2);
 
         if (discount > 0) {
-            if (this.discountRowEl) this.discountRowEl.classList.remove("hidden");
-            if (this.discountAmountEl) this.discountAmountEl.textContent = "− ৳" + discount.toFixed(2);
+            if (this.discountRowEl)
+                this.discountRowEl.classList.remove("hidden");
+            if (this.discountAmountEl)
+                this.discountAmountEl.textContent = "− ৳" + discount.toFixed(2);
         } else {
             if (this.discountRowEl) this.discountRowEl.classList.add("hidden");
         }
@@ -233,7 +249,9 @@ export default class CartPageRenderer {
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content ?? "",
+                    "X-CSRF-TOKEN":
+                        document.querySelector('meta[name="csrf-token"]')
+                            ?.content ?? "",
                     "X-Session-Token": window.Cart?.token ?? "",
                 },
                 body: JSON.stringify({ code, order_amount: subtotal }),
@@ -250,9 +268,15 @@ export default class CartPageRenderer {
             };
 
             // Persist for checkout page carry-over
-            sessionStorage.setItem('bionic_coupon', JSON.stringify(this.coupon));
+            sessionStorage.setItem(
+                "bionic_coupon",
+                JSON.stringify(this.coupon),
+            );
 
-            this._setCouponFeedback(`✓ "${code}" applied — ৳${json.data.discount.toFixed(2)} off`, "success");
+            this._setCouponFeedback(
+                `✓ "${code}" applied — ৳${json.data.discount.toFixed(2)} off`,
+                "success",
+            );
             this._renderTotals(subtotal);
 
             // Lock input after successful apply
@@ -271,7 +295,7 @@ export default class CartPageRenderer {
 
     _removeCoupon() {
         this.coupon = null;
-        sessionStorage.removeItem('bionic_coupon');
+        sessionStorage.removeItem("bionic_coupon");
         if (this.couponInput) {
             this.couponInput.value = "";
             this.couponInput.disabled = false;
@@ -287,16 +311,23 @@ export default class CartPageRenderer {
     _setCouponFeedback(msg, type) {
         if (!this.couponFeedback) return;
         this.couponFeedback.textContent = msg;
-        this.couponFeedback.className = "text-xs mt-2 font-medium " + (
-            type === "success" ? "text-green-600" :
-                type === "error" ? "text-red-500" : "hidden"
-        );
+        this.couponFeedback.className =
+            "text-xs mt-2 font-medium " +
+            (type === "success"
+                ? "text-green-600"
+                : type === "error"
+                  ? "text-red-500"
+                  : "hidden");
     }
 
     _setCouponLoading(loading) {
         if (!this.couponBtn) return;
         this.couponBtn.disabled = loading;
-        this.couponBtn.textContent = loading ? "Checking…" : (this.coupon ? "Remove" : "Apply");
+        this.couponBtn.textContent = loading
+            ? "Checking…"
+            : this.coupon
+              ? "Remove"
+              : "Apply";
     }
 
     async checkout() {
