@@ -5,6 +5,7 @@ export default class CheckoutManager {
     this.selectedZone = null;
     this.coupon = null; // { id, code, discount }
     this.submitting = false;
+    this.previewData = null; // server pricing response
 
     // ── DOM: Form fields ───────────────────────────────────
     this.form = document.getElementById("checkoutForm");
@@ -49,10 +50,12 @@ export default class CheckoutManager {
     }
 
     this.renderItems();
-    this.renderTotals();
     await this.loadZones();
     this.loadCarriedCoupon();
     this.bindEvents();
+
+    // Fetch server-authoritative pricing
+    await this.fetchPreview();
   }
 
   // ── Cart ────────────────────────────────────────────────────
@@ -93,39 +96,85 @@ export default class CheckoutManager {
     }).join("");
   }
 
+  /**
+   * Render totals from server preview data (single source of truth).
+   * Falls back to cart subtotal only if preview hasn't loaded yet.
+   */
   renderTotals() {
-    const subtotal = window.Cart.state.subtotal;
-    const discount = this.coupon?.discount ?? 0;
-    const shipping = this.selectedZone
-      ? this._calcShipping(this.selectedZone, subtotal - discount)
-      : null;
-    const total = Math.max(0, subtotal - discount) + (shipping ?? 0);
+    if (this.previewData) {
+      const p = this.previewData;
+      const discount = p.tier_discount_total + p.coupon_discount;
 
-    if (this.subtotalEl) this.subtotalEl.textContent = "৳" + subtotal.toFixed(2);
+      if (this.subtotalEl) this.subtotalEl.textContent = "৳" + p.subtotal.toFixed(2);
 
-    if (discount > 0) {
-      if (this.discountRowEl) this.discountRowEl.classList.remove("hidden");
-      if (this.discountEl) this.discountEl.textContent = "−৳" + discount.toFixed(2);
+      if (discount > 0) {
+        if (this.discountRowEl) this.discountRowEl.classList.remove("hidden");
+        if (this.discountEl) this.discountEl.textContent = "−৳" + discount.toFixed(2);
+      } else {
+        if (this.discountRowEl) this.discountRowEl.classList.add("hidden");
+      }
+
+      if (this.shippingEl) {
+        this.shippingEl.textContent = !this.selectedZone
+          ? "Select zone"
+          : p.shipping_cost === 0 ? "Free" : "৳" + p.shipping_cost.toFixed(2);
+      }
+
+      if (this.totalEl) {
+        this.totalEl.textContent = !this.selectedZone
+          ? "—"
+          : "৳" + p.grand_total.toFixed(2);
+      }
     } else {
+      // Fallback before first preview loads
+      const subtotal = window.Cart?.state?.subtotal ?? 0;
+      if (this.subtotalEl) this.subtotalEl.textContent = "৳" + subtotal.toFixed(2);
+      if (this.shippingEl) this.shippingEl.textContent = "Select zone";
+      if (this.totalEl) this.totalEl.textContent = "—";
       if (this.discountRowEl) this.discountRowEl.classList.add("hidden");
     }
-
-    if (this.shippingEl) {
-      this.shippingEl.textContent = shipping === null
-        ? "Select zone"
-        : shipping === 0 ? "Free" : "৳" + shipping.toFixed(2);
-    }
-
-    if (this.totalEl) this.totalEl.textContent = shipping === null
-      ? "—"
-      : "৳" + total.toFixed(2);
   }
 
-  _calcShipping(zone, orderAmount) {
-    if (zone.free_shipping_threshold && orderAmount >= zone.free_shipping_threshold) {
-      return 0;
+  /**
+   * Fetch authoritative pricing from backend preview endpoint.
+   * Called on init, zone change, and coupon change.
+   */
+  async fetchPreview() {
+    const items = (window.Cart?.state?.items ?? []).map(i => ({
+      ...(i.combo_id ? { combo_id: i.combo_id } : {}),
+      ...(i.variant_id ? { variant_id: i.variant_id } : {}),
+      quantity: i.quantity,
+    }));
+
+    if (!items.length) return;
+
+    const payload = {
+      items,
+      coupon_code: this.coupon?.code ?? null,
+      zone_id: this.selectedZone?.id ?? null,
+    };
+
+    try {
+      const res = await fetch("/api/v1/checkout/preview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content ?? "",
+          "X-Session-Token": window.Cart?.token ?? "",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.data) {
+        this.previewData = json.data;
+      }
+    } catch {
+      // Preview failed — keep showing fallback totals
     }
-    return zone.base_charge;
+
+    this.renderTotals();
   }
 
   // ── Shipping Zones ──────────────────────────────────────────
@@ -173,11 +222,11 @@ export default class CheckoutManager {
             </label>`;
     }).join("");
 
-    // Bind zone selection
+    // Bind zone selection — re-fetch preview on change
     this.zonesContainer.querySelectorAll('input[name="zone_id"]').forEach(radio => {
       radio.addEventListener("change", () => {
         this.selectedZone = JSON.parse(radio.dataset.zone);
-        this.renderTotals();
+        this.fetchPreview();
       });
     });
   }
@@ -201,10 +250,10 @@ export default class CheckoutManager {
         this.couponBtn.onclick = () => this._removeCoupon();
       }
       this._setCouponFeedback(
-        `✓ "${coupon.code}" applied — ৳${coupon.discount.toFixed(2)} off`,
+        `"${coupon.code}" applied`,
         "success"
       );
-      this.renderTotals();
+      // Preview will be fetched by init() after this
     } catch {
       sessionStorage.removeItem("bionic_coupon");
     }
@@ -214,12 +263,18 @@ export default class CheckoutManager {
     const code = this.couponInput?.value?.trim()?.toUpperCase();
     if (!code) return;
 
-    const subtotal = window.Cart.state.subtotal;
     this._setCouponLoading(true);
     this._setCouponFeedback("", "");
 
+    // Use preview endpoint to validate coupon in context of actual cart
+    const items = (window.Cart?.state?.items ?? []).map(i => ({
+      ...(i.combo_id ? { combo_id: i.combo_id } : {}),
+      ...(i.variant_id ? { variant_id: i.variant_id } : {}),
+      quantity: i.quantity,
+    }));
+
     try {
-      const res = await fetch("/api/v1/coupon/validate", {
+      const res = await fetch("/api/v1/checkout/preview", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -227,17 +282,23 @@ export default class CheckoutManager {
           "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content ?? "",
           "X-Session-Token": window.Cart?.token ?? "",
         },
-        body: JSON.stringify({ code, order_amount: subtotal }),
+        body: JSON.stringify({
+          items,
+          coupon_code: code,
+          zone_id: this.selectedZone?.id ?? null,
+        }),
       });
 
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Invalid coupon");
 
-      this.coupon = { id: json.data.coupon_id, code, discount: json.data.discount };
+      const discount = json.data.coupon_discount;
+      this.coupon = { code, discount };
+      this.previewData = json.data;
       sessionStorage.setItem("bionic_coupon", JSON.stringify(this.coupon));
 
       this._setCouponFeedback(
-        `✓ "${code}" applied — ৳${json.data.discount.toFixed(2)} off`,
+        `"${code}" applied — ৳${discount.toFixed(2)} off`,
         "success"
       );
       if (this.couponInput) this.couponInput.disabled = true;
@@ -266,7 +327,7 @@ export default class CheckoutManager {
       this.couponBtn.onclick = () => this.applyCoupon();
     }
     this._setCouponFeedback("", "");
-    this.renderTotals();
+    this.fetchPreview();
   }
 
   _setCouponFeedback(msg, type) {
@@ -345,8 +406,7 @@ export default class CheckoutManager {
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Order failed");
 
-      // Persist order data for the success page, clear coupon
-      sessionStorage.setItem("bionic_last_order", JSON.stringify(json.data));
+      // Clean up sessionStorage, then redirect
       sessionStorage.removeItem("bionic_coupon");
 
       window.location.href = json.data.redirect_url;

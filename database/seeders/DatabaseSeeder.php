@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             HeroBannerSeeder::class,
             ComboSeeder::class,
+            ShippingZoneSeeder::class,
         ]);
     }
 }
