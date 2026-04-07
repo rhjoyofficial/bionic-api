@@ -2,25 +2,57 @@
 
 namespace App\Domains\Order\Controllers;
 
+use App\Domains\Order\Requests\CheckoutPreviewRequest;
 use App\Domains\Order\Requests\CheckoutRequest;
+use App\Domains\Order\Services\CheckoutPricingService;
 use App\Domains\Order\Services\OrderService;
 use App\Domains\Order\Resources\OrderResource;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class CheckoutController extends Controller
 {
     public function __construct(
-        private readonly OrderService $service
+        private readonly OrderService $service,
+        private readonly CheckoutPricingService $pricingService,
     ) {}
 
     public function index()
     {
         return view('store.checkout');
+    }
+
+    /**
+     * Returns authoritative pricing breakdown without creating an order.
+     * Frontend calls this on page load, zone change, or coupon change.
+     */
+    public function preview(CheckoutPreviewRequest $request)
+    {
+        try {
+            $validated = $request->validated();
+
+            $result = DB::transaction(fn() => $this->pricingService->calculate(
+                items: $validated['items'],
+                couponCode: $validated['coupon_code'] ?? null,
+                zoneId: $validated['zone_id'] ?? null,
+                user: Auth::user(),
+                withLock: false,
+            ));
+
+            return ApiResponse::success($result->toArray(), 'Pricing calculated');
+        } catch (Exception $e) {
+            return ApiResponse::error(
+                $e->getMessage() ?: 'Could not calculate pricing.',
+                null,
+                $this->resolveStatus($e),
+            );
+        }
     }
 
     public function store(CheckoutRequest $request)

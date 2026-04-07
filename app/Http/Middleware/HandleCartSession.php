@@ -20,7 +20,9 @@ class HandleCartSession
 
         $response = $next($request);
 
-        // Using 43200 minutes = 30 days
-        return $response->withCookie(cookie()->make($cookieName, $token, 43200, '/', null, false, false));
+        // 43200 minutes = 30 days. httpOnly=true prevents XSS reading the token.
+        // secure respects the app environment (HTTPS in production).
+        $secure = app()->environment('production');
+        return $response->withCookie(cookie()->make($cookieName, $token, 43200, '/', null, $secure, true));
     }
 }

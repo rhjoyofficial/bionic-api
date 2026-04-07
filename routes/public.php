@@ -28,6 +28,7 @@ Route::get('/products/{slug}', [PublicProductController::class, 'show']);
 Route::get('/products/{id}/recommendations', [ProductRecommendationController::class, 'show']);
 
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:10,1');
+Route::post('/checkout/preview', [CheckoutController::class, 'preview'])->middleware('throttle:30,1');
 
 Route::get('/shipping-zones', [PublicShippingZoneController::class, 'index']);
 

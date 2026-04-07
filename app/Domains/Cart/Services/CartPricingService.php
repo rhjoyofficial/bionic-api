@@ -2,37 +2,46 @@
 
 namespace App\Domains\Cart\Services;
 
-use App\Domains\Product\Services\PricingService;
+use App\Domains\Order\Services\CheckoutPricingService;
 
 class CartPricingService
 {
     public function __construct(
-        private PricingService $pricingService
+        private CheckoutPricingService $checkoutPricing
     ) {}
 
     public function calculate($cart)
     {
-        $subtotal = 0;
         $cart->load(['items.variant.tierPrices', 'items.combo']);
 
-        foreach ($cart->items as $item) {
-            $currentUnitPrice = $item->unit_price_snapshot;
-
-            if ($item->combo_id && $item->combo) {
-                $currentUnitPrice = $item->combo->final_price;
-            } elseif ($item->variant) {
-                $pricing = $this->pricingService->calculate($item->variant, $item->quantity);
-                $currentUnitPrice = $pricing['unit_price'];
+        $items = $cart->items->map(function ($item) {
+            if ($item->combo_id) {
+                return ['combo_id' => $item->combo_id, 'quantity' => $item->quantity];
             }
+            return ['variant_id' => $item->variant_id, 'quantity' => $item->quantity];
+        })->values()->toArray();
 
-            $subtotal += $currentUnitPrice * $item->quantity;
+        if (empty($items)) {
+            return [
+                'total_qty' => 0,
+                'subtotal'  => 0,
+                'discount'  => 0,
+                'total'     => 0,
+            ];
         }
+
+        $result = $this->checkoutPricing->calculate(
+            items: $items,
+            withLock: false,
+        );
+
+        $afterDiscount = $result->subtotal - $result->tierDiscountTotal;
 
         return [
             'total_qty' => $cart->items->sum('quantity'),
-            'subtotal'  => $subtotal,
-            'discount'  => 0,
-            'total'     => $subtotal
+            'subtotal'  => round($afterDiscount, 2),
+            'discount'  => round($result->tierDiscountTotal, 2),
+            'total'     => round($afterDiscount, 2),
         ];
     }
 }
