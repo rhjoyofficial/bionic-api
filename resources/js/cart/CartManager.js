@@ -8,6 +8,7 @@ export default class CartManager {
 
         this.pending = false;
         this.lockedButtons = new Set();
+        this.initialized = false;
 
         this.token = this.ensureToken();
 
@@ -78,6 +79,8 @@ export default class CartManager {
                 subtotal: 0,
                 totalQty: 0,
             });
+        } finally {
+            this.initialized = true;
         }
     }
 

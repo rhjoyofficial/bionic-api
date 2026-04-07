@@ -62,7 +62,7 @@ export default class CheckoutManager {
 
   waitForCart() {
     return new Promise(resolve => {
-      if (window.Cart?.state !== undefined) return resolve();
+      if (window.Cart?.initialized) return resolve();
       window.addEventListener("cart:updated", resolve, { once: true });
       setTimeout(resolve, 3000); // fallback
     });
