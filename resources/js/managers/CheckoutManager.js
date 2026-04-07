@@ -6,6 +6,7 @@ export default class CheckoutManager {
     this.coupon = null; // { id, code, discount }
     this.submitting = false;
     this.previewData = null; // server pricing response
+    this.checkoutToken = crypto.randomUUID();
 
     // ── DOM: Form fields ───────────────────────────────────
     this.form = document.getElementById("checkoutForm");
@@ -62,7 +63,7 @@ export default class CheckoutManager {
 
   waitForCart() {
     return new Promise(resolve => {
-      if (window.Cart?.state !== undefined) return resolve();
+      if (window.Cart?.initialized) return resolve();
       window.addEventListener("cart:updated", resolve, { once: true });
       setTimeout(resolve, 3000); // fallback
     });
@@ -348,7 +349,16 @@ export default class CheckoutManager {
   // ── Submit ──────────────────────────────────────────────────
 
   bindEvents() {
-    this.placeOrderBtn?.addEventListener("click", () => this.submit());
+    this.form?.addEventListener("submit", e => {
+      e.preventDefault();
+      this.submit();
+    });
+
+    this.placeOrderBtn?.addEventListener("click", e => {
+      e.preventDefault();
+      this.submit();
+    });
+
     this.couponBtn?.addEventListener("click", () => {
       if (this.coupon) this._removeCoupon();
       else this.applyCoupon();
@@ -387,7 +397,7 @@ export default class CheckoutManager {
       payment_method: document.querySelector('input[name="payment_method"]:checked')?.value ?? "cod",
       notes: this.notesInput?.value?.trim() || null,
       coupon_code: this.coupon?.code ?? null,
-      checkout_token: window.Cart.token,
+      checkout_token: this.checkoutToken,
       items,
     };
 
@@ -414,6 +424,7 @@ export default class CheckoutManager {
       window.flash?.(e.message || "Could not place order. Please try again.", "error");
       this.submitting = false;
       this._setSubmitting(false);
+      this.checkoutToken = crypto.randomUUID();
     }
   }
 

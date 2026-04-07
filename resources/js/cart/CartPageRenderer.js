@@ -305,31 +305,9 @@ export default class CartPageRenderer {
             this.checkoutBtn.textContent = "Processing…";
         }
 
-        try {
-            const payload = {};
-            if (this.coupon?.id) payload.coupon_id = this.coupon.id;
-
-            const res = await fetch("/api/v1/checkout", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    "X-Session-Token": window.Cart?.token ?? "",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content ?? "",
-                },
-                body: JSON.stringify(payload),
-            });
-
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.message || "Checkout failed");
-            window.location.href = json.data.redirect_url;
-        } catch (e) {
-            window.flash?.(e.message || "Checkout failed", "error");
-            if (this.checkoutBtn) {
-                this.checkoutBtn.disabled = false;
-                this.checkoutBtn.textContent = "Proceed to Checkout";
-            }
-        }
+        // Do not place orders from cart page.
+        // Checkout page is responsible for collecting required fields and submitting.
+        window.location.href = "/checkout";
     }
 
     _getItem(id) {

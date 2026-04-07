@@ -42,6 +42,9 @@ Route::get('/landing/{slug}', function () {
 Route::get('/cart', [PublicCartController::class, 'view'])->middleware(['cart.session'])->name('cart.view');
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout', [CheckoutController::class, 'store'])
+    ->middleware(['cart.session', 'throttle:10,1'])
+    ->name('checkout.store');
 
 Route::get('/order-success/{order}', function () {
     return view('store.order-success');

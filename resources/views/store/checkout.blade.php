@@ -177,7 +177,7 @@
                                 <input id="co_coupon" type="text" placeholder="Enter promo code"
                                     class="bg-transparent flex-1 text-sm px-3 py-2.5 focus:outline-none text-gray-700 placeholder-gray-400 uppercase tracking-wider"
                                     autocomplete="off">
-                                <button id="co_couponBtn"
+                                <button id="co_couponBtn" type="button"
                                     class="bg-green-800 text-white px-4 py-2.5 text-sm font-semibold hover:bg-green-900 transition-colors shrink-0">
                                     Apply
                                 </button>
@@ -238,7 +238,7 @@
                             </div>
 
                             {{-- Place Order --}}
-                            <button id="placeOrderBtn"
+                            <button id="placeOrderBtn" type="button"
                                 class="mt-5 w-full bg-green-800 text-white py-4 rounded-full font-bold text-base hover:bg-green-900 transition-all shadow-md shadow-green-100 active:scale-[.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

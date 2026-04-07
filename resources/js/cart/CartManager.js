@@ -8,6 +8,7 @@ export default class CartManager {
 
         this.pending = false;
         this.lockedButtons = new Set();
+        this.initialized = false;
 
         this.token = this.ensureToken();
 
@@ -78,6 +79,8 @@ export default class CartManager {
                 subtotal: 0,
                 totalQty: 0,
             });
+        } finally {
+            this.initialized = true;
         }
     }
 
@@ -196,23 +199,6 @@ export default class CartManager {
             this.flash("Cart cleared");
         } catch {
             this.flash("Clear failed", "error");
-        }
-    }
-
-    async checkout() {
-        try {
-            const res = await fetch("/api/v1/checkout", {
-                method: "POST",
-                headers: {
-                    "X-Session-Token": this.token,
-                    "Content-Type": "application/json",
-                },
-            });
-            const json = await res.json();
-            if (!res.ok) throw json;
-            window.location.href = json.data.redirect_url;
-        } catch {
-            this.flash("Checkout failed", "error");
         }
     }
 
