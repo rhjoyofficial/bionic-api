@@ -2,6 +2,7 @@
 
 namespace App\Domains\Order\Services;
 
+use App\Domains\Cart\Models\Cart;
 use App\Domains\Cart\Services\CartService;
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Models\CouponUsage;
@@ -20,7 +21,7 @@ class OrderService
         private readonly CartService $cartService,
     ) {}
 
-    public function create(array $data, ?\App\Domains\Cart\Models\Cart $cart = null): Order
+    public function create(array $data, ?Cart $cart = null): Order
     {
         $itemCount = count($data['items']);
 
