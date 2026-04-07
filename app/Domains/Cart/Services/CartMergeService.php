@@ -3,13 +3,15 @@
 namespace App\Domains\Cart\Services;
 
 use App\Domains\Cart\Models\Cart;
+use App\Domains\Product\Services\PricingService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
 class CartMergeService
 {
     public function __construct(
-        private CartService $cartService
+        private CartService $cartService,
+        private PricingService $pricingService,
     ) {}
 
     public function merge(string $sessionToken, int $userId): void
@@ -66,9 +68,19 @@ class CartMergeService
                     }
                 }
 
-                // 5. Update or Create
+                // 5. Update or Create (refresh price snapshot on merge)
                 if ($existing) {
-                    $existing->update(['quantity' => $newQuantity]);
+                    $updateData = ['quantity' => $newQuantity];
+
+                    // Refresh price snapshot with new quantity so tier pricing is accurate
+                    if ($existing->variant_id && $item->variant) {
+                        $pricing = $this->pricingService->calculate($item->variant, $newQuantity);
+                        $updateData['unit_price_snapshot'] = $pricing['unit_price'];
+                    } elseif ($existing->combo_id && $item->combo) {
+                        $updateData['unit_price_snapshot'] = $item->combo->final_price;
+                    }
+
+                    $existing->update($updateData);
                 } else {
                     $created = $userCart->items()->create([
                         'variant_id'             => $item->variant_id,
