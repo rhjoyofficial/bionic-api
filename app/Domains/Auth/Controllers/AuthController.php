@@ -81,8 +81,10 @@ class AuthController extends Controller
     {
         try {
             $user = auth()->user();
-            $user->currentAccessToken()->delete();
+            $user?->currentAccessToken()?->delete();
             Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
 
             return ApiResponse::success(null, 'Logged out successfully');
         } catch (Exception $e) {

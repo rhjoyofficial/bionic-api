@@ -2,6 +2,7 @@
 
 use App\Domains\Auth\Controllers\AuthController;
 use App\Domains\Cart\Controllers\PublicCartController;
+use App\Domains\Customer\Controllers\CustomerDashboard;
 use App\Domains\Order\Controllers\CheckoutController;
 use App\Domains\Store\Controllers\HomeController;
 use App\Domains\Store\Controllers\ProductPageController;
@@ -69,13 +70,13 @@ Route::get('/order-failed', function () {
 
 Route::prefix('account')->middleware('auth:sanctum')->group(function () {
 
-    Route::get('/dashboard', fn() => view('account.dashboard'));
+    Route::get('/dashboard', [CustomerDashboard::class, 'index'])->name('account.dashboard');
 
-    Route::get('/orders', fn() => view('account.orders'));
+    Route::get('/orders', [CustomerDashboard::class, 'orders'])->name('account.orders');
 
-    Route::get('/orders/{order}', fn() => view('account.order-details'));
+    Route::get('/orders/{order}', [CustomerDashboard::class, 'orderDetails'])->name('account.order-details');
 
-    Route::get('/profile', fn() => view('account.profile'));
+    Route::get('/profile', [CustomerDashboard::class, 'profile'])->name('account.profile');
 });
 
 Route::middleware('guest:sanctum')->group(function () {

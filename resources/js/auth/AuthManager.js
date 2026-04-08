@@ -144,10 +144,13 @@ export default class AuthManager {
                 const data = await res.json();
                 console.log("Login response:", { res, data });
                 if (res.ok && data.success) {
+                    window.flash?.("লগইন সফল হয়েছে!", "success", 5000);
                     localStorage.setItem("auth_token", data.data.token);
                     // Wipe guest cart token so it isn't re-used
                     localStorage.removeItem("bionic_cart_token");
-                    window.location.href = "/";
+                    // setTimeout(() => {
+                    //     window.location.href = "/";
+                    // }, 15000);
                 } else {
                     this._showError(
                         errorBox,
@@ -202,9 +205,12 @@ export default class AuthManager {
                 const data = await res.json();
                 console.log("Register response:", { res, data });
                 if (res.ok && data.success) {
+                    window.flash?.("নিবন্ধন সফল হয়েছে!", "success", 5000);
                     localStorage.setItem("auth_token", data.data.token);
                     localStorage.removeItem("bionic_cart_token");
-                    window.location.href = "/";
+                    // setTimeout(() => {
+                    //     window.location.href = "/";
+                    // }, 15000);
                 } else {
                     const errors = data.errors
                         ? Object.values(data.errors).flat()
