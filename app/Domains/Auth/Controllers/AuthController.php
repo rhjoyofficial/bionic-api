@@ -82,9 +82,17 @@ class AuthController extends Controller
         try {
             $user = auth()->user();
             $user?->currentAccessToken()?->delete();
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
+
+            // Use web guard explicitly — Sanctum's RequestGuard has no logout().
+            if (Auth::guard('web')->check()) {
+                Auth::guard('web')->logout();
+            }
+
+            // Session may not exist on stateless API calls — guard against it.
+            if (request()->hasSession()) {
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+            }
 
             return ApiResponse::success(null, 'Logged out successfully');
         } catch (Exception $e) {

@@ -118,7 +118,10 @@ class WebAuthController extends Controller
                 $user->tokens()->delete();
             }
 
-            Auth::logout();
+            // Must target the 'web' guard explicitly.
+            // The route uses auth:sanctum middleware, which resolves to Sanctum's
+            // RequestGuard — and RequestGuard does NOT implement logout().
+            Auth::guard('web')->logout();
             session()->invalidate();
             session()->regenerateToken(); // rotate CSRF token
 
