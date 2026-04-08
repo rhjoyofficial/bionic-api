@@ -10,6 +10,9 @@ use Illuminate\Queue\InteractsWithQueue;
 class SendOrderSMSListener implements ShouldQueue
 {
     use InteractsWithQueue;
+
+    public bool $afterCommit = true;
+
     public function handle(OrderCreated $event)
     {
         $order = $event->order;

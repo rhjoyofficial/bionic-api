@@ -8,6 +8,7 @@ use App\Domains\Shipping\Requests\StoreShippingZoneRequest;
 use App\Domains\Shipping\Requests\UpdateShippingZoneRequest;
 use App\Domains\Shipping\Resources\ShippingZoneResource;
 use App\Helpers\ApiResponse; // Import your new helper
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -29,6 +30,7 @@ class AdminShippingZoneController extends Controller
     {
         try {
             $zone = ShippingZone::create($request->validated());
+            Cache::forget(PublicShippingZoneController::CACHE_KEY);
 
             return ApiResponse::success(
                 new ShippingZoneResource($zone),
@@ -44,6 +46,7 @@ class AdminShippingZoneController extends Controller
     {
         try {
             $shippingZone->update($request->validated());
+            Cache::forget(PublicShippingZoneController::CACHE_KEY);
 
             return ApiResponse::success(
                 new ShippingZoneResource($shippingZone),
@@ -58,6 +61,7 @@ class AdminShippingZoneController extends Controller
     {
         try {
             $shippingZone->delete();
+            Cache::forget(PublicShippingZoneController::CACHE_KEY);
 
             return ApiResponse::success(null, 'Shipping zone deleted successfully');
         } catch (Exception $e) {

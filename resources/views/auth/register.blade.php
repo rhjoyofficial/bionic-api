@@ -9,45 +9,47 @@
             {{-- Logo & Header --}}
             <div class="text-center">
                 <a href="{{ url('/') }}" class="inline-block">
-                    <img class="mx-auto h-16 w-auto" src="{{ asset('assets/images/bionic-logo.png') }}"
-                        alt="Bionic Garden Logo">
+                    <img class="mx-auto h-16 w-auto" src="{{ asset('assets/images/bionic-logo.png') }}" alt="Bionic Garden Logo">
                 </a>
                 <h2 class="mt-6 text-3xl font-bold tracking-tight text-gray-900 font-['Plus_Jakarta_Sans']">
                     Create Account
                 </h2>
-                <p class="mt-2 text-sm text-gray-600">
-                    Join Bionic Garden for a better shopping experience
-                </p>
+                <p class="mt-2 text-sm text-gray-600">Join Bionic Garden for a better shopping experience</p>
             </div>
 
             {{-- Error Container --}}
-            <div id="error-box"
-                class="hidden p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100 font-['Noto_Sans_Bengali']">
-                <ul id="error-list" class="list-disc pl-5"></ul>
+            <div id="error-box" class="hidden p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100 font-['Noto_Sans_Bengali']">
+                <ul id="error-list" class="list-disc pl-5 space-y-0.5"></ul>
             </div>
 
             {{-- Form --}}
-            <form id="registerForm" class="mt-8 space-y-5" action="#" method="POST">
+            <form id="registerForm" class="mt-8 space-y-5" novalidate>
                 @csrf
 
                 {{-- Full Name --}}
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                    <input id="name" name="name" type="text" required placeholder="আপনার পূর্ণ নাম লিখুন"
+                    <input id="name" name="name" type="text" autocomplete="name" required
+                        placeholder="আপনার পূর্ণ নাম লিখুন"
                         class="mt-1 appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm transition-colors font-['Noto_Sans_Bengali'] placeholder:font-['Noto_Sans_Bengali']">
                 </div>
 
-                {{-- Email --}}
+                {{-- Email (optional) --}}
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input id="email" name="email" type="email" required placeholder="আপনার ইমেইল লিখুন"
+                    <label for="email" class="block text-sm font-medium text-gray-700">
+                        Email Address
+                        <span class="text-gray-400 font-normal text-xs ml-1">(optional)</span>
+                    </label>
+                    <input id="email" name="email" type="email" autocomplete="email"
+                        placeholder="আপনার ইমেইল লিখুন (ঐচ্ছিক)"
                         class="mt-1 appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm transition-colors font-['Noto_Sans_Bengali'] placeholder:font-['Noto_Sans_Bengali']">
                 </div>
 
                 {{-- Phone --}}
                 <div>
                     <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input id="phone" name="phone" type="tel" required placeholder="আপনার ফোন নম্বর লিখুন"
+                    <input id="phone" name="phone" type="tel" autocomplete="tel" required
+                        placeholder="আপনার ফোন নম্বর লিখুন"
                         class="mt-1 appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm transition-colors font-['Noto_Sans_Bengali'] placeholder:font-['Noto_Sans_Bengali']">
                 </div>
 
@@ -55,26 +57,28 @@
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                     <div class="mt-1 relative">
-                        <input id="password" name="password" type="password" required placeholder="পাসওয়ার্ড দিন"
+                        <input id="password" name="password" type="password" autocomplete="new-password" required
+                            placeholder="পাসওয়ার্ড দিন (কমপক্ষে ৬ অক্ষর)"
                             class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm transition-colors font-['Noto_Sans_Bengali'] placeholder:font-['Noto_Sans_Bengali']">
-                        <button type="button" onclick="toggleVisibility('password', 'pass-icon')"
+                        <button type="button" data-password-toggle="password"
                             class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-green-600 transition-colors">
-                            <i id="pass-icon" class="fa-solid fa-eye"></i>
+                            <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
                 {{-- Confirm Password --}}
                 <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm
-                        Password</label>
+                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700">
+                        Confirm Password
+                    </label>
                     <div class="mt-1 relative">
-                        <input id="password_confirmation" name="password_confirmation" type="password" required
-                            placeholder="পাসওয়ার্ডটি পুনরায় দিন"
+                        <input id="password_confirmation" name="password_confirmation" type="password"
+                            autocomplete="new-password" required placeholder="পাসওয়ার্ডটি পুনরায় দিন"
                             class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm transition-colors font-['Noto_Sans_Bengali'] placeholder:font-['Noto_Sans_Bengali']">
-                        <button type="button" onclick="toggleVisibility('password_confirmation', 'conf-pass-icon')"
+                        <button type="button" data-password-toggle="password_confirmation"
                             class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-green-600 transition-colors">
-                            <i id="conf-pass-icon" class="fa-solid fa-eye"></i>
+                            <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
                 </div>
@@ -99,4 +103,3 @@
         </div>
     </div>
 @endsection
-

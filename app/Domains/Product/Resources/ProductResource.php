@@ -12,8 +12,10 @@ class ProductResource extends JsonResource
             'id'          => $this->id,
             'name'        => $this->name,
             'slug'        => $this->slug,
-            'description' => $this->short_description,
+            'short_description' => $this->short_description,
+            'description' => $this->description,
             'image_url'   => $this->image_url, // Using your custom model getter
+            'gallery'     => $this->gallery ?? [],
             'base_price'  => (float) $this->base_price,
             'is_trending' => (bool) $this->is_trending,
             'category'    => [

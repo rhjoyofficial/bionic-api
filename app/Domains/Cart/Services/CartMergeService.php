@@ -6,6 +6,7 @@ use App\Domains\Cart\Models\Cart;
 use App\Domains\Product\Services\PricingService;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CartMergeService
 {
@@ -17,7 +18,7 @@ class CartMergeService
     public function merge(string $sessionToken, int $userId): void
     {
         DB::transaction(function () use ($sessionToken, $userId) {
-
+            Log::info('CartMerge: started', ['session_token' => $sessionToken, 'user_id' => $userId]);
             // 1. Eager load both variant AND combo relationships to avoid N+1 queries during stock checks
             $guestCart = Cart::query()
                 ->where('session_token', $sessionToken)

@@ -12,7 +12,8 @@ class ShippingZone extends Model
         'base_charge',
         'free_shipping_threshold',
         'estimated_days',
-        'is_active'
+        'is_active',
+        'sort_order',
     ];
     protected $casts = [
         'base_charge' => 'float',

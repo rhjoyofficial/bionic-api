@@ -22,7 +22,7 @@ class HomeController extends Controller
         $trendingProducts = ProductResource::collection($trendingProductsRaw);
 
         // 2. Category Products 
-        $categoryProductsRaw = Product::active()->with(['variants.tierPrices', 'category'])->latest()->get();
+        $categoryProductsRaw = Product::active()->with(['variants.tierPrices', 'category'])->latest()->limit(20)->get();
 
         $categoryProducts = ProductResource::collection($categoryProductsRaw);
 

@@ -15,20 +15,41 @@ import bindAddToCart from "./cart/AddToCartBinder";
 import initProductCards from "./cart/product-card";
 
 /* ===========================
+   AUTH
+=========================== */
+import AuthManager from "./auth/AuthManager";
+
+/* ===========================
+   Detect page context
+=========================== */
+const isAuthPage = () => {
+    const path = window.location.pathname;
+    return (
+        path === "/login" ||
+        path === "/register" ||
+        path.startsWith("/forgot-password") ||
+        path.startsWith("/password/reset")
+    );
+};
+
+/* ===========================
    DOM READY
 =========================== */
 document.addEventListener("DOMContentLoaded", () => {
-
     /* Flash button triggers */
     document.querySelectorAll("[data-flash]").forEach((button) => {
         button.addEventListener("click", function (e) {
             if (!this.dataset.flash) return;
-            const message = this.dataset.flashMessage || "Operation successful!";
+            const message =
+                this.dataset.flashMessage || "Operation successful!";
             const type = this.dataset.flashType || "success";
             const duration = parseInt(this.dataset.flashDuration) || 5000;
             const description = this.dataset.flashDescription || "";
             window.flash?.(message, type, duration, description);
-            if (this.tagName === "BUTTON" && (!this.type || this.type === "button")) {
+            if (
+                this.tagName === "BUTTON" &&
+                (!this.type || this.type === "button")
+            ) {
                 e.preventDefault();
             }
         });
@@ -39,7 +60,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (errorBag) {
         const errorText = errorBag.textContent.trim();
         if (errorText) {
-            window.flash?.("Please fix the errors below", "error", 8000, errorText);
+            window.flash?.(
+                "Please fix the errors below",
+                "error",
+                8000,
+                errorText,
+            );
         }
     }
 
@@ -51,10 +77,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* ===========================
-       CART BOOT (global — every page)
+       AUTH MANAGER (every page)
+    ============================ */
+    // Always boot AuthManager so the logout button in the header (present on
+    // every authenticated page) has its click handler wired up.  On auth pages
+    // we stop here before initialising the cart.
+    window.Auth = new AuthManager();
+
+    if (isAuthPage()) {
+        return; // stop here, skip cart/checkout initialisation
+    }
+
+    /* ===========================
+       CART BOOT (global — every non-auth page)
     ============================ */
     window.Cart = new CartManager();
-    window.CartUI = new CartRenderer();  // sidebar drawer
+    window.CartUI = new CartRenderer(); // sidebar drawer
 
     bindAddToCart();
     initProductCards();
@@ -75,7 +113,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* Global Flash helpers */
-window.triggerFlash = function (message, type = "success", duration = 5000, description = "") {
+window.triggerFlash = function (
+    message,
+    type = "success",
+    duration = 5000,
+    description = "",
+) {
     return window.flash?.(message, type, duration, description);
 };
 

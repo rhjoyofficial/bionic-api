@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 class SendOrderWhatsAppListener implements ShouldQueue
 {
     use InteractsWithQueue;
+    public bool $afterCommit = true;
 
     public function handle(OrderCreated $event)
     {

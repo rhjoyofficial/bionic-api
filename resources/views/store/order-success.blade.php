@@ -56,9 +56,10 @@
                                         class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                                         <div>
                                             <p class="text-sm font-semibold text-gray-800 font-bengali">
-                                                {{ $item->product_name_snapshot }}</p>
-                                            <p class="text-xs text-gray-400">{{ $item->variant_title_snapshot }} &times;
-                                                {{ $item->quantity }}</p>
+                                                {{ $item->combo_name_snapshot ?: $item->product_name_snapshot }}</p>
+                                            <p class="text-xs text-gray-400">
+                                                {{ $item->combo_name_snapshot ? 'Bundle' : $item->variant_title_snapshot }}
+                                                &times; {{ $item->quantity }}</p>
                                         </div>
                                         <p class="text-sm font-bold text-gray-800 font-bengali">
                                             {{ number_format($item->total_price, 2) }}</p>
@@ -121,7 +122,7 @@
                             Continue Shopping
                         </a>
                         @auth
-                            <a href="/account/orders"
+                            <a href="{{ route('customer.orders') }}"
                                 class="flex-1 flex items-center justify-center gap-2 border border-green-800 text-green-800 py-3 rounded-full font-bold text-sm hover:bg-green-50 transition-all">
                                 My Orders
                             </a>
@@ -135,7 +136,6 @@
     @push('scripts')
         <script>
             // Clean up sessionStorage from frontend checkout flow
-            sessionStorage.removeItem('bionic_last_order');
             sessionStorage.removeItem('bionic_coupon');
         </script>
     @endpush
