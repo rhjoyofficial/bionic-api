@@ -30,8 +30,20 @@ class OrderService
 
                 // 1. Idempotency guard — prevent double orders on retry
                 if (!empty($data['checkout_token'])) {
-                    $existing = Order::where('checkout_token', $data['checkout_token'])->first();
-                    if ($existing) return $existing;
+                    $existing = Order::with('items')
+                        ->where('checkout_token', $data['checkout_token'])
+                        ->latest('id')
+                        ->first();
+
+                    if ($existing) {
+                        // Same token can arrive in true retries OR stale frontend token reuse.
+                        if ($this->isSameCheckoutAttempt($existing, $data)) {
+                            return $existing;
+                        }
+
+                        // Token collision for a different order attempt — rotate and continue.
+                        $data['checkout_token'] = (string) Str::uuid();
+                    }
                 }
 
                 // 2. Release cart reserved stock (will be re-reserved by order)
@@ -134,7 +146,7 @@ class OrderService
         $affected = Coupon::where('id', $coupon->id)
             ->where(function ($q) {
                 $q->whereNull('usage_limit')
-                  ->orWhereColumn('used_count', '<', 'usage_limit');
+                    ->orWhereColumn('used_count', '<', 'usage_limit');
             })
             ->increment('used_count');
 
@@ -148,5 +160,43 @@ class OrderService
             'order_id'        => $order->id,
             'discount_amount' => $discount,
         ]);
+    }
+
+    private function isSameCheckoutAttempt(Order $existing, array $incoming): bool
+    {
+        $sameMeta =
+            ($existing->customer_name ?? null) === ($incoming['customer_name'] ?? null) &&
+            ($existing->customer_phone ?? null) === ($incoming['customer_phone'] ?? null) &&
+            (string) ($existing->zone_id ?? '') === (string) ($incoming['zone_id'] ?? '') &&
+            ($existing->payment_method ?? null) === ($incoming['payment_method'] ?? null) &&
+            ($existing->coupon_code_snapshot ?? null) === ($incoming['coupon_code'] ?? null);
+
+        if (!$sameMeta) {
+            return false;
+        }
+
+        $normalize = fn(array $item) => [
+            'variant_id' => isset($item['variant_id']) ? (int) $item['variant_id'] : null,
+            'combo_id'   => isset($item['combo_id']) ? (int) $item['combo_id'] : null,
+            'quantity'   => (int) ($item['quantity'] ?? 0),
+        ];
+
+        $incomingItems = collect($incoming['items'] ?? [])
+            ->map($normalize)
+            ->sortBy(fn($i) => ($i['variant_id'] ?? 0) . ':' . ($i['combo_id'] ?? 0) . ':' . $i['quantity'])
+            ->values()
+            ->all();
+
+        $existingItems = $existing->items
+            ->map(fn($item) => [
+                'variant_id' => $item->variant_id ? (int) $item->variant_id : null,
+                'combo_id'   => $item->combo_id ? (int) $item->combo_id : null,
+                'quantity'   => (int) $item->quantity,
+            ])
+            ->sortBy(fn($i) => ($i['variant_id'] ?? 0) . ':' . ($i['combo_id'] ?? 0) . ':' . $i['quantity'])
+            ->values()
+            ->all();
+
+        return $incomingItems === $existingItems;
     }
 }

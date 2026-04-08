@@ -13,7 +13,13 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
-
+    'gtm' => [
+        'id' => env('GTM_ID'),
+    ],
+    'meta' => [
+        'pixel_id' => env('META_PIXEL_ID'),
+    ],
+    
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

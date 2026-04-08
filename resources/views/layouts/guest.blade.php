@@ -58,9 +58,9 @@
     {{-- Load Swiper CSS only if NOT on auth pages --}}
     @unless (Route::is('login', 'register', 'password.*'))
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     @endunless
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 

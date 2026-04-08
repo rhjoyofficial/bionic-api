@@ -101,7 +101,7 @@
                                     Apply
                                 </button>
                             </div>
-                            <p id="couponFeedback" class="hidden text-xs mt-2 font-medium"></p>
+                            <p id="couponFeedback" class="hidden text-xs mt-2 font-medium font-bengali"></p>
                         </div>
 
                         {{-- Checkout CTA --}}

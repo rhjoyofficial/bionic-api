@@ -1,21 +1,23 @@
 <?php
 
+use App\Domains\Auth\Controllers\AuthController;
 use App\Domains\Cart\Controllers\PublicCartController;
 use App\Domains\Order\Controllers\CheckoutController;
 use App\Domains\Store\Controllers\HomeController;
-use Illuminate\Support\Facades\Route;
 use App\Domains\Store\Controllers\ProductPageController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Storefront Routes
 |--------------------------------------------------------------------------
 */
+// 1. Give the route a name
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/', [HomeController::class, 'index']);
-
+// 2. Redirect using that name
 Route::get('/shop', function () {
-    return view('store.shop');
+    return redirect()->route('home');
 })->name('shop');
 
 Route::get('/category/{slug}', function () {
@@ -76,8 +78,10 @@ Route::prefix('account')->middleware('auth:sanctum')->group(function () {
     Route::get('/profile', fn() => view('account.profile'));
 });
 
-Route::get('/account/login', fn() => view('auth.login'))->name('login');
-Route::get('/account/register', fn() => view('auth.register'))->name('register');
+Route::middleware('guest:sanctum')->group(function () {
+    Route::get('/login', fn() => view('auth.login'))->name('login');
+    Route::get('/register', fn() => view('auth.register'))->name('register');
+});
 
 /*
 |--------------------------------------------------------------------------

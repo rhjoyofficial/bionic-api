@@ -12,8 +12,10 @@ use App\Domains\Product\Controllers\ProductSearchController;
 use App\Domains\Product\Controllers\ProductLandingController;
 use App\Domains\Product\Controllers\ProductRecommendationController;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('guest:sanctum')->group(function () {
+  Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1')->name('user.register');
+  Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('user.login');
+});
 
 Route::middleware('auth:sanctum')->group(function () {
   Route::post('/logout', [AuthController::class, 'logout']);
