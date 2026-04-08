@@ -4,17 +4,18 @@ namespace App\Domains\Store\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Domains\Product\Models\Product;
+use Illuminate\Support\Collection;
 
 class ProductPageController extends Controller
 {
     public function show(string $slug)
     {
         $product = Product::query()
-            ->select([
-                'id',
-                'slug',
-                'landing_slug',
-                'is_landing_enabled'
+            ->with([
+                'category',
+                'variants.tierPrices',
+                'upsells' => fn($query) => $query->active()->with(['variants.tierPrices', 'category']),
+                'crossSells' => fn($query) => $query->active()->with(['variants.tierPrices', 'category']),
             ])
             ->active()
             ->where('slug', $slug)
@@ -30,13 +31,16 @@ class ProductPageController extends Controller
             ]);
         }
 
-        /**
-         * Otherwise load dynamic product blade
-         * JS will call API: /api/v1/products/{slug}
-         */
+        /** @var Collection<int, Product> $relatedProducts */
+        $relatedProducts = $product->upsells
+            ->merge($product->crossSells)
+            ->unique('id')
+            ->take(12)
+            ->values();
+
         return view('store.product', [
-            'productSlug' => $product->slug,
-            'productId' => $product->id
+            'product' => $product,
+            'relatedProducts' => $relatedProducts,
         ]);
     }
 }

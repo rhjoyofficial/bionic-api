@@ -20,9 +20,11 @@ class HandleCartSession
 
         $response = $next($request);
 
-        // 43200 minutes = 30 days. httpOnly=true prevents XSS reading the token.
-        // secure respects the app environment (HTTPS in production).
+        // 43200 minutes = 30 days.
+        // httpOnly=false: the cart token is NOT sensitive auth data — JS must be able
+        //   to read it so CartManager can send it as X-Session-Token during auth.
+        // secure: HTTPS-only in production.
         $secure = app()->environment('production');
-        return $response->withCookie(cookie()->make($cookieName, $token, 43200, '/', null, $secure, true));
+        return $response->withCookie(cookie()->make($cookieName, $token, 43200, '/', null, $secure, false));
     }
 }

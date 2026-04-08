@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
             HeroBannerSeeder::class,
             ComboSeeder::class,
             ShippingZoneSeeder::class,
+            CouponSeeder::class,
+            LandingPageSeeder::class,
+            WebhookSeeder::class,
         ]);
     }
 }

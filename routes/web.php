@@ -1,21 +1,25 @@
 <?php
 
+use App\Domains\Auth\Controllers\WebAuthController;
 use App\Domains\Cart\Controllers\PublicCartController;
+use App\Domains\Customer\Controllers\CustomerDashboard;
 use App\Domains\Order\Controllers\CheckoutController;
+use App\Domains\Order\Controllers\OrderController;
 use App\Domains\Store\Controllers\HomeController;
-use Illuminate\Support\Facades\Route;
 use App\Domains\Store\Controllers\ProductPageController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Storefront Routes
 |--------------------------------------------------------------------------
 */
+// 1. Give the route a name
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/', [HomeController::class, 'index']);
-
+// 2. Redirect using that name
 Route::get('/shop', function () {
-    return view('store.shop');
+    return redirect()->route('home');
 })->name('shop');
 
 Route::get('/category/{slug}', function () {
@@ -53,10 +57,9 @@ Route::get('/order-success/{order}', function ($orderNumber) {
 
     return view('store.order-success', compact('order'));
 })->name('order.success');
+Route::get('/order-failed', [OrderController::class, 'failed'])->name('order.failed');
 
-Route::get('/order-failed', function () {
-    return view('store.order-failed');
-})->name('order.failed');
+
 
 
 /*
@@ -66,18 +69,46 @@ Route::get('/order-failed', function () {
 */
 
 Route::prefix('account')->middleware('auth:sanctum')->group(function () {
-
-    Route::get('/dashboard', fn() => view('account.dashboard'));
-
-    Route::get('/orders', fn() => view('account.orders'));
-
-    Route::get('/orders/{order}', fn() => view('account.order-details'));
-
-    Route::get('/profile', fn() => view('account.profile'));
+    Route::get('/dashboard', [CustomerDashboard::class, 'index'])->name('customer.dashboard');
+    Route::post('/referral-code', [CustomerDashboard::class, 'generateReferralCode'])->name('customer.referral.generate');
+    Route::get('/orders', [CustomerDashboard::class, 'orders'])->name('customer.orders');
+    Route::get('/orders/{order}', [CustomerDashboard::class, 'orderDetails'])->name('customer.order-details');
+    Route::get('/profile', [CustomerDashboard::class, 'profile'])->name('customer.profile');
 });
 
-Route::get('/account/login', fn() => view('auth.login'))->name('login');
-Route::get('/account/register', fn() => view('auth.register'))->name('register');
+/*
+|--------------------------------------------------------------------------
+| Web Auth — session-based (makes @auth / @guest work in Blade)
+|--------------------------------------------------------------------------
+| POST routes intentionally live in the web middleware group so that
+| StartSession is active when Auth::login() is called, persisting
+| the PHP session and making @auth directives work on all subsequent
+| Blade page renders.
+*/
+
+Route::middleware('guest:sanctum')->group(function () {
+    // GET — render forms
+    Route::get('/login',          fn() => view('auth.login'))->name('login');
+    Route::get('/register',       fn() => view('auth.register'))->name('register');
+    Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('password.request');
+    Route::get('/password/reset/{token}', function (string $token) {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => request('email'),
+        ]);
+    })->name('password.reset');
+
+    // POST — handle form submissions (session-based)
+    Route::post('/login',    [WebAuthController::class, 'login'])->name('web.login')
+        ->middleware('throttle:10,1');
+    Route::post('/register', [WebAuthController::class, 'register'])->name('web.register')
+        ->middleware('throttle:5,1');
+});
+
+// Logout is accessible to authenticated users
+Route::post('/logout', [WebAuthController::class, 'logout'])
+    ->middleware('auth:sanctum')
+    ->name('web.logout');
 
 /*
 |--------------------------------------------------------------------------

@@ -4,9 +4,15 @@ namespace App\Listeners;
 
 use App\Events\OrderCreated;
 use App\Jobs\SendSMSJob;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class SendOrderSMSListener
+class SendOrderSMSListener implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    public bool $afterCommit = true;
+
     public function handle(OrderCreated $event)
     {
         $order = $event->order;

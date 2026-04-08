@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -22,6 +23,8 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
+        // Start the transaction
+        DB::beginTransaction();
         try {
             $user = User::create([
                 'name' => $request->name,
@@ -39,11 +42,18 @@ class AuthController extends Controller
                 $this->mergeService->merge($request->session_token, $user->id);
             }
 
+            // Commit all changes to the database
+            DB::commit();
+            Auth::login($user);
+            $request->session()->regenerate();
+
             return ApiResponse::success([
                 'user' => new UserResource($user),
                 'token' => $token
             ], 'User registered successfully', 201);
         } catch (Exception $e) {
+            // Something went wrong, undo everything
+            DB::rollBack();
             Log::error('Registration Error: ' . $e->getMessage());
             return ApiResponse::error('Registration failed', config('app.debug') ? $e->getMessage() : null, 500);
         }
@@ -58,7 +68,7 @@ class AuthController extends Controller
             }
 
             if ($request->filled('session_token')) {
-                $this->mergeService->merge($request->session_token, $result['data']['user']->id);
+                $this->mergeService->merge($request->session_token, $result['user']->id);
             }
 
             return ApiResponse::success($result['data'], 'Login Successful');
@@ -72,7 +82,18 @@ class AuthController extends Controller
     {
         try {
             $user = auth()->user();
-            $user->currentAccessToken()->delete();
+            $user?->currentAccessToken()?->delete();
+
+            // Use web guard explicitly — Sanctum's RequestGuard has no logout().
+            if (Auth::guard('web')->check()) {
+                Auth::guard('web')->logout();
+            }
+
+            // Session may not exist on stateless API calls — guard against it.
+            if (request()->hasSession()) {
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+            }
 
             return ApiResponse::success(null, 'Logged out successfully');
         } catch (Exception $e) {

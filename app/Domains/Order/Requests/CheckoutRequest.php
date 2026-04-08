@@ -50,7 +50,8 @@ class CheckoutRequest extends FormRequest
             'address_line'     => 'required|string|max:500',
             'city'             => 'required|string|max:100',
             'zone_id'          => 'required|exists:shipping_zones,id',
-            'payment_method'   => 'required|in:cod,sslcommerz',
+            'payment_method'   => 'required|in:cod',
+            // 'payment_method'   => 'required|in:cod,sslcommerz',
             'notes'            => 'nullable|string|max:1000',
 
             'items'              => 'required|array|min:1',
