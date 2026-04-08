@@ -127,8 +127,8 @@ export default class CheckoutManager {
                 this.shippingEl.textContent = !this.selectedZone
                     ? "Select zone"
                     : p.shipping_cost === 0
-                      ? "Free"
-                      : "৳" + p.shipping_cost.toFixed(2);
+                        ? "Free"
+                        : "৳" + p.shipping_cost.toFixed(2);
             }
 
             if (this.totalEl) {
@@ -357,8 +357,8 @@ export default class CheckoutManager {
             (type === "success"
                 ? "text-green-600"
                 : type === "error"
-                  ? "text-red-500"
-                  : "hidden");
+                    ? "text-red-500"
+                    : "hidden");
     }
 
     _setCouponLoading(loading) {
@@ -367,8 +367,8 @@ export default class CheckoutManager {
         this.couponBtn.textContent = loading
             ? "Checking…"
             : this.coupon
-              ? "Remove"
-              : "Apply";
+                ? "Remove"
+                : "Apply";
     }
 
     // ── Submit ──────────────────────────────────────────────────
@@ -479,14 +479,12 @@ export default class CheckoutManager {
 
         if (!this.selectedZone) {
             // window.flash?.("Please select a delivery zone.", "error");
-            zonesModule?.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-            });
-            zonesModule.classList.add("ring-2", "ring-red-500");
+            this.zonesModule?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            this.zonesModule?.classList.add('ring-2', 'ring-red-500');
             setTimeout(() => {
-                zonesModule.classList.remove("ring-2", "ring-red-500");
+                this.zonesModule?.classList.remove('ring-2', 'ring-red-500');
             }, 2000);
+            
             return {
                 valid: false,
                 message: "Please select a delivery zone.",

@@ -90,7 +90,7 @@ export default class CartManager {
         // console.log("Subtotal:", payload.totals.subtotal);
         // console.log("Total Quantity:", payload.totals.total_qty);
         if (payload.prices_updated && typeof flash === "function") {
-            flash(
+            window.flash?.(
                 "Price Alert",
                 "warning",
                 5000,
@@ -155,11 +155,11 @@ export default class CartManager {
             const res = await this.api(endpoint, data);
             this.setState(res.data);
             if (typeof flash === "function" && !res.data.prices_updated)
-                flash("Added to cart");
+                window.flash?.("Added to cart");
             this.open();
         } catch (e) {
             if (typeof flash === "function")
-                flash(e.message || "Action failed", "error");
+                window.flash?.(e.message || "Action failed", "error");
         } finally {
             this.pending = false;
             if (button) {
@@ -178,7 +178,7 @@ export default class CartManager {
             this.setState(res.data);
         } catch (e) {
             if (typeof flash === "function")
-                flash(e.message || "Update failed", "error");
+                window.flash?.(e.message || "Update failed", "error");
         }
     }
 
@@ -188,7 +188,7 @@ export default class CartManager {
             this.setState(res.data);
         } catch (e) {
             if (typeof flash === "function")
-                flash(e.message || "Remove failed", "error");
+                window.flash?.(e.message || "Remove failed", "error");
         }
     }
 
@@ -196,9 +196,9 @@ export default class CartManager {
         try {
             await this.api("/clear", {}, "DELETE");
             await this.refresh();
-            this.flash("Cart cleared");
+            window.flash?.('Cart cleared', 'success')
         } catch {
-            this.flash("Clear failed", "error");
+            window.flash?.("Clear failed", "error");
         }
     }
 

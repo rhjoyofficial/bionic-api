@@ -4,6 +4,7 @@ use App\Domains\Auth\Controllers\WebAuthController;
 use App\Domains\Cart\Controllers\PublicCartController;
 use App\Domains\Customer\Controllers\CustomerDashboard;
 use App\Domains\Order\Controllers\CheckoutController;
+use App\Domains\Order\Controllers\OrderController;
 use App\Domains\Store\Controllers\HomeController;
 use App\Domains\Store\Controllers\ProductPageController;
 use Illuminate\Support\Facades\Route;
@@ -56,10 +57,9 @@ Route::get('/order-success/{order}', function ($orderNumber) {
 
     return view('store.order-success', compact('order'));
 })->name('order.success');
+Route::get('/order-failed', [OrderController::class, 'failed'])->name('order.failed');
 
-Route::get('/order-failed', function () {
-    return view('store.order-failed');
-})->name('order.failed');
+
 
 
 /*

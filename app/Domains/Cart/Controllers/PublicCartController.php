@@ -26,7 +26,7 @@ class PublicCartController extends Controller
             $cartData = $this->cartService->formatCartDetails($cart->fresh());
             // dd($cartData);
             if ($pricesUpdated) {
-                flash('info', 'Prices in your cart have been updated based on current product pricing.');
+                flash('Prices in your cart have been updated based on current product pricing.', 'info');
             }
             return view('store.cart', $cartData);
         } catch (Exception $e) {

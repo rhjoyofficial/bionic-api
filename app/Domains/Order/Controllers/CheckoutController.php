@@ -77,6 +77,8 @@ class CheckoutController extends Controller
                 $this->resolveCheckoutCart($request, $authUser),
                 $authUser,
             );
+            
+            $request->session()->put('last_order_id', $order->id);
             $redirectUrl = $this->resolveRedirectUrl($order);
 
             if (!$request->expectsJson()) {

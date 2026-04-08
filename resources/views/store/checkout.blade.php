@@ -35,7 +35,7 @@
                                             class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Full
                                             Name <span class="text-red-400">*</span></label>
                                         <input id="co_name" name="customer_name" type="text"
-                                            placeholder="Your full name"
+                                            value="{{ auth()->user()?->name ?? '' }}" placeholder="Your full name"
                                             class="w-full rounded-xl border @error('customer_name') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
                                         @error('customer_name')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -45,7 +45,8 @@
                                         <label
                                             class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Phone
                                             Number <span class="text-red-400">*</span></label>
-                                        <input id="co_phone" name="customer_phone" type="tel" placeholder="01XXXXXXXXX"
+                                        <input id="co_phone" name="customer_phone" type="tel"
+                                            value="{{ auth()->user()?->phone ?? '' }}" placeholder="01XXXXXXXXX"
                                             class="w-full rounded-xl border @error('customer_phone') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
                                         @error('customer_phone')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -59,7 +60,7 @@
                                             class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email
                                             <span class="text-gray-300 font-normal normal-case">(optional)</span></label>
                                         <input id="co_email" name="customer_email" type="email"
-                                            placeholder="you@example.com"
+                                            value="{{ auth()->user()?->email ?? '' }}" placeholder="you@example.com"
                                             class="w-full rounded-xl border @error('customer_email') border-red-400 @else border-gray-200 @enderror px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all">
                                         @error('customer_email')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -162,7 +163,7 @@
                                 {{-- SSL Commerz --}}
                                 <label
                                     class="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-green-300 transition-all has-checked:border-green-600 has-checked:bg-green-50">
-                                    <input type="radio" name="payment_method" value="sslcommerz"
+                                    <input type="radio" name="payment_method" value="sslcommerz" disabled
                                         class="accent-green-700 w-4 h-4 shrink-0">
                                     <div class="flex items-center gap-3">
                                         <div

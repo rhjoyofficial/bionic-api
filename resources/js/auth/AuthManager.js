@@ -142,6 +142,7 @@ export default class AuthManager {
                             .value.trim(),
                         password: form.querySelector('[name="password"]').value,
                         session_token: this.sessionToken,
+                        remember: form.querySelector('[name="remember"]')?.checked ?? false,
                     }),
                 });
 
@@ -155,9 +156,10 @@ export default class AuthManager {
                     // Session was regenerated server-side — update CSRF meta tag
                     // so any request before the redirect doesn't get a 419.
                     this._refreshCsrfMeta(res);
-                    // Redirect to home so the page reloads with @auth active.
+                    // Redirect to intended URL (e.g. /checkout) or fall back to home.
+                    const intended = new URLSearchParams(window.location.search).get("redirect");
                     setTimeout(() => {
-                        window.location.href = "/";
+                        window.location.href = intended || "/";
                     }, 1500);
                 } else {
                     this._showError(
@@ -324,7 +326,7 @@ export default class AuthManager {
                     this._showError(
                         errorBox,
                         data.message ||
-                            "Password reset failed. The link may have expired.",
+                        "Password reset failed. The link may have expired.",
                     );
                 }
             } catch {

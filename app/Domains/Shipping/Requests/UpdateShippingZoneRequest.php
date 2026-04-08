@@ -18,7 +18,8 @@ class UpdateShippingZoneRequest extends FormRequest
             'base_charge' => 'sometimes|numeric|min:0',
             'free_shipping_threshold' => 'nullable|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1',
-            'is_active' => 'boolean'
+            'is_active'  => 'boolean',
+            'sort_order' => 'nullable|integer|min:0|max:9999',
         ];
     }
 }

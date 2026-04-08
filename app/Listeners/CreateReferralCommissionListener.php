@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class CreateReferralCommissionListener implements ShouldQueue
 {
+    public bool $afterCommit = true;
     /**
      * Default commission rate: 5% of grand total.
      * Move to config or a dedicated tiers table when business requires it.

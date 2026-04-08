@@ -45,6 +45,7 @@ class AuthController extends Controller
             // Commit all changes to the database
             DB::commit();
             Auth::login($user);
+            $request->session()->regenerate();
 
             return ApiResponse::success([
                 'user' => new UserResource($user),

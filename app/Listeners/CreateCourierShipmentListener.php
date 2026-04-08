@@ -7,13 +7,16 @@ use App\Domains\Courier\Services\ShipmentService;
 
 class CreateCourierShipmentListener
 {
-    public function handle(OrderStatusChanged $event)
+    public function __construct(
+        private ShipmentService $shipmentService
+    ) {}
+
+    public function handle(OrderStatusChanged $event): void
     {
         if ($event->newStatus !== 'confirmed') {
             return;
         }
 
-        app(ShipmentService::class)
-            ->create($event->order);
+        $this->shipmentService->create($event->order);
     }
 }

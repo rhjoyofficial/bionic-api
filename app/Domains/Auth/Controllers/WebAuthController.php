@@ -51,10 +51,20 @@ class WebAuthController extends Controller
             $request->session()->regenerate(); // prevent session-fixation attacks
 
             // Merge guest cart into the newly authenticated user's cart.
+            // Wrapped in its own try/catch so a stale or out-of-stock guest cart
+            // never blocks a valid login — merge failure is logged and skipped.
             if ($request->filled('session_token')) {
-                $this->mergeService->merge($request->session_token, $result['user']->id);
+                try {
+                    $this->mergeService->merge($request->session_token, $result['user']->id);
+                } catch (Exception $mergeEx) {
+                    Log::warning('WebAuthController@login: cart merge failed (login still succeeded)', [
+                        'user_id'       => $result['user']->id,
+                        'session_token' => $request->session_token,
+                        'reason'        => $mergeEx->getMessage(),
+                    ]);
+                }
             }
-
+            cookie()->queue(cookie()->forget('bionic_cart_token'));
             // Return the new CSRF token (regenerated with the session) so the
             // frontend can update its <meta> tag before the full-page redirect.
             return ApiResponse::success($result['data'], 'Login successful')
@@ -83,16 +93,27 @@ class WebAuthController extends Controller
 
             $token = $user->createToken('bionic_token', ['customer:*'], now()->addDays(7))->plainTextToken;
 
-            // Merge guest cart before committing the transaction.
-            if ($request->filled('session_token')) {
-                $this->mergeService->merge($request->session_token, $user->id);
-            }
-
             DB::commit();
 
             // Establish the PHP session so @auth works on the next Blade render.
             Auth::login($user);
             $request->session()->regenerate();
+            cookie()->queue(cookie()->forget('bionic_cart_token'));
+
+            // Merge guest cart AFTER the user transaction has committed.
+            // Isolated in its own try/catch so a stale or out-of-stock guest cart
+            // never blocks a successful registration.
+            if ($request->filled('session_token')) {
+                try {
+                    $this->mergeService->merge($request->session_token, $user->id);
+                } catch (Exception $mergeEx) {
+                    Log::warning('WebAuthController@register: cart merge failed (registration still succeeded)', [
+                        'user_id'       => $user->id,
+                        'session_token' => $request->session_token,
+                        'reason'        => $mergeEx->getMessage(),
+                    ]);
+                }
+            }
 
             return ApiResponse::success([
                 'user'  => new UserResource($user),
