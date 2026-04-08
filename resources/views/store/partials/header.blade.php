@@ -60,15 +60,70 @@
             class="flex items-center gap-2 md:gap-4 bg-white rounded-full px-2 md:px-5 py-2 shadow-sm border border-slate-100">
 
             <!-- ACCOUNT -->
-            <a href="{{ route('login') }}" class="flex items-center gap-2 text-sm font-semibold">
-                <span class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </span>
-                Sign In
-            </a>
+            @auth
+                <div class="relative group py-2">
+                    <div class="flex items-center gap-2 cursor-pointer">
+                        <span
+                            class="w-9 h-9 bg-green-800 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                            {{-- Helper to get initials --}}
+                            {{ collect(explode(' ', auth()->user()->name))->map(fn($n) => mb_substr($n, 0, 1))->take(2)->join('') }}
+                        </span>
+                        <span class="text-sm font-semibold hidden md:block">{{ auth()->user()->name }}</span>
+                    </div>
+
+                    <div
+                        class="absolute right-0 mt-2 w-72 bg-[#f0f4f0] rounded-2xl shadow-xl border border-white p-3 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50">
+
+                        <div class="flex items-center gap-3 p-2 bg-white/50 rounded-xl mb-3">
+                            <span
+                                class="w-12 h-12 bg-green-800 text-white rounded-full flex items-center justify-center text-lg font-bold">
+                                {{ collect(explode(' ', auth()->user()->name))->map(fn($n) => mb_substr($n, 0, 1))->take(2)->join('') }}
+                            </span>
+                            <div class="overflow-hidden">
+                                <h4 class="font-bold text-slate-800 truncate">{{ auth()->user()->name }}</h4>
+                                <p class="text-xs text-slate-500 truncate">{{ auth()->user()->email }}</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <a href="{{ route('account.dashboard') }}"
+                                class="flex items-center gap-3 p-3 bg-white hover:bg-green-50 rounded-xl transition-colors group/item">
+                                <i class="fa-regular fa-circle-user text-slate-400 group-hover/item:text-green-700"></i>
+                                <span class="text-sm font-medium text-slate-700">My Account</span>
+                            </a>
+
+                            <a href="#"
+                                class="flex items-center gap-3 p-3 bg-white hover:bg-green-50 rounded-xl transition-colors group/item">
+                                <i class="fa-regular fa-clock text-slate-400 group-hover/item:text-green-700"></i>
+                                <span class="text-sm font-medium text-slate-700">Track Order</span>
+                            </a>
+
+                            <a href="#"
+                                class="flex items-center gap-3 p-3 bg-white hover:bg-green-50 rounded-xl transition-colors group/item">
+                                <i class="fa-solid fa-cart-shopping text-slate-400 group-hover/item:text-green-700"></i>
+                                <span class="text-sm font-medium text-slate-700">My Order</span>
+                            </a>
+
+                            <button id="logoutBtn"
+                                class="w-full flex items-center gap-3 p-3 bg-white hover:bg-red-50 rounded-xl transition-colors group/item">
+                                <i class="fa-solid fa-right-from-bracket text-slate-400 group-hover/item:text-red-600"></i>
+                                <span class="text-sm font-medium text-slate-700">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endauth
+            @guest
+                <a href="{{ route('login') }}" class="flex items-center gap-2 text-sm font-semibold">
+                    <span class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </span>
+                    Sign In
+                </a>
+            @endguest
             <span class="text-slate-300 h-6 w-px bg-slate-200 hidden sm:block"></span>
             <!-- Cart -->
             <button onclick="toggleCart()" class="flex items-center gap-2 group relative cursor-pointer">

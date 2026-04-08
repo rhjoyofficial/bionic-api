@@ -287,12 +287,18 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Common Autoplay Config to avoid repetition
+            const commonAutoplay = {
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true, // This replaces your manual event listeners
+            };
+
             // Main Hero Swiper
             const mainSwiper = new Swiper('.mainHeroSwiper', {
                 loop: true,
                 autoplay: {
-                    delay: 5000,
-                    disableOnInteraction: false,
+                    ...commonAutoplay,
+                    delay: 5000
                 },
                 navigation: {
                     nextEl: '.swiper-button-next',
@@ -309,21 +315,21 @@
             const categoriesSwiper = new Swiper('.categoriesSwiper', {
                 loop: true,
                 autoplay: {
-                    delay: 3000,
-                    disableOnInteraction: false,
+                    ...commonAutoplay,
+                    delay: 3000
                 },
                 slidesPerView: 4,
                 spaceBetween: 10,
                 grabCursor: true,
                 breakpoints: {
                     640: {
-                        slidesPerView: 5,
+                        slidesPerView: 5
                     },
                     768: {
-                        slidesPerView: 4,
+                        slidesPerView: 4
                     },
                     1024: {
-                        slidesPerView: 4,
+                        slidesPerView: 4
                     },
                 },
             });
@@ -332,8 +338,8 @@
             const offerSwiper = new Swiper('.offerSwiper', {
                 loop: true,
                 autoplay: {
-                    delay: 2500,
-                    disableOnInteraction: false,
+                    ...commonAutoplay,
+                    delay: 2500
                 },
                 effect: 'slide',
                 speed: 800,
@@ -344,47 +350,26 @@
             const certSwiper = new Swiper('.certificationsSwiper', {
                 loop: true,
                 autoplay: {
-                    delay: 2000,
-                    disableOnInteraction: false,
-                    pauseOnMouseEnter: true,
+                    ...commonAutoplay,
+                    delay: 2000
                 },
                 slidesPerView: 4,
                 spaceBetween: 12,
                 grabCursor: true,
                 speed: 800,
-                loopedSlides: 4,
                 breakpoints: {
                     640: {
-                        slidesPerView: 6,
-                        loopedSlides: 4,
+                        slidesPerView: 6
                     },
                     768: {
-                        slidesPerView: 4,
-                        loopedSlides: 4,
+                        slidesPerView: 4
                     },
                     1024: {
-                        slidesPerView: 5,
-                        loopedSlides: 4,
+                        slidesPerView: 5
                     },
                 },
-                on: {
-                    init: function() {
-                        this.autoplay.start();
-                    }
-                }
             });
 
-            // Add click pause/resume functionality
-            [mainSwiper, categoriesSwiper, offerSwiper, certSwiper].forEach(swiper => {
-                if (swiper) {
-                    swiper.el.addEventListener('mouseenter', () => {
-                        swiper.autoplay.stop();
-                    });
-                    swiper.el.addEventListener('mouseleave', () => {
-                        swiper.autoplay.start();
-                    });
-                }
-            });
         });
     </script>
 @endpush

@@ -10,16 +10,19 @@ export default class AuthManager {
         this.sessionToken = this._readCartToken();
 
         const form = {
-            login:    document.getElementById('loginForm'),
-            register: document.getElementById('registerForm'),
-            forgot:   document.getElementById('forgotForm'),
-            reset:    document.getElementById('resetForm'),
+            login: document.getElementById("loginForm"),
+            register: document.getElementById("registerForm"),
+            forgot: document.getElementById("forgotForm"),
+            reset: document.getElementById("resetForm"),
         };
 
-        if (form.login)    this._initLogin(form.login);
+        this.logoutBtn = document.getElementById("logoutBtn");
+
+        if (form.login) this._initLogin(form.login);
         if (form.register) this._initRegister(form.register);
-        if (form.forgot)   this._initForgot(form.forgot);
-        if (form.reset)    this._initReset(form.reset);
+        if (form.forgot) this._initForgot(form.forgot);
+        if (form.reset) this._initReset(form.reset);
+        if (this.logoutBtn) this._initLogout();
 
         this._bindPasswordToggles();
         this._handleResetSuccessFlash();
@@ -29,17 +32,23 @@ export default class AuthManager {
 
     /** Read bionic_cart_token from cookie (JS-readable because httpOnly=false). */
     _readCartToken() {
-        const match = document.cookie.match(/(?:^|;\s*)bionic_cart_token=([^;]+)/);
+        const match = document.cookie.match(
+            /(?:^|;\s*)bionic_cart_token=([^;]+)/,
+        );
+        // console.log("Cart token read from cookie:", match ? match[1] : null);
         if (match) return decodeURIComponent(match[1]);
         // Fallback: localStorage mirrors the cookie during the session
-        return localStorage.getItem('bionic_cart_token') || '';
+        // console.log(localStorage.getItem("bionic_cart_token") || "ERROR");
+        return localStorage.getItem("bionic_cart_token") || "";
     }
 
     _headers() {
         return {
-            'Content-Type':  'application/json',
-            'Accept':        'application/json',
-            'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-CSRF-TOKEN":
+                document.querySelector('meta[name="csrf-token"]')?.content ??
+                "",
         };
     }
 
@@ -47,75 +56,109 @@ export default class AuthManager {
         btn.disabled = loading;
         if (loading) {
             btn._origText = btn.textContent;
-            btn.textContent = 'অপেক্ষা করুন...';
+            btn.textContent = "অপেক্ষা করুন...";
         } else {
             btn.textContent = btn._origText ?? btn.textContent;
         }
-        btn.classList.toggle('opacity-70', loading);
+        btn.classList.toggle("opacity-70", loading);
     }
 
     _showError(box, msg) {
         if (!box) return;
         box.textContent = msg;
-        box.classList.remove('hidden');
+        box.classList.remove("hidden");
     }
 
     _showErrorList(box, list, errors) {
         if (!box || !list) return;
-        list.innerHTML = '';
-        errors.forEach(err => {
-            const li = document.createElement('li');
+        list.innerHTML = "";
+        errors.forEach((err) => {
+            const li = document.createElement("li");
             li.textContent = err;
             list.appendChild(li);
         });
-        box.classList.remove('hidden');
+        box.classList.remove("hidden");
     }
 
     _clearErrors(...boxes) {
-        boxes.forEach(b => {
+        boxes.forEach((b) => {
             if (!b) return;
-            b.classList.add('hidden');
-            b.textContent = '';
+            b.classList.add("hidden");
+            b.textContent = "";
             // also clear child lists
-            const ul = b.querySelector('ul');
-            if (ul) ul.innerHTML = '';
+            const ul = b.querySelector("ul");
+            if (ul) ul.innerHTML = "";
+        });
+    }
+
+    // ── Logout ────────────────────────────────────────────────────────────────
+
+    _initLogout() {
+        this.logoutBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            try {
+                const res = await fetch("/api/v1/logout", {
+                    method: "POST",
+                    headers: {
+                        ...this._headers(),
+                        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                    },
+                });
+
+                // Clear local data regardless of server response for immediate UI feedback
+                localStorage.removeItem("auth_token");
+                window.location.href = "/login";
+            } catch (err) {
+                console.error("Logout failed", err);
+                // Fallback: force redirect
+                localStorage.removeItem("auth_token");
+                window.location.href = "/";
+            }
         });
     }
 
     // ── Login ────────────────────────────────────────────────────────────────
 
     _initLogin(form) {
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const btn      = form.querySelector('[type="submit"]');
-            const errorBox = document.getElementById('error-message');
+            const btn = form.querySelector('[type="submit"]');
+            const errorBox = document.getElementById("error-message");
 
             this._clearErrors(errorBox);
             this._setLoading(btn, true);
 
             try {
-                const res = await fetch('/api/v1/login', {
-                    method:  'POST',
+                const res = await fetch("/api/v1/login", {
+                    method: "POST",
                     headers: this._headers(),
-                    body:    JSON.stringify({
-                        login:         form.querySelector('[name="login"]').value.trim(),
-                        password:      form.querySelector('[name="password"]').value,
+                    body: JSON.stringify({
+                        login: form
+                            .querySelector('[name="login"]')
+                            .value.trim(),
+                        password: form.querySelector('[name="password"]').value,
                         session_token: this.sessionToken,
                     }),
                 });
 
                 const data = await res.json();
-
+                console.log("Login response:", { res, data });
                 if (res.ok && data.success) {
-                    localStorage.setItem('auth_token', data.data.token);
+                    localStorage.setItem("auth_token", data.data.token);
                     // Wipe guest cart token so it isn't re-used
-                    localStorage.removeItem('bionic_cart_token');
-                    window.location.href = '/';
+                    localStorage.removeItem("bionic_cart_token");
+                    window.location.href = "/";
                 } else {
-                    this._showError(errorBox, data.message || 'লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।');
+                    this._showError(
+                        errorBox,
+                        data.message || "লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।",
+                    );
                 }
             } catch {
-                this._showError(errorBox, 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।');
+                this._showError(
+                    errorBox,
+                    "সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।",
+                );
             } finally {
                 this._setLoading(btn, false);
             }
@@ -125,45 +168,53 @@ export default class AuthManager {
     // ── Register ─────────────────────────────────────────────────────────────
 
     _initRegister(form) {
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const btn       = form.querySelector('[type="submit"]');
-            const errorBox  = document.getElementById('error-box');
-            const errorList = document.getElementById('error-list');
+            const btn = form.querySelector('[type="submit"]');
+            const errorBox = document.getElementById("error-box");
+            const errorList = document.getElementById("error-list");
 
             this._clearErrors(errorBox);
             this._setLoading(btn, true);
 
-            const emailVal = form.querySelector('[name="email"]')?.value?.trim();
+            const emailVal = form
+                .querySelector('[name="email"]')
+                ?.value?.trim();
 
             try {
-                const res = await fetch('/api/v1/register', {
-                    method:  'POST',
+                const res = await fetch("/api/v1/register", {
+                    method: "POST",
                     headers: this._headers(),
-                    body:    JSON.stringify({
-                        name:                  form.querySelector('[name="name"]').value.trim(),
-                        email:                 emailVal || null,
-                        phone:                 form.querySelector('[name="phone"]').value.trim(),
-                        password:              form.querySelector('[name="password"]').value,
-                        password_confirmation: form.querySelector('[name="password_confirmation"]').value,
-                        session_token:         this.sessionToken,
+                    body: JSON.stringify({
+                        name: form.querySelector('[name="name"]').value.trim(),
+                        email: emailVal || null,
+                        phone: form
+                            .querySelector('[name="phone"]')
+                            .value.trim(),
+                        password: form.querySelector('[name="password"]').value,
+                        password_confirmation: form.querySelector(
+                            '[name="password_confirmation"]',
+                        ).value,
+                        session_token: this.sessionToken,
                     }),
                 });
 
                 const data = await res.json();
-
+                console.log("Register response:", { res, data });
                 if (res.ok && data.success) {
-                    localStorage.setItem('auth_token', data.data.token);
-                    localStorage.removeItem('bionic_cart_token');
-                    window.location.href = '/';
+                    localStorage.setItem("auth_token", data.data.token);
+                    localStorage.removeItem("bionic_cart_token");
+                    window.location.href = "/";
                 } else {
                     const errors = data.errors
                         ? Object.values(data.errors).flat()
-                        : [data.message || 'নিবন্ধন ব্যর্থ হয়েছে।'];
+                        : [data.message || "নিবন্ধন ব্যর্থ হয়েছে।"];
                     this._showErrorList(errorBox, errorList, errors);
                 }
             } catch {
-                this._showErrorList(errorBox, errorList, ['সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।']);
+                this._showErrorList(errorBox, errorList, [
+                    "সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।",
+                ]);
             } finally {
                 this._setLoading(btn, false);
             }
@@ -173,22 +224,24 @@ export default class AuthManager {
     // ── Forgot Password ───────────────────────────────────────────────────────
 
     _initForgot(form) {
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const btn        = form.querySelector('[type="submit"]');
-            const errorBox   = document.getElementById('forgot-error');
-            const successBox = document.getElementById('forgot-success');
+            const btn = form.querySelector('[type="submit"]');
+            const errorBox = document.getElementById("forgot-error");
+            const successBox = document.getElementById("forgot-success");
 
             this._clearErrors(errorBox);
-            successBox?.classList.add('hidden');
+            successBox?.classList.add("hidden");
             this._setLoading(btn, true);
 
             try {
-                const res = await fetch('/api/v1/forgot-password', {
-                    method:  'POST',
+                const res = await fetch("/api/v1/forgot-password", {
+                    method: "POST",
                     headers: this._headers(),
-                    body:    JSON.stringify({
-                        email: form.querySelector('[name="email"]').value.trim(),
+                    body: JSON.stringify({
+                        email: form
+                            .querySelector('[name="email"]')
+                            .value.trim(),
                     }),
                 });
 
@@ -196,15 +249,23 @@ export default class AuthManager {
 
                 if (res.ok && data.success) {
                     if (successBox) {
-                        successBox.textContent = data.message || 'Password reset link sent. Please check your email.';
-                        successBox.classList.remove('hidden');
+                        successBox.textContent =
+                            data.message ||
+                            "Password reset link sent. Please check your email.";
+                        successBox.classList.remove("hidden");
                     }
                     form.reset();
                 } else {
-                    this._showError(errorBox, data.message || 'Failed to send reset link.');
+                    this._showError(
+                        errorBox,
+                        data.message || "Failed to send reset link.",
+                    );
                 }
             } catch {
-                this._showError(errorBox, 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।');
+                this._showError(
+                    errorBox,
+                    "সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।",
+                );
             } finally {
                 this._setLoading(btn, false);
             }
@@ -214,35 +275,46 @@ export default class AuthManager {
     // ── Reset Password ────────────────────────────────────────────────────────
 
     _initReset(form) {
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const btn      = form.querySelector('[type="submit"]');
-            const errorBox = document.getElementById('reset-error');
+            const btn = form.querySelector('[type="submit"]');
+            const errorBox = document.getElementById("reset-error");
 
             this._clearErrors(errorBox);
             this._setLoading(btn, true);
 
             try {
-                const res = await fetch('/api/v1/password/reset', {
-                    method:  'POST',
+                const res = await fetch("/api/v1/password/reset", {
+                    method: "POST",
                     headers: this._headers(),
-                    body:    JSON.stringify({
-                        token:                 form.querySelector('[name="token"]').value,
-                        email:                 form.querySelector('[name="email"]').value.trim(),
-                        password:              form.querySelector('[name="password"]').value,
-                        password_confirmation: form.querySelector('[name="password_confirmation"]').value,
+                    body: JSON.stringify({
+                        token: form.querySelector('[name="token"]').value,
+                        email: form
+                            .querySelector('[name="email"]')
+                            .value.trim(),
+                        password: form.querySelector('[name="password"]').value,
+                        password_confirmation: form.querySelector(
+                            '[name="password_confirmation"]',
+                        ).value,
                     }),
                 });
 
                 const data = await res.json();
 
                 if (res.ok && data.success) {
-                    window.location.href = '/login?reset=1';
+                    window.location.href = "/login?reset=1";
                 } else {
-                    this._showError(errorBox, data.message || 'Password reset failed. The link may have expired.');
+                    this._showError(
+                        errorBox,
+                        data.message ||
+                            "Password reset failed. The link may have expired.",
+                    );
                 }
             } catch {
-                this._showError(errorBox, 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।');
+                this._showError(
+                    errorBox,
+                    "সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।",
+                );
             } finally {
                 this._setLoading(btn, false);
             }
@@ -252,16 +324,18 @@ export default class AuthManager {
     // ── Password Toggle ───────────────────────────────────────────────────────
 
     _bindPasswordToggles() {
-        document.querySelectorAll('[data-password-toggle]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const input = document.getElementById(btn.dataset.passwordToggle);
-                const icon  = btn.querySelector('i');
+        document.querySelectorAll("[data-password-toggle]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const input = document.getElementById(
+                    btn.dataset.passwordToggle,
+                );
+                const icon = btn.querySelector("i");
                 if (!input) return;
 
-                const isHidden = input.type === 'password';
-                input.type = isHidden ? 'text' : 'password';
-                icon?.classList.toggle('fa-eye', !isHidden);
-                icon?.classList.toggle('fa-eye-slash', isHidden);
+                const isHidden = input.type === "password";
+                input.type = isHidden ? "text" : "password";
+                icon?.classList.toggle("fa-eye", !isHidden);
+                icon?.classList.toggle("fa-eye-slash", isHidden);
             });
         });
     }
@@ -270,10 +344,14 @@ export default class AuthManager {
 
     /** Show a flash message if redirected back after successful password reset. */
     _handleResetSuccessFlash() {
-        if (new URLSearchParams(window.location.search).get('reset') === '1') {
-            window.flash?.('Password reset successfully. Please sign in.', 'success', 8000);
+        if (new URLSearchParams(window.location.search).get("reset") === "1") {
+            window.flash?.(
+                "Password reset successfully. Please sign in.",
+                "success",
+                8000,
+            );
             // Clean the URL without reloading
-            history.replaceState(null, '', window.location.pathname);
+            history.replaceState(null, "", window.location.pathname);
         }
     }
 }

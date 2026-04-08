@@ -6,6 +6,7 @@ use App\Domains\Auth\Resources\UserResource;
 use App\Helpers\ApiResponse;
 use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -63,6 +64,7 @@ class AuthService
     $abilities = $user->hasRole('Admin') ? ['admin:*'] : ['customer:*'];
 
     $token = $user->createToken('bionic_token', $abilities,  now()->addDays(7))->plainTextToken;
+    Auth::login($user);
 
     return [
       'success' => true,
