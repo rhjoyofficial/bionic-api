@@ -1,5 +1,10 @@
 /**
- * AuthManager — handles login, register, forgot-password, and reset-password forms.
+ * AuthManager — handles login, register, forgot-password, reset-password, and logout.
+ *
+ * Login and register POST to /login and /register (web middleware group) so that
+ * PHP sessions are established and @auth directives work in all subsequent Blade
+ * renders.  The Sanctum token returned by those endpoints is stored in
+ * localStorage for authorised JS API calls (cart, checkout, etc.).
  *
  * Reads the guest cart token from the bionic_cart_token cookie (httpOnly=false)
  * and passes it as `session_token` so the backend can merge the guest cart
@@ -97,22 +102,19 @@ export default class AuthManager {
         this.logoutBtn.addEventListener("click", async (e) => {
             e.preventDefault();
             try {
-                const res = await fetch("/api/v1/logout", {
+                // POST to the web logout route which invalidates the PHP session
+                // AND revokes all Sanctum tokens in one request.
+                await fetch("/logout", {
                     method: "POST",
-                    headers: {
-                        ...this._headers(),
-                        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-                    },
+                    headers: this._headers(),
                 });
-
-                // Clear local data regardless of server response for immediate UI feedback
-                localStorage.removeItem("auth_token");
-                window.location.href = "/login";
             } catch (err) {
                 console.error("Logout failed", err);
-                // Fallback: force redirect
+            } finally {
+                // Always clear local storage and redirect regardless of server response.
                 localStorage.removeItem("auth_token");
-                window.location.href = "/";
+                localStorage.removeItem("bionic_cart_token");
+                window.location.href = "/login";
             }
         });
     }
@@ -129,7 +131,8 @@ export default class AuthManager {
             this._setLoading(btn, true);
 
             try {
-                const res = await fetch("/api/v1/login", {
+                // POST to the web route (/login) so PHP session is established.
+                const res = await fetch("/login", {
                     method: "POST",
                     headers: this._headers(),
                     body: JSON.stringify({
@@ -142,11 +145,11 @@ export default class AuthManager {
                 });
 
                 const data = await res.json();
-                console.log("Login response:", { res, data });
                 if (res.ok && data.success) {
                     window.flash?.("লগইন সফল হয়েছে!", "success", 5000);
+                    // Store Sanctum token for subsequent JS API calls.
                     localStorage.setItem("auth_token", data.data.token);
-                    // Wipe guest cart token so it isn't re-used
+                    // Wipe guest cart token — it has been merged server-side.
                     localStorage.removeItem("bionic_cart_token");
                     // setTimeout(() => {
                     //     window.location.href = "/";
@@ -185,7 +188,8 @@ export default class AuthManager {
                 ?.value?.trim();
 
             try {
-                const res = await fetch("/api/v1/register", {
+                // POST to the web route (/register) so PHP session is established.
+                const res = await fetch("/register", {
                     method: "POST",
                     headers: this._headers(),
                     body: JSON.stringify({
@@ -203,7 +207,6 @@ export default class AuthManager {
                 });
 
                 const data = await res.json();
-                console.log("Register response:", { res, data });
                 if (res.ok && data.success) {
                     window.flash?.("নিবন্ধন সফল হয়েছে!", "success", 5000);
                     localStorage.setItem("auth_token", data.data.token);

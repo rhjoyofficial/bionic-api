@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Auth\Controllers\AuthController;
+use App\Domains\Auth\Controllers\WebAuthController;
 use App\Domains\Cart\Controllers\PublicCartController;
 use App\Domains\Customer\Controllers\CustomerDashboard;
 use App\Domains\Order\Controllers\CheckoutController;
@@ -79,11 +80,20 @@ Route::prefix('account')->middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [CustomerDashboard::class, 'profile'])->name('account.profile');
 });
 
-Route::middleware('guest:sanctum')->group(function () {
-    Route::get('/login', fn() => view('auth.login'))->name('login');
-    Route::get('/register', fn() => view('auth.register'))->name('register');
+/*
+|--------------------------------------------------------------------------
+| Web Auth — session-based (makes @auth / @guest work in Blade)
+|--------------------------------------------------------------------------
+| POST routes intentionally live in the web middleware group so that
+| StartSession is active when Auth::login() is called, persisting
+| the PHP session and making @auth directives work on all subsequent
+| Blade page renders.
+*/
 
-    // Password reset — named password.* so the layout excludes header/footer
+Route::middleware('guest:sanctum')->group(function () {
+    // GET — render forms
+    Route::get('/login',          fn() => view('auth.login'))->name('login');
+    Route::get('/register',       fn() => view('auth.register'))->name('register');
     Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('password.request');
     Route::get('/password/reset/{token}', function (string $token) {
         return view('auth.reset-password', [
@@ -91,7 +101,18 @@ Route::middleware('guest:sanctum')->group(function () {
             'email' => request('email'),
         ]);
     })->name('password.reset');
+
+    // POST — handle form submissions (session-based)
+    Route::post('/login',    [WebAuthController::class, 'login'])->name('web.login')
+         ->middleware('throttle:10,1');
+    Route::post('/register', [WebAuthController::class, 'register'])->name('web.register')
+         ->middleware('throttle:5,1');
 });
+
+// Logout is accessible to authenticated users
+Route::post('/logout', [WebAuthController::class, 'logout'])
+     ->middleware('auth:sanctum')
+     ->name('web.logout');
 
 /*
 |--------------------------------------------------------------------------

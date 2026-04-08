@@ -77,12 +77,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* ===========================
-       AUTH PAGES
+       AUTH MANAGER (every page)
     ============================ */
+    // Always boot AuthManager so the logout button in the header (present on
+    // every authenticated page) has its click handler wired up.  On auth pages
+    // we stop here before initialising the cart.
+    window.Auth = new AuthManager();
+
     if (isAuthPage()) {
-        // Auth pages only need the auth manager — no cart booting
-        new AuthManager();
-        return; // stop here, skip all cart/checkout initialisation
+        return; // stop here, skip cart/checkout initialisation
     }
 
     /* ===========================

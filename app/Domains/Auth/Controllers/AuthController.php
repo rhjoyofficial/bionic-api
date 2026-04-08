@@ -67,7 +67,7 @@ class AuthController extends Controller
             }
 
             if ($request->filled('session_token')) {
-                $this->mergeService->merge($request->session_token, $result['data']['user']->id);
+                $this->mergeService->merge($request->session_token, $result['user']->id);
             }
 
             return ApiResponse::success($result['data'], 'Login Successful');
