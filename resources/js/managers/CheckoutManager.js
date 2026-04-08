@@ -449,7 +449,7 @@ export default class CheckoutManager {
 
             // Clean up sessionStorage, then redirect
             sessionStorage.removeItem("bionic_coupon");
-
+            window.flash?.("Order placed successfully!", "success", 3000);
             window.location.href = json.data.redirect_url;
         } catch (e) {
             window.flash?.(

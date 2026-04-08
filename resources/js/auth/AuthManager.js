@@ -111,6 +111,7 @@ export default class AuthManager {
             } catch (err) {
                 console.error("Logout failed", err);
             } finally {
+                window.flash?.("লগআউট সফল হয়েছে!", "success", 2000);
                 // Always clear local storage and redirect regardless of server response.
                 localStorage.removeItem("auth_token");
                 localStorage.removeItem("bionic_cart_token");

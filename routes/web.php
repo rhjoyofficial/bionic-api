@@ -1,6 +1,5 @@
 <?php
 
-use App\Domains\Auth\Controllers\AuthController;
 use App\Domains\Auth\Controllers\WebAuthController;
 use App\Domains\Cart\Controllers\PublicCartController;
 use App\Domains\Customer\Controllers\CustomerDashboard;
@@ -70,14 +69,11 @@ Route::get('/order-failed', function () {
 */
 
 Route::prefix('account')->middleware('auth:sanctum')->group(function () {
-
-    Route::get('/dashboard', [CustomerDashboard::class, 'index'])->name('account.dashboard');
-
-    Route::get('/orders', [CustomerDashboard::class, 'orders'])->name('account.orders');
-
-    Route::get('/orders/{order}', [CustomerDashboard::class, 'orderDetails'])->name('account.order-details');
-
-    Route::get('/profile', [CustomerDashboard::class, 'profile'])->name('account.profile');
+    Route::get('/dashboard', [CustomerDashboard::class, 'index'])->name('customer.dashboard');
+    Route::post('/referral-code', [CustomerDashboard::class, 'generateReferralCode'])->name('customer.referral.generate');
+    Route::get('/orders', [CustomerDashboard::class, 'orders'])->name('customer.orders');
+    Route::get('/orders/{order}', [CustomerDashboard::class, 'orderDetails'])->name('customer.order-details');
+    Route::get('/profile', [CustomerDashboard::class, 'profile'])->name('customer.profile');
 });
 
 /*
@@ -104,15 +100,15 @@ Route::middleware('guest:sanctum')->group(function () {
 
     // POST — handle form submissions (session-based)
     Route::post('/login',    [WebAuthController::class, 'login'])->name('web.login')
-         ->middleware('throttle:10,1');
+        ->middleware('throttle:10,1');
     Route::post('/register', [WebAuthController::class, 'register'])->name('web.register')
-         ->middleware('throttle:5,1');
+        ->middleware('throttle:5,1');
 });
 
 // Logout is accessible to authenticated users
 Route::post('/logout', [WebAuthController::class, 'logout'])
-     ->middleware('auth:sanctum')
-     ->name('web.logout');
+    ->middleware('auth:sanctum')
+    ->name('web.logout');
 
 /*
 |--------------------------------------------------------------------------

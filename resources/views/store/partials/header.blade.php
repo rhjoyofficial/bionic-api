@@ -86,7 +86,7 @@
                         </div>
 
                         <div class="space-y-1">
-                            <a href="{{ route('account.dashboard') }}"
+                            <a href="{{ route('customer.dashboard') }}"
                                 class="flex items-center gap-3 p-3 bg-white hover:bg-green-50 rounded-xl transition-colors group/item">
                                 <i class="fa-regular fa-circle-user text-slate-400 group-hover/item:text-green-700"></i>
                                 <span class="text-sm font-medium text-slate-700">My Account</span>
@@ -105,7 +105,7 @@
                             </a>
 
                             <button id="logoutBtn"
-                                class="w-full flex items-center gap-3 p-3 bg-white hover:bg-red-50 rounded-xl transition-colors group/item">
+                                class="cursor-pointer w-full flex items-center gap-3 p-3 bg-white hover:bg-red-50 rounded-xl transition-colors group/item">
                                 <i class="fa-solid fa-right-from-bracket text-slate-400 group-hover/item:text-red-600"></i>
                                 <span class="text-sm font-medium text-slate-700">Logout</span>
                             </button>

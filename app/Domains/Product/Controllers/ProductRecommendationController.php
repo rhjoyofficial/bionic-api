@@ -11,7 +11,10 @@ class ProductRecommendationController extends Controller
 {
     public function show($productId)
     {
-        $product = Product::with(['upsells', 'crossSells'])
+        $product = Product::with([
+            'upsells' => fn($query) => $query->active()->with(['variants.tierPrices', 'category']),
+            'crossSells' => fn($query) => $query->active()->with(['variants.tierPrices', 'category']),
+        ])
             ->findOrFail($productId);
 
         return ApiResponse::success([

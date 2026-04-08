@@ -27,7 +27,7 @@ class PublicProductController extends Controller
             $product = Product::query()
                 ->where('slug', $slug)
                 ->where('is_active', true)
-                ->with(['variants.tierPrices'])
+                ->with(['category', 'variants.tierPrices'])
                 ->firstOrFail();
 
             return ApiResponse::success(new ProductResource($product));
