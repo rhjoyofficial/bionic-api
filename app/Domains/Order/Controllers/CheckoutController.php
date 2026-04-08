@@ -10,6 +10,7 @@ use App\Domains\Order\Services\OrderService;
 use App\Domains\Order\Resources\OrderResource;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
+use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -40,11 +41,16 @@ class CheckoutController extends Controller
         try {
             $validated = $request->validated();
 
+            // Resolve the authenticated user once at the controller boundary.
+            // Use the web guard explicitly so the PHP session is checked correctly
+            // regardless of which guard the route middleware resolved.
+            $authUser = Auth::guard('web')->user();
+
             $result = DB::transaction(fn() => $this->pricingService->calculate(
                 items: $validated['items'],
                 couponCode: $validated['coupon_code'] ?? null,
                 zoneId: $validated['zone_id'] ?? null,
-                user: Auth::user(),
+                user: $authUser,
                 withLock: false,
             ));
 
@@ -60,10 +66,16 @@ class CheckoutController extends Controller
 
     public function store(CheckoutRequest $request)
     {
+        // Resolve the authenticated user once at the controller boundary.
+        // Services must NOT call Auth:: internally — the controller is the auth boundary.
+        /** @var User|null $authUser */
+        $authUser = Auth::guard('web')->user();
+
         try {
             $order = $this->service->create(
                 $request->validated(),
-                $this->resolveCheckoutCart($request),
+                $this->resolveCheckoutCart($request, $authUser),
+                $authUser,
             );
             $redirectUrl = $this->resolveRedirectUrl($order);
 
@@ -153,13 +165,15 @@ class CheckoutController extends Controller
         };
     }
 
-    private function resolveCheckoutCart(CheckoutRequest $request)
+    private function resolveCheckoutCart(CheckoutRequest $request, ?User $authUser): mixed
     {
         try {
-            if (Auth::check()) {
-                return $this->cartService->getCart(Auth::id(), null);
+            // Authenticated user: find cart by user ID (ignores session token).
+            if ($authUser) {
+                return $this->cartService->getCart($authUser->id, null);
             }
 
+            // Guest: find cart by session token from cookie / header / payload.
             $token = $request->attributes->get('cart_token')
                 ?? $request->header('X-Session-Token')
                 ?? $request->cookie('bionic_cart_token')

@@ -8,8 +8,8 @@ use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Models\CouponUsage;
 use App\Domains\Order\Models\Order;
 use App\Events\OrderCreated;
+use App\Models\User;
 use Exception;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -21,12 +21,27 @@ class OrderService
         private readonly CartService $cartService,
     ) {}
 
-    public function create(array $data, ?Cart $cart = null): Order
+    /**
+     * Create an order from validated checkout data.
+     *
+     * @param  array      $data      Validated checkout payload
+     * @param  Cart|null  $cart      Resolved guest or user cart (may be null)
+     * @param  User|null  $user      Authenticated user injected from the controller
+     *                               (never resolved internally — services must not call Auth::)
+     */
+    public function create(array $data, ?Cart $cart = null, ?User $user = null): Order
     {
+        // ── Business rule: coupons require an authenticated account ──────────
+        // Checked BEFORE the DB transaction so no resources are acquired for
+        // a request that is destined to fail.
+        if (!empty($data['coupon_code']) && !$user) {
+            throw new Exception('Please log in to apply a coupon code.');
+        }
+
         $itemCount = count($data['items']);
 
         try {
-            return DB::transaction(function () use ($data, $cart) {
+            return DB::transaction(function () use ($data, $cart, $user) {
 
                 // 1. Idempotency guard — prevent double orders on retry
                 if (!empty($data['checkout_token'])) {
@@ -59,14 +74,14 @@ class OrderService
                     items: $items,
                     couponCode: $data['coupon_code'] ?? null,
                     zoneId: $data['zone_id'],
-                    user: Auth::user(),
+                    user: $user,          // passed in, never resolved internally
                     withLock: true,
                 );
 
                 // 4. Create Order record with final calculated totals
                 $order = Order::create([
                     ...$data,
-                    'user_id'              => Auth::id(),
+                    'user_id'              => $user?->id,  // null for guest orders
                     'checkout_token'       => $data['checkout_token'] ?? null,
                     'order_number'         => 'BNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(10)),
                     'subtotal'             => $pricing->subtotal,
@@ -114,7 +129,7 @@ class OrderService
 
                 // 8. Record coupon usage atomically (inside same transaction as pricing)
                 if ($pricing->coupon) {
-                    $this->recordCouponUsage($pricing->coupon, $order, $pricing->couponDiscount);
+                    $this->recordCouponUsage($pricing->coupon, $order, $pricing->couponDiscount, $user);
                 }
 
                 // 9. Dispatch event
@@ -134,15 +149,30 @@ class OrderService
         }
     }
 
-    private function recordCouponUsage(Coupon $coupon, Order $order, float $discount): void
+    /**
+     * Record coupon usage and increment the global used_count atomically.
+     *
+     * @param  User|null $user  The authenticated user who applied the coupon.
+     *                          This is NEVER null here because the coupon-requires-auth
+     *                          gate at the top of create() blocks guest coupon use before
+     *                          the transaction is even opened.
+     */
+    private function recordCouponUsage(Coupon $coupon, Order $order, float $discount, ?User $user): void
     {
+        // Safety net: should never be reached for guests because the gate in
+        // create() throws before the transaction starts, but guard anyway.
+        if (!$user) {
+            throw new Exception('Coupon usage requires an authenticated user.');
+        }
+
         $alreadyUsed = CouponUsage::where('order_id', $order->id)
             ->where('coupon_id', $coupon->id)
             ->exists();
 
         if ($alreadyUsed) return;
 
-        // Atomic increment with limit check
+        // Atomic increment with limit check — prevents race conditions
+        // between two concurrent requests using the same coupon.
         $affected = Coupon::where('id', $coupon->id)
             ->where(function ($q) {
                 $q->whereNull('usage_limit')
@@ -156,7 +186,7 @@ class OrderService
 
         CouponUsage::create([
             'coupon_id'       => $coupon->id,
-            'user_id'         => Auth::id(),
+            'user_id'         => $user->id,   // always non-null — gate enforces this above
             'order_id'        => $order->id,
             'discount_amount' => $discount,
         ]);
