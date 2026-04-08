@@ -146,14 +146,18 @@ export default class AuthManager {
 
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    window.flash?.("লগইন সফল হয়েছে!", "success", 5000);
+                    window.flash?.("লগইন সফল হয়েছে!", "success", 2000);
                     // Store Sanctum token for subsequent JS API calls.
                     localStorage.setItem("auth_token", data.data.token);
                     // Wipe guest cart token — it has been merged server-side.
                     localStorage.removeItem("bionic_cart_token");
-                    // setTimeout(() => {
-                    //     window.location.href = "/";
-                    // }, 15000);
+                    // Session was regenerated server-side — update CSRF meta tag
+                    // so any request before the redirect doesn't get a 419.
+                    this._refreshCsrfMeta(res);
+                    // Redirect to home so the page reloads with @auth active.
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 1500);
                 } else {
                     this._showError(
                         errorBox,
@@ -208,12 +212,15 @@ export default class AuthManager {
 
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    window.flash?.("নিবন্ধন সফল হয়েছে!", "success", 5000);
+                    window.flash?.("নিবন্ধন সফল হয়েছে!", "success", 2000);
                     localStorage.setItem("auth_token", data.data.token);
                     localStorage.removeItem("bionic_cart_token");
-                    // setTimeout(() => {
-                    //     window.location.href = "/";
-                    // }, 15000);
+                    // Session was regenerated server-side — update CSRF meta tag.
+                    this._refreshCsrfMeta(res);
+                    // Redirect to home so the page reloads with @auth active.
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 1500);
                 } else {
                     const errors = data.errors
                         ? Object.values(data.errors).flat()
@@ -347,6 +354,22 @@ export default class AuthManager {
                 icon?.classList.toggle("fa-eye-slash", isHidden);
             });
         });
+    }
+
+    // ── CSRF helpers ────────────────────────────────────────────────────────
+
+    /**
+     * After login/register the server calls session()->regenerate() which
+     * rotates the CSRF token.  If the server returns the new token in an
+     * X-CSRF-TOKEN response header, update the <meta> tag so that any
+     * request made before the full-page redirect doesn't get a 419.
+     */
+    _refreshCsrfMeta(res) {
+        const newToken = res.headers.get("X-CSRF-TOKEN");
+        if (newToken) {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            if (meta) meta.setAttribute("content", newToken);
+        }
     }
 
     // ── Misc ─────────────────────────────────────────────────────────────────

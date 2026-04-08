@@ -55,7 +55,10 @@ class WebAuthController extends Controller
                 $this->mergeService->merge($request->session_token, $result['user']->id);
             }
 
-            return ApiResponse::success($result['data'], 'Login successful');
+            // Return the new CSRF token (regenerated with the session) so the
+            // frontend can update its <meta> tag before the full-page redirect.
+            return ApiResponse::success($result['data'], 'Login successful')
+                ->header('X-CSRF-TOKEN', csrf_token());
         } catch (Exception $e) {
             Log::error('WebAuthController@login: ' . $e->getMessage());
             return ApiResponse::error('Login failed', config('app.debug') ? $e->getMessage() : null, 500);
@@ -94,7 +97,8 @@ class WebAuthController extends Controller
             return ApiResponse::success([
                 'user'  => new UserResource($user),
                 'token' => $token,
-            ], 'Registration successful', 201);
+            ], 'Registration successful', 201)
+                ->header('X-CSRF-TOKEN', csrf_token());
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('WebAuthController@register: ' . $e->getMessage());
