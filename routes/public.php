@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Domains\Auth\Controllers\AuthController;
+use App\Domains\Auth\Controllers\ForgotPasswordController;
 use App\Domains\Category\Controllers\PublicCategoryController;
 use App\Domains\Product\Controllers\PublicProductController;
 use App\Domains\Order\Controllers\CheckoutController;
@@ -13,8 +14,10 @@ use App\Domains\Product\Controllers\ProductLandingController;
 use App\Domains\Product\Controllers\ProductRecommendationController;
 
 Route::middleware('guest:sanctum')->group(function () {
-  Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1')->name('user.register');
-  Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('user.login');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1')->name('user.register');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('user.login');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->middleware('throttle:3,1')->name('password.email');
+    Route::post('/password/reset', [ForgotPasswordController::class, 'reset'])->middleware('throttle:3,1')->name('password.update');
 });
 
 Route::middleware('auth:sanctum')->group(function () {

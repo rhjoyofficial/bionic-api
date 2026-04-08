@@ -196,9 +196,9 @@ export default class CartManager {
         try {
             await this.api("/clear", {}, "DELETE");
             await this.refresh();
-            this.flash("Cart cleared");
+            window.flash?.("Cart cleared");
         } catch {
-            this.flash("Clear failed", "error");
+            window.flash?.("Clear failed", "error");
         }
     }
 

@@ -81,6 +81,15 @@ Route::prefix('account')->middleware('auth:sanctum')->group(function () {
 Route::middleware('guest:sanctum')->group(function () {
     Route::get('/login', fn() => view('auth.login'))->name('login');
     Route::get('/register', fn() => view('auth.register'))->name('register');
+
+    // Password reset — named password.* so the layout excludes header/footer
+    Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('password.request');
+    Route::get('/password/reset/{token}', function (string $token) {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => request('email'),
+        ]);
+    })->name('password.reset');
 });
 
 /*

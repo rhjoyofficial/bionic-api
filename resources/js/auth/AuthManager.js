@@ -1,127 +1,279 @@
-// Password Toggle Logic
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const icon = document.getElementById('password-icon');
+/**
+ * AuthManager — handles login, register, forgot-password, and reset-password forms.
+ *
+ * Reads the guest cart token from the bionic_cart_token cookie (httpOnly=false)
+ * and passes it as `session_token` so the backend can merge the guest cart
+ * into the newly authenticated user's cart.
+ */
+export default class AuthManager {
+    constructor() {
+        this.sessionToken = this._readCartToken();
 
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
+        const form = {
+            login:    document.getElementById('loginForm'),
+            register: document.getElementById('registerForm'),
+            forgot:   document.getElementById('forgotForm'),
+            reset:    document.getElementById('resetForm'),
+        };
+
+        if (form.login)    this._initLogin(form.login);
+        if (form.register) this._initRegister(form.register);
+        if (form.forgot)   this._initForgot(form.forgot);
+        if (form.reset)    this._initReset(form.reset);
+
+        this._bindPasswordToggles();
+        this._handleResetSuccessFlash();
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /** Read bionic_cart_token from cookie (JS-readable because httpOnly=false). */
+    _readCartToken() {
+        const match = document.cookie.match(/(?:^|;\s*)bionic_cart_token=([^;]+)/);
+        if (match) return decodeURIComponent(match[1]);
+        // Fallback: localStorage mirrors the cookie during the session
+        return localStorage.getItem('bionic_cart_token') || '';
+    }
+
+    _headers() {
+        return {
+            'Content-Type':  'application/json',
+            'Accept':        'application/json',
+            'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        };
+    }
+
+    _setLoading(btn, loading) {
+        btn.disabled = loading;
+        if (loading) {
+            btn._origText = btn.textContent;
+            btn.textContent = 'অপেক্ষা করুন...';
+        } else {
+            btn.textContent = btn._origText ?? btn.textContent;
         }
+        btn.classList.toggle('opacity-70', loading);
+    }
 
-        // Form Submission
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    _showError(box, msg) {
+        if (!box) return;
+        box.textContent = msg;
+        box.classList.remove('hidden');
+    }
+
+    _showErrorList(box, list, errors) {
+        if (!box || !list) return;
+        list.innerHTML = '';
+        errors.forEach(err => {
+            const li = document.createElement('li');
+            li.textContent = err;
+            list.appendChild(li);
+        });
+        box.classList.remove('hidden');
+    }
+
+    _clearErrors(...boxes) {
+        boxes.forEach(b => {
+            if (!b) return;
+            b.classList.add('hidden');
+            b.textContent = '';
+            // also clear child lists
+            const ul = b.querySelector('ul');
+            if (ul) ul.innerHTML = '';
+        });
+    }
+
+    // ── Login ────────────────────────────────────────────────────────────────
+
+    _initLogin(form) {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const form = this;
-            const btn = document.getElementById('submitBtn');
+            const btn      = form.querySelector('[type="submit"]');
             const errorBox = document.getElementById('error-message');
 
-            errorBox.classList.add('hidden');
-            errorBox.innerText = '';
-            const originalText = btn.innerText;
-            btn.innerText = 'অপেক্ষা করুন...'; // Bengali for "Please wait..."
-            btn.disabled = true;
-
-            const guestSessionToken = localStorage.getItem('cartToken') || '';
-            document.getElementById('session_token').value = guestSessionToken;
-
-            const formData = new FormData(form);
+            this._clearErrors(errorBox);
+            this._setLoading(btn, true);
 
             try {
-                // Updated URL to match your api.php prefix
-                const response = await fetch('{{ url('/api/v1/login') }}', {
-                    method: 'POST',
-                    headers: this._getHeaders(),
-                    body: formData
+                const res = await fetch('/api/v1/login', {
+                    method:  'POST',
+                    headers: this._headers(),
+                    body:    JSON.stringify({
+                        login:         form.querySelector('[name="login"]').value.trim(),
+                        password:      form.querySelector('[name="password"]').value,
+                        session_token: this.sessionToken,
+                    }),
                 });
 
-                const data = await response.json();
+                const data = await res.json();
 
-                if (response.ok && data.success) {
-                    if (data.data.token) {
-                        localStorage.setItem('auth_token', data.data.token);
-                    }
-                    localStorage.removeItem('cart_session_token');
+                if (res.ok && data.success) {
+                    localStorage.setItem('auth_token', data.data.token);
+                    // Wipe guest cart token so it isn't re-used
+                    localStorage.removeItem('bionic_cart_token');
                     window.location.href = '/';
                 } else {
-                    errorBox.innerText = data.message || 'লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
-                    errorBox.classList.remove('hidden');
+                    this._showError(errorBox, data.message || 'লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।');
                 }
-            } catch (error) {
-                errorBox.innerText = 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।';
-                errorBox.classList.remove('hidden');
+            } catch {
+                this._showError(errorBox, 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।');
             } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
+                this._setLoading(btn, false);
             }
         });
+    }
 
-          document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    // ── Register ─────────────────────────────────────────────────────────────
+
+    _initRegister(form) {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const form = this;
-            const btn = document.getElementById('submitBtn');
-            const errorBox = document.getElementById('error-box');
+            const btn       = form.querySelector('[type="submit"]');
+            const errorBox  = document.getElementById('error-box');
             const errorList = document.getElementById('error-list');
 
-            // Reset UI
-            errorBox.classList.add('hidden');
-            errorList.innerHTML = '';
-            const originalText = btn.innerText;
-            btn.innerText = 'অপেক্ষা করুন...'; // "Please wait..."
-            btn.disabled = true;
+            this._clearErrors(errorBox);
+            this._setLoading(btn, true);
 
-            // Grab guest session for cart merge
-            const guestSessionToken = localStorage.getItem('cartToken') || '';
-            document.getElementById('session_token').value = guestSessionToken;
+            const emailVal = form.querySelector('[name="email"]')?.value?.trim();
 
-            const formData = new FormData(form);
-            console.log('Form Data:', Object.fromEntries(formData.entries())); // Debugging line
-            return; // Remove this line after debugging
             try {
-                const response = await fetch('{{ url('/api/v1/register') }}', {
-                    method: 'POST',
-                    headers: this._getHeaders(),
-                    body: formData
+                const res = await fetch('/api/v1/register', {
+                    method:  'POST',
+                    headers: this._headers(),
+                    body:    JSON.stringify({
+                        name:                  form.querySelector('[name="name"]').value.trim(),
+                        email:                 emailVal || null,
+                        phone:                 form.querySelector('[name="phone"]').value.trim(),
+                        password:              form.querySelector('[name="password"]').value,
+                        password_confirmation: form.querySelector('[name="password_confirmation"]').value,
+                        session_token:         this.sessionToken,
+                    }),
                 });
 
-                const data = await response.json();
+                const data = await res.json();
 
-                if (response.ok && data.success) {
-                    if (data.data.token) {
-                        localStorage.setItem('auth_token', data.data.token);
-                    }
-                    localStorage.removeItem('cartToken');
+                if (res.ok && data.success) {
+                    localStorage.setItem('auth_token', data.data.token);
+                    localStorage.removeItem('bionic_cart_token');
                     window.location.href = '/';
                 } else {
-                    // Parse validation errors
-                    if (data.errors) {
-                        Object.values(data.errors).flat().forEach(err => {
-                            const li = document.createElement('li');
-                            li.innerText = err;
-                            errorList.appendChild(li);
-                        });
-                    } else {
-                        const li = document.createElement('li');
-                        li.innerText = data.message || 'নিবন্ধন ব্যর্থ হয়েছে।';
-                        errorList.appendChild(li);
-                    }
-                    errorBox.classList.remove('hidden');
+                    const errors = data.errors
+                        ? Object.values(data.errors).flat()
+                        : [data.message || 'নিবন্ধন ব্যর্থ হয়েছে।'];
+                    this._showErrorList(errorBox, errorList, errors);
                 }
-            } catch (error) {
-                const li = document.createElement('li');
-                li.innerText = 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।';
-                errorList.appendChild(li);
-                errorBox.classList.remove('hidden');
+            } catch {
+                this._showErrorList(errorBox, errorList, ['সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।']);
             } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
+                this._setLoading(btn, false);
             }
         });
-        
+    }
+
+    // ── Forgot Password ───────────────────────────────────────────────────────
+
+    _initForgot(form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn        = form.querySelector('[type="submit"]');
+            const errorBox   = document.getElementById('forgot-error');
+            const successBox = document.getElementById('forgot-success');
+
+            this._clearErrors(errorBox);
+            successBox?.classList.add('hidden');
+            this._setLoading(btn, true);
+
+            try {
+                const res = await fetch('/api/v1/forgot-password', {
+                    method:  'POST',
+                    headers: this._headers(),
+                    body:    JSON.stringify({
+                        email: form.querySelector('[name="email"]').value.trim(),
+                    }),
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    if (successBox) {
+                        successBox.textContent = data.message || 'Password reset link sent. Please check your email.';
+                        successBox.classList.remove('hidden');
+                    }
+                    form.reset();
+                } else {
+                    this._showError(errorBox, data.message || 'Failed to send reset link.');
+                }
+            } catch {
+                this._showError(errorBox, 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।');
+            } finally {
+                this._setLoading(btn, false);
+            }
+        });
+    }
+
+    // ── Reset Password ────────────────────────────────────────────────────────
+
+    _initReset(form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn      = form.querySelector('[type="submit"]');
+            const errorBox = document.getElementById('reset-error');
+
+            this._clearErrors(errorBox);
+            this._setLoading(btn, true);
+
+            try {
+                const res = await fetch('/api/v1/password/reset', {
+                    method:  'POST',
+                    headers: this._headers(),
+                    body:    JSON.stringify({
+                        token:                 form.querySelector('[name="token"]').value,
+                        email:                 form.querySelector('[name="email"]').value.trim(),
+                        password:              form.querySelector('[name="password"]').value,
+                        password_confirmation: form.querySelector('[name="password_confirmation"]').value,
+                    }),
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    window.location.href = '/login?reset=1';
+                } else {
+                    this._showError(errorBox, data.message || 'Password reset failed. The link may have expired.');
+                }
+            } catch {
+                this._showError(errorBox, 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।');
+            } finally {
+                this._setLoading(btn, false);
+            }
+        });
+    }
+
+    // ── Password Toggle ───────────────────────────────────────────────────────
+
+    _bindPasswordToggles() {
+        document.querySelectorAll('[data-password-toggle]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.passwordToggle);
+                const icon  = btn.querySelector('i');
+                if (!input) return;
+
+                const isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+                icon?.classList.toggle('fa-eye', !isHidden);
+                icon?.classList.toggle('fa-eye-slash', isHidden);
+            });
+        });
+    }
+
+    // ── Misc ─────────────────────────────────────────────────────────────────
+
+    /** Show a flash message if redirected back after successful password reset. */
+    _handleResetSuccessFlash() {
+        if (new URLSearchParams(window.location.search).get('reset') === '1') {
+            window.flash?.('Password reset successfully. Please sign in.', 'success', 8000);
+            // Clean the URL without reloading
+            history.replaceState(null, '', window.location.pathname);
+        }
+    }
+}

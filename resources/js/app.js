@@ -5,6 +5,11 @@ import "./filter/categoryFilter";
 import VideoManager from "./managers/video-manager";
 
 /* ===========================
+   AUTH
+=========================== */
+import AuthManager from "./auth/AuthManager";
+
+/* ===========================
    CART SYSTEM
 =========================== */
 import CartManager from "./cart/CartManager";
@@ -15,6 +20,19 @@ import bindAddToCart from "./cart/AddToCartBinder";
 import initProductCards from "./cart/product-card";
 
 /* ===========================
+   Detect page context
+=========================== */
+const isAuthPage = () => {
+    const path = window.location.pathname;
+    return (
+        path === "/login" ||
+        path === "/register" ||
+        path.startsWith("/forgot-password") ||
+        path.startsWith("/password/reset")
+    );
+};
+
+/* ===========================
    DOM READY
 =========================== */
 document.addEventListener("DOMContentLoaded", () => {
@@ -23,9 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-flash]").forEach((button) => {
         button.addEventListener("click", function (e) {
             if (!this.dataset.flash) return;
-            const message = this.dataset.flashMessage || "Operation successful!";
-            const type = this.dataset.flashType || "success";
-            const duration = parseInt(this.dataset.flashDuration) || 5000;
+            const message     = this.dataset.flashMessage     || "Operation successful!";
+            const type        = this.dataset.flashType        || "success";
+            const duration    = parseInt(this.dataset.flashDuration) || 5000;
             const description = this.dataset.flashDescription || "";
             window.flash?.(message, type, duration, description);
             if (this.tagName === "BUTTON" && (!this.type || this.type === "button")) {
@@ -51,9 +69,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* ===========================
-       CART BOOT (global — every page)
+       AUTH PAGES
     ============================ */
-    window.Cart = new CartManager();
+    if (isAuthPage()) {
+        // Auth pages only need the auth manager — no cart booting
+        new AuthManager();
+        return; // stop here, skip all cart/checkout initialisation
+    }
+
+    /* ===========================
+       CART BOOT (global — every non-auth page)
+    ============================ */
+    window.Cart   = new CartManager();
     window.CartUI = new CartRenderer();  // sidebar drawer
 
     bindAddToCart();
