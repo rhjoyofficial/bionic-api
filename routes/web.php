@@ -1,5 +1,7 @@
 <?php
 
+use App\Domains\Admin\Controllers\AdminDashboardController;
+use App\Domains\Auth\Controllers\AdminAuthController;
 use App\Domains\Auth\Controllers\WebAuthController;
 use App\Domains\Cart\Controllers\PublicCartController;
 use App\Domains\Customer\Controllers\CustomerDashboard;
@@ -139,125 +141,71 @@ Route::get('/terms', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin Panel (Blade Admin)
+| Admin Panel — Authentication (public)
 |--------------------------------------------------------------------------
 */
 
 Route::prefix('admin')->group(function () {
-
-    Route::get('/login', function () {
-        return view('admin.auth.login');
-    })->name('admin.login');
-
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/login',  [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.submit')
+        ->middleware('throttle:5,1');
 });
-
 
 /*
 |--------------------------------------------------------------------------
-| Admin Product Management
+| Admin Panel — Protected Routes
 |--------------------------------------------------------------------------
+| All admin Blade pages sit behind two layers:
+|   1. auth:sanctum — must be logged in
+|   2. admin       — must hold a non-Customer role
+|
+| Individual permission checks happen at the controller/view level.
 */
 
-Route::prefix('admin/products')->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
 
-    Route::get('/', function () {
-        return view('admin.products.index');
-    })->name('admin.products');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
-    Route::get('/create', function () {
-        return view('admin.products.create');
-    })->name('admin.products.create');
+    // Dashboard
+    Route::get('/dashboard', AdminDashboardController::class)->name('admin.dashboard');
 
-    Route::get('/{product}/edit', function () {
-        return view('admin.products.edit');
-    })->name('admin.products.edit');
-});
+    // Products
+    Route::get('/products',              fn() => view('admin.products.index'))->name('admin.products')
+        ->middleware('permission:product.view');
+    Route::get('/products/create',       fn() => view('admin.products.create'))->name('admin.products.create')
+        ->middleware('permission:product.create');
+    Route::get('/products/{product}/edit', fn() => view('admin.products.edit'))->name('admin.products.edit')
+        ->middleware('permission:product.update');
 
+    // Categories
+    Route::get('/categories',              fn() => view('admin.categories.index'))->name('admin.categories')
+        ->middleware('permission:category.view');
+    Route::get('/categories/create',       fn() => view('admin.categories.create'))->name('admin.categories.create')
+        ->middleware('permission:category.create');
+    Route::get('/categories/{category}/edit', fn() => view('admin.categories.edit'))->name('admin.categories.edit')
+        ->middleware('permission:category.update');
 
-/*
-|--------------------------------------------------------------------------
-| Admin Categories
-|--------------------------------------------------------------------------
-*/
+    // Orders
+    Route::get('/orders',        fn() => view('admin.orders.index'))->name('admin.orders')
+        ->middleware('permission:order.view');
+    Route::get('/orders/{order}', fn() => view('admin.orders.show'))->name('admin.orders.show')
+        ->middleware('permission:order.view');
 
-Route::prefix('admin/categories')->group(function () {
+    // Coupons
+    Route::get('/coupons',        fn() => view('admin.coupons.index'))->name('admin.coupons')
+        ->middleware('permission:coupon.view');
+    Route::get('/coupons/create', fn() => view('admin.coupons.create'))->name('admin.coupons.create')
+        ->middleware('permission:coupon.create');
 
-    Route::get('/', function () {
-        return view('admin.categories.index');
-    });
+    // Shipping
+    Route::get('/shipping', fn() => view('admin.shipping.index'))->name('admin.shipping')
+        ->middleware('permission:shipping.view');
 
-    Route::get('/create', function () {
-        return view('admin.categories.create');
-    });
+    // Webhooks
+    Route::get('/webhooks', fn() => view('admin.webhooks.index'))->name('admin.webhooks')
+        ->middleware('permission:system.webhooks');
 
-    Route::get('/{category}/edit', function () {
-        return view('admin.categories.edit');
-    });
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| Admin Orders
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('admin/orders')->group(function () {
-
-    Route::get('/', function () {
-        return view('admin.orders.index');
-    });
-
-    Route::get('/{order}', function () {
-        return view('admin.orders.show');
-    });
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| Admin Coupons
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('admin/coupons')->group(function () {
-
-    Route::get('/', function () {
-        return view('admin.coupons.index');
-    });
-
-    Route::get('/create', function () {
-        return view('admin.coupons.create');
-    });
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| Admin Shipping
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('admin/shipping')->group(function () {
-
-    Route::get('/', function () {
-        return view('admin.shipping.index');
-    });
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| Admin Webhooks
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('admin/webhooks')->group(function () {
-
-    Route::get('/', function () {
-        return view('admin.webhooks.index');
-    });
+    // Activity Log
+    Route::get('/activity-log', fn() => view('admin.activity-log.index'))->name('admin.activity-log')
+        ->middleware('permission:system.activity_log');
 });
