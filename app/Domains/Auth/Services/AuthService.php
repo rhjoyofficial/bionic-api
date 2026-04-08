@@ -68,8 +68,9 @@ class AuthService
 
     return [
       'success' => true,
-      'data' => [
-        'user' => new UserResource($user),
+      'user'    => $user,           // raw Eloquent model for session-based controllers
+      'data'    => [
+        'user'  => new UserResource($user),
         'token' => $token,
       ]
     ];
