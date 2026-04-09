@@ -194,11 +194,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         return view('admin.customers.show', ['customerId' => $user->id]);
     })->name('admin.customers.show')->middleware('permission:customer.view');
 
-    // Coupons
-    Route::get('/coupons',        fn() => view('admin.coupons.index'))->name('admin.coupons')
+    // Coupons (create/edit via modal on index)
+    Route::get('/coupons', fn() => view('admin.coupons.index'))->name('admin.coupons')
         ->middleware('permission:coupon.view');
-    Route::get('/coupons/create', fn() => view('admin.coupons.create'))->name('admin.coupons.create')
-        ->middleware('permission:coupon.create');
 
     // Shipping
     Route::get('/shipping', fn() => view('admin.shipping.index'))->name('admin.shipping')

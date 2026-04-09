@@ -60,10 +60,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::group(['prefix' => 'coupons'], function () {
         Route::middleware('permission:coupon.view')->group(function () {
             Route::get('/', [AdminCouponController::class, 'index']);
+            Route::get('/stats', [AdminCouponController::class, 'stats']);
             Route::get('/{coupon}', [AdminCouponController::class, 'show']);
         });
 
         Route::post('/', [AdminCouponController::class, 'store'])->middleware('permission:coupon.create');
+        Route::post('/bulk-generate', [AdminCouponController::class, 'bulkGenerate'])->middleware('permission:coupon.create');
         Route::put('/{coupon}', [AdminCouponController::class, 'update'])->middleware('permission:coupon.update');
         Route::delete('/{coupon}', [AdminCouponController::class, 'destroy'])->middleware('permission:coupon.delete');
     });
