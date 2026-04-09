@@ -215,6 +215,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/transactions', fn() => view('admin.transactions.index'))->name('admin.transactions')
         ->middleware('permission:order.view');
 
+    // Access Control
+    Route::get('/access-control', fn() => view('admin.access-control.index'))->name('admin.access-control')
+        ->middleware('permission:role.manage');
+
     // Notifications
     Route::get('/notifications', fn() => view('admin.notifications.index'))->name('admin.notifications')
         ->middleware('permission:notification.view');
