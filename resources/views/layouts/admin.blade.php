@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full scroll-smooth no-scrollbar">
 
 <head>
     <meta charset="utf-8">
@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    @vite(['resources/css/app.css'])
+    @vite(['resources/css/app.css', 'resources/js/admin.js'])
 
     <style>
         [x-cloak] {
@@ -23,8 +23,8 @@
     @stack('styles')
 </head>
 
-<body class="h-full bg-gray-50 font-[Inter] antialiased" x-data="{ sidebarOpen: false }">
-
+<body class="h-full bg-gray-50 font-[Inter] antialiased no-scrollbar" x-data="{ sidebarOpen: false }">
+    <x-flash-container />
     {{-- Mobile sidebar overlay --}}
     <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-40 bg-black/50 lg:hidden" @click="sidebarOpen = false"
         x-transition:enter="transition-opacity duration-200" x-transition:enter-start="opacity-0"
@@ -44,7 +44,7 @@
         </div>
 
         {{-- Navigation --}}
-        <nav class="mt-4 px-3 space-y-1 overflow-y-auto" style="max-height: calc(100vh - 8rem);">
+        <nav class="mt-4 px-3 space-y-1 overflow-y-auto no-scrollbar" style="max-height: calc(100vh - 8rem);">
             @php
                 $nav = [
                     [
@@ -54,7 +54,12 @@
                         'permission' => null,
                     ],
                     ['label' => 'Orders', 'route' => 'admin.orders', 'icon' => 'fa-box', 'permission' => 'order.view'],
-                    ['label' => 'Customers', 'route' => 'admin.customers', 'icon' => 'fa-users', 'permission' => 'customer.view'],
+                    [
+                        'label' => 'Customers',
+                        'route' => 'admin.customers',
+                        'icon' => 'fa-users',
+                        'permission' => 'customer.view',
+                    ],
                     [
                         'label' => 'Products',
                         'route' => 'admin.products',
