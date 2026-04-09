@@ -30,7 +30,8 @@ class Order extends Model
         'order_status',
         'placed_at',
         'notes',
-        'checkout_token'
+        'checkout_token',
+        'gateway_transaction_id',
     ];
 
     protected $casts = [
@@ -75,6 +76,11 @@ class Order extends Model
     public function adminNotes()
     {
         return $this->hasMany(OrderNote::class)->latest();
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(OrderTransaction::class)->orderBy('created_at');
     }
 
     /**

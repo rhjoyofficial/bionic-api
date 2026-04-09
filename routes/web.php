@@ -211,6 +211,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/shipping', fn() => view('admin.shipping.index'))->name('admin.shipping')
         ->middleware('permission:shipping.view');
 
+    // Transactions & Reconciliation
+    Route::get('/transactions', fn() => view('admin.transactions.index'))->name('admin.transactions')
+        ->middleware('permission:order.view');
+
     // Notifications
     Route::get('/notifications', fn() => view('admin.notifications.index'))->name('admin.notifications')
         ->middleware('permission:notification.view');
