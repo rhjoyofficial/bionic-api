@@ -11,6 +11,7 @@ import CartManager from "./cart/CartManager";
 import CartRenderer from "./cart/CartRenderer";
 import CartPageRenderer from "./cart/CartPageRenderer";
 import CheckoutManager from "./managers/CheckoutManager";
+import ValidationManager from "./managers/ValidationManager";
 import bindAddToCart from "./cart/AddToCartBinder";
 import initProductCards from "./cart/product-card";
 
@@ -75,6 +76,12 @@ document.addEventListener("DOMContentLoaded", () => {
         autoPauseOthers: true,
         pauseWhenOutOfView: true,
     });
+
+    const targetRoutes = ["/register", "/login", "/checkout"];
+    const currentPath = window.location.pathname;
+    if (targetRoutes.some((route) => currentPath.includes(route))) {
+        window.ValidationManager = new ValidationManager();
+    }
 
     /* ===========================
        AUTH MANAGER (every page)

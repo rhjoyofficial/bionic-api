@@ -248,7 +248,7 @@
                                 </div>
 
                                 <div id="coDiscountRow" class="hidden flex justify-between text-sm">
-                                    <span class="text-gray-500">Coupon Discount</span>
+                                    <span class="text-gray-500">Total Discount</span>
                                     <span id="coDiscount" class="font-semibold text-green-600 font-bengali">−৳0</span>
                                 </div>
 

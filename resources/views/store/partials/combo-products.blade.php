@@ -14,7 +14,7 @@
             <div class="shrink-0 hidden md:block">
                 <div
                     class="relative transition-all duration-300 border rounded-2xl border-primary/20 group/btn hover:bg-primary hover:border-primary">
-                    <a href="#"
+                    <a href="{{ route('combos.index') }}"
                         class="flex items-center gap-3 px-4 py-2 transition-all duration-300 text-primary hover:text-white!">
                         <span class="text-sm font-bold tracking-tight md:text-base">View All</span>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
