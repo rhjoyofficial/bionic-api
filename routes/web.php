@@ -168,20 +168,17 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/dashboard', AdminDashboardController::class)->name('admin.dashboard');
 
     // Products
-    Route::get('/products',              fn() => view('admin.products.index'))->name('admin.products')
+    Route::get('/products', fn() => view('admin.products.index'))->name('admin.products')
         ->middleware('permission:product.view');
-    Route::get('/products/create',       fn() => view('admin.products.create'))->name('admin.products.create')
+    Route::get('/products/create', fn() => view('admin.products.create'))->name('admin.products.create')
         ->middleware('permission:product.create');
-    Route::get('/products/{product}/edit', fn() => view('admin.products.edit'))->name('admin.products.edit')
-        ->middleware('permission:product.update');
+    Route::get('/products/{product}/edit', function (\App\Domains\Product\Models\Product $product) {
+        return view('admin.products.edit', ['productId' => $product->id]);
+    })->name('admin.products.edit')->middleware('permission:product.update');
 
-    // Categories
-    Route::get('/categories',              fn() => view('admin.categories.index'))->name('admin.categories')
+    // Categories — all CRUD handled inline via Alpine.js modals on the index page
+    Route::get('/categories', fn() => view('admin.categories.index'))->name('admin.categories')
         ->middleware('permission:category.view');
-    Route::get('/categories/create',       fn() => view('admin.categories.create'))->name('admin.categories.create')
-        ->middleware('permission:category.create');
-    Route::get('/categories/{category}/edit', fn() => view('admin.categories.edit'))->name('admin.categories.edit')
-        ->middleware('permission:category.update');
 
     // Orders
     Route::get('/orders',        fn() => view('admin.orders.index'))->name('admin.orders')

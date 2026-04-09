@@ -25,7 +25,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
 
     // --- Products & Variants ---
-    Route::get('products', [AdminProductController::class, 'index'])->middleware('permission:product.view');
+    Route::middleware('permission:product.view')->group(function () {
+        Route::get('products', [AdminProductController::class, 'index']);
+        Route::get('products/{product}', [AdminProductController::class, 'show']);
+    });
     Route::post('products', [AdminProductController::class, 'store'])->middleware('permission:product.create');
     Route::put('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:product.update');
     Route::delete('products/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:product.delete');
