@@ -2,6 +2,7 @@
 
 use App\Domains\Category\Controllers\AdminCategoryController;
 use App\Domains\Customer\Controllers\AdminCustomerController;
+use App\Domains\Product\Controllers\AdminComboController;
 use App\Domains\Product\Controllers\AdminProductController;
 use App\Domains\Product\Controllers\ProductTierPriceController;
 use App\Domains\Shipping\Controllers\AdminShippingZoneController;
@@ -33,6 +34,16 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('products', [AdminProductController::class, 'store'])->middleware('permission:product.create');
     Route::put('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:product.update');
     Route::delete('products/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:product.delete');
+
+    // --- Combos ---
+    Route::middleware('permission:product.view')->group(function () {
+        Route::get('combos', [AdminComboController::class, 'index']);
+        Route::get('combos/{combo}', [AdminComboController::class, 'show']);
+    });
+    Route::post('combos', [AdminComboController::class, 'store'])->middleware('permission:product.create');
+    Route::put('combos/{combo}', [AdminComboController::class, 'update'])->middleware('permission:product.update');
+    Route::patch('combos/{combo}/toggle-active', [AdminComboController::class, 'toggleActive'])->middleware('permission:product.update');
+    Route::delete('combos/{combo}', [AdminComboController::class, 'destroy'])->middleware('permission:product.delete');
 
     // --- Product Tier Prices ---
     Route::group(['middleware' => 'permission:product.update'], function () {
