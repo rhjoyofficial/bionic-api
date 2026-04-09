@@ -188,12 +188,15 @@ function orderList() {
         filterPaymentStatus: '',
         dateFrom: '',
         dateTo: '',
+        customerId: null,
 
         get hasFilters() {
             return this.search || this.filterStatus || this.filterPayment || this.filterPaymentStatus || this.dateFrom || this.dateTo;
         },
 
         async init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('customer_id')) this.customerId = urlParams.get('customer_id');
             await this.loadOrders();
         },
 
@@ -207,6 +210,7 @@ function orderList() {
                 if (this.filterPaymentStatus) params.set('payment_status', this.filterPaymentStatus);
                 if (this.dateFrom) params.set('date_from', this.dateFrom);
                 if (this.dateTo) params.set('date_to', this.dateTo);
+                if (this.customerId) params.set('customer_id', this.customerId);
 
                 const r = await fetch(`/api/v1/admin/orders?${params}`, {
                     headers: { 'Accept': 'application/json' }
