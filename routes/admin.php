@@ -9,6 +9,7 @@ use App\Domains\Product\Controllers\ProductTierPriceController;
 use App\Domains\Shipping\Controllers\AdminShippingZoneController;
 use App\Domains\Coupon\Controllers\AdminCouponController;
 use App\Domains\Order\Controllers\AdminOrderController;
+use App\Domains\Order\Controllers\AdminTransactionController;
 use App\Domains\Product\Controllers\ProductRelationController;
 use App\Domains\Webhook\Controllers\AdminWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -90,6 +91,21 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
     Route::post('orders/{order}/notes', [AdminOrderController::class, 'addNote'])->middleware('permission:order.update');
+
+    // --- Transactions & Payment Reconciliation ---
+    Route::group(['prefix' => 'transactions'], function () {
+        Route::middleware('permission:order.view')->group(function () {
+            Route::get('/summary', [AdminTransactionController::class, 'summary']);
+            Route::get('/', [AdminTransactionController::class, 'index']);
+            Route::get('/reconciliation', [AdminTransactionController::class, 'reconciliation']);
+            Route::get('/order/{order}', [AdminTransactionController::class, 'orderTransactions']);
+        });
+
+        Route::middleware('permission:order.update')->group(function () {
+            Route::post('/order/{order}', [AdminTransactionController::class, 'store']);
+            Route::patch('/order/{order}/payment-status', [AdminTransactionController::class, 'updatePaymentStatus']);
+        });
+    });
 
     // --- Customers ---
     Route::middleware('permission:customer.view')->group(function () {
