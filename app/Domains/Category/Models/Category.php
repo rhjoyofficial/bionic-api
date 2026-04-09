@@ -59,6 +59,6 @@ class Category extends Model
 
     public function getCategoryPageAttribute(): string
     {
-        return 'category/' . $this->slug;
+        return '/category/' . $this->slug;
     }
 }

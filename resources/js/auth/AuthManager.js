@@ -89,8 +89,12 @@ export default class AuthManager {
         boxes.forEach((b) => {
             if (!b) return;
             b.classList.add("hidden");
-            if (b.tagName === "UL") {
-                b.innerHTML = "";
+            // also clear child lists
+            const ul = b.querySelector("ul");
+            if (ul) {
+                ul.innerHTML = "";
+            } else {
+                b.textContent = "";
             }
         });
     }

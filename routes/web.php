@@ -9,6 +9,8 @@ use App\Domains\Order\Controllers\CheckoutController;
 use App\Domains\Order\Controllers\OrderController;
 use App\Domains\Store\Controllers\HomeController;
 use App\Domains\Store\Controllers\ProductPageController;
+use App\Domains\Store\Controllers\CatalogController;
+use App\Domains\Store\Controllers\ComboPageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,15 +26,10 @@ Route::get('/shop', function () {
     return redirect()->route('home');
 })->name('shop');
 
-Route::get('/category/{slug}', function () {
-    return view('store.category');
-})->name('category.view');
-
+Route::get('/products', [CatalogController::class, 'index'])->name('products.index');
+Route::get('/category/{slug}', [CatalogController::class, 'category'])->name('category.view');
 Route::get('/product/{slug}', [ProductPageController::class, 'show'])->name('product.show');
-
-Route::get('/products', function () {
-    return view('store.pages.products');
-})->name('products.index');
+Route::get('/combos', [ComboPageController::class, 'index'])->name('combos.index');
 
 Route::get('/landing/{slug}', function () {
     return view('store.landing');
