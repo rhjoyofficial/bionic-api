@@ -14,7 +14,7 @@ class SendOrderConfirmationEmail implements ShouldQueue
 {
     use InteractsWithQueue;
 
-    /** Dispatch only after the DB transaction that fired the event commits. */
+    /** Queue only after the originating DB transaction commits. */
     public bool $afterCommit = true;
 
     public int $tries   = 3;
@@ -27,14 +27,27 @@ class SendOrderConfirmationEmail implements ShouldQueue
 
         // Only send if the customer provided an email address at checkout.
         if (!$order->customer_email) {
+            Log::info('SendOrderConfirmationEmail skipped: missing customer email', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+            ]);
             return;
         }
 
-        // Ensure relationships are loaded so the template renders without N+1 queries.
-        $order->loadMissing(['items', 'shippingAddress']);
+        try {
+            // Ensure relationships are loaded so the template renders without N+1 queries.
+            $order->loadMissing(['items', 'shippingAddress']);
 
-        Mail::to($order->customer_email)
-            ->send(new OrderConfirmationMail($order));
+            Mail::to($order->customer_email)
+                ->send(new OrderConfirmationMail($order));
+        } catch (Throwable $e) {
+            Log::error('SendOrderConfirmationEmail failed', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'customer_email' => $order->customer_email,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function failed(Throwable $exception): void
