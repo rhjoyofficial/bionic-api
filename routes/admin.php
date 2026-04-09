@@ -52,6 +52,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         });
 
         Route::post('/', [AdminShippingZoneController::class, 'store'])->middleware('permission:shipping.create');
+        Route::patch('/reorder', [AdminShippingZoneController::class, 'reorder'])->middleware('permission:shipping.update');
         Route::put('/{shipping_zone}', [AdminShippingZoneController::class, 'update'])->middleware('permission:shipping.update');
         Route::delete('/{shipping_zone}', [AdminShippingZoneController::class, 'destroy'])->middleware('permission:shipping.delete');
     });
