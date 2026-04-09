@@ -181,10 +181,18 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         ->middleware('permission:category.view');
 
     // Orders
-    Route::get('/orders',        fn() => view('admin.orders.index'))->name('admin.orders')
+    Route::get('/orders', fn() => view('admin.orders.index'))->name('admin.orders')
         ->middleware('permission:order.view');
-    Route::get('/orders/{order}', fn() => view('admin.orders.show'))->name('admin.orders.show')
-        ->middleware('permission:order.view');
+    Route::get('/orders/{order}', function (\App\Domains\Order\Models\Order $order) {
+        return view('admin.orders.show', ['orderId' => $order->id]);
+    })->name('admin.orders.show')->middleware('permission:order.view');
+
+    // Customers
+    Route::get('/customers', fn() => view('admin.customers.index'))->name('admin.customers')
+        ->middleware('permission:customer.view');
+    Route::get('/customers/{user}', function (\App\Models\User $user) {
+        return view('admin.customers.show', ['customerId' => $user->id]);
+    })->name('admin.customers.show')->middleware('permission:customer.view');
 
     // Coupons
     Route::get('/coupons',        fn() => view('admin.coupons.index'))->name('admin.coupons')

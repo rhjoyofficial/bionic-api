@@ -34,11 +34,12 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'placed_at' => 'datetime',
-        'confirmed_at' => 'datetime',
-        'shipped_at' => 'datetime',
-        'delivered_at' => 'datetime',
-        'cancelled_at' => 'datetime',
+        'placed_at'     => 'datetime',
+        'confirmed_at'  => 'datetime',
+        'processing_at' => 'datetime',
+        'shipped_at'    => 'datetime',
+        'delivered_at'  => 'datetime',
+        'cancelled_at'  => 'datetime',
     ];
 
     public function user()
@@ -69,6 +70,11 @@ class Order extends Model
     public function coupon()
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function adminNotes()
+    {
+        return $this->hasMany(OrderNote::class)->latest();
     }
 
     /**

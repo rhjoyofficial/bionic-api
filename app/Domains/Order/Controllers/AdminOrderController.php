@@ -10,6 +10,7 @@ use App\Domains\Order\Services\OrderStatusService;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class AdminOrderController extends Controller
@@ -17,12 +18,25 @@ class AdminOrderController extends Controller
     public function index()
     {
         try {
-            $orders = Order::query()
-                ->with(['items', 'coupon', 'zone'])
-                ->latest()
-                ->paginate(10);
+            $orders = Order::withCount('items')
+                ->with(['zone', 'user'])
+                ->when(request('q'), function ($q, $search) {
+                    $q->where(fn($inner) =>
+                        $inner->where('order_number', 'like', "%{$search}%")
+                              ->orWhere('customer_phone', 'like', "%{$search}%")
+                              ->orWhere('customer_name', 'like', "%{$search}%")
+                    );
+                })
+                ->when(request('status'), fn($q, $s) => $q->where('order_status', $s))
+                ->when(request('payment'), fn($q, $p) => $q->where('payment_method', $p))
+                ->when(request('payment_status'), fn($q, $ps) => $q->where('payment_status', $ps))
+                ->when(request('customer_id'), fn($q, $id) => $q->where('user_id', $id))
+                ->when(request('date_from'), fn($q, $d) => $q->whereDate('placed_at', '>=', $d))
+                ->when(request('date_to'), fn($q, $d) => $q->whereDate('placed_at', '<=', $d))
+                ->latest('placed_at')
+                ->paginate(15);
 
-            return ApiResponse::paginated($orders);
+            return ApiResponse::paginated(OrderResource::collection($orders));
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to retrieve orders');
         }
@@ -31,9 +45,11 @@ class AdminOrderController extends Controller
     public function show(Order $order)
     {
         try {
+            $order->load(['items', 'zone', 'user', 'shippingAddress', 'adminNotes.admin']);
+
             return ApiResponse::success(
-                new OrderResource($order->load(['items', 'coupon', 'zone'])),
-                'Order details retrieved',
+                new OrderResource($order),
+                'Order details retrieved'
             );
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to retrieve order details');
@@ -52,13 +68,35 @@ class AdminOrderController extends Controller
             );
 
             return ApiResponse::success(
-                $updated,
+                ['order_status' => $updated->order_status],
                 'Order status updated to ' . $request->status,
             );
         } catch (Exception $e) {
-            $code = $e->getMessage() === 'Invalid status transition' ? 422 : 500;
-
+            $code = str_contains($e->getMessage(), 'Invalid status transition') ? 422 : 500;
             return $this->handleError($e, $e->getMessage(), $code);
+        }
+    }
+
+    public function addNote(Request $request, Order $order)
+    {
+        try {
+            $request->validate(['body' => 'required|string|max:2000']);
+
+            $note = $order->adminNotes()->create([
+                'user_id' => auth()->id(),
+                'body'    => $request->body,
+            ]);
+
+            $note->load('admin');
+
+            return ApiResponse::success([
+                'id'         => $note->id,
+                'body'       => $note->body,
+                'admin_name' => $note->admin?->name ?? 'System',
+                'created_at' => $note->created_at?->toDateTimeString(),
+            ], 'Note added', 201);
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Failed to add note');
         }
     }
 

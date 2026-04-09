@@ -54,6 +54,7 @@
                         'permission' => null,
                     ],
                     ['label' => 'Orders', 'route' => 'admin.orders', 'icon' => 'fa-box', 'permission' => 'order.view'],
+                    ['label' => 'Customers', 'route' => 'admin.customers', 'icon' => 'fa-users', 'permission' => 'customer.view'],
                     [
                         'label' => 'Products',
                         'route' => 'admin.products',
