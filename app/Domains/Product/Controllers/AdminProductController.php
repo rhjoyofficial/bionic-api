@@ -23,10 +23,23 @@ class AdminProductController extends Controller
     {
         $this->authorize('product.view');
 
-        $products = Product::with('variants')->latest()->paginate(10);
+        $products = Product::with(['variants', 'category'])
+            ->when(request('q'), fn($q, $search) => $q->where('name', 'like', "%{$search}%"))
+            ->when(request('category_id'), fn($q, $id) => $q->where('category_id', $id))
+            ->when(request('status'), fn($q, $status) => $q->where('is_active', $status === 'active'))
+            ->latest()
+            ->paginate(15);
 
-        // Standardized Paginated Response
         return ApiResponse::paginated(ProductResource::collection($products));
+    }
+
+    public function show(Product $product)
+    {
+        $this->authorize('product.view');
+
+        $product->load(['allVariants.tierPrices', 'category']);
+
+        return ApiResponse::success(new ProductResource($product), 'Product loaded');
     }
 
     public function store(StoreProductRequest $request)
