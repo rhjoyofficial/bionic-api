@@ -30,11 +30,11 @@
                         <div class="cert-canvas"><img src="/assets/certificates/gmp.png" class="cert-img"></div>
                     </div>
 
-                    <div class="cert-card" data-img="/assets/certificates/iso.png">
+                    <div class="cert-card" data-img="/assets/certificates/iso.jpeg">
                         <div class="cert-canvas"><img src="/assets/certificates/iso.png" class="cert-img"></div>
                     </div>
 
-                    <div class="cert-card" data-img="/assets/certificates/halal.png">
+                    <div class="cert-card" data-img="/assets/certificates/halal.jpeg">
                         <div class="cert-canvas"><img src="/assets/certificates/halal.png" class="cert-img"></div>
                     </div>
 
@@ -47,15 +47,15 @@
                         <div class="cert-canvas"><img src="/assets/certificates/bsti.png" class="cert-img"></div>
                     </div>
 
-                    <div class="cert-card" data-img="/assets/certificates/gmp.png">
+                    <div class="cert-card" data-img="/assets/certificates/gmp.jpeg">
                         <div class="cert-canvas"><img src="/assets/certificates/gmp.png" class="cert-img"></div>
                     </div>
 
-                    <div class="cert-card" data-img="/assets/certificates/iso.png">
+                    <div class="cert-card" data-img="/assets/certificates/iso.jpeg">
                         <div class="cert-canvas"><img src="/assets/certificates/iso.png" class="cert-img"></div>
                     </div>
 
-                    <div class="cert-card" data-img="/assets/certificates/halal.png">
+                    <div class="cert-card" data-img="/assets/certificates/halal.jpeg">
                         <div class="cert-canvas"><img src="/assets/certificates/halal.png" class="cert-img"></div>
                     </div>
 

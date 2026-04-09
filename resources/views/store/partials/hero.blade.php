@@ -78,7 +78,7 @@
                         On:</span>
 
                     {{-- Facebook --}}
-                    <a href="#"
+                    <a href="https://www.facebook.com/BionicGardenOfficial" target="_blank"
                         class="w-8 h-8 md:w-12 md:h-12 rounded-full border border-secondary/50 md:border-slate-100 flex items-center justify-center hover:bg-[#1877f2] hover:border-[#1877f2] transition-colors group">
                         <svg class="w-4 h-4 md:w-5 md:h-5 fill-current text-slate-400 group-hover:text-white"
                             viewBox="0 0 320 512">
@@ -98,7 +98,7 @@
                     </a>
 
                     {{-- YouTube --}}
-                    <a href="#"
+                    <a href="https://www.youtube.com/@BionicGardenOfficial" target="_blank"
                         class="w-8 h-8 md:w-12 md:h-12 rounded-full border border-secondary/50 md:border-slate-100 flex items-center justify-center hover:bg-[#ff0000] hover:border-[#ff0000] transition-colors group">
                         <svg class="w-4 h-4 md:w-5 md:h-5 fill-current text-slate-400 group-hover:text-white"
                             viewBox="0 0 576 512">
@@ -108,7 +108,7 @@
                     </a>
 
                     {{-- WhatsApp --}}
-                    <a href="#"
+                    <a href="https://wa.me/8801334943785" target="_blank"
                         class="w-8 h-8 md:w-12 md:h-12 rounded-full border border-secondary/50 md:border-slate-100 flex items-center justify-center hover:bg-[#25D366] hover:border-[#25D366] transition-colors group">
                         <svg class="w-4 h-4 md:w-5 md:h-5 fill-current text-slate-400 group-hover:text-white"
                             viewBox="0 0 448 512" stroke-width="2">
@@ -219,20 +219,20 @@
 
             {{-- More Products  --}}
             <div
-                class="hidden col-span-12 lg:col-span-3 lg:row-span-1 lg:row-start-4 bg-white rounded-3xl p-6 lg:flex flex-col justify-between group">
+                class="hidden col-span-12 lg:col-span-3 lg:row-span-1 lg:row-start-4 bg-white rounded-3xl p-6 lg:flex flex-col justify-between ">
                 <div class="flex justify-between items-center gap-4 ">
                     <div>
                         <h3 class="font-bold text-slate-800">More Products</h3>
                         <p class="text-xs text-slate-400">20+ Natural Items</p>
                     </div>
-                    <div
-                        class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center transition-all duration-300 group-hover:bg-primary group-hover:text-white cursor-pointer shadow-sm">
-                        <svg class="w-5 h-5 group-hover:text-white rotate-45 group-hover:rotate-0 duration-300"
+                    <a href="#allProducts"
+                        class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center group transition-all duration-300 hover:bg-primary hover:text-white shadow-sm">
+                        <svg class="w-5 h-5 hover:text-white rotate-45 group-hover:rotate-90 duration-300"
                             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
                             <path
                                 d="M17.92 6.62a1 1 0 0 0-.54-.54A1 1 0 0 0 17 6H7a1 1 0 0 0 0 2h7.59l-8.3 8.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0L16 9.41V17a1 1 0 0 0 2 0V7a1 1 0 0 0-.08-.38" />
                         </svg>
-                    </div>
+                    </a>
                 </div>
                 <div class="flex items-center gap-2 mt-4 overflow-hidden">
                     <div class="flex -space-x-5">
