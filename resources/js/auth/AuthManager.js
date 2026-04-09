@@ -89,10 +89,9 @@ export default class AuthManager {
         boxes.forEach((b) => {
             if (!b) return;
             b.classList.add("hidden");
-            b.textContent = "";
-            // also clear child lists
-            const ul = b.querySelector("ul");
-            if (ul) ul.innerHTML = "";
+            if (b.tagName === "UL") {
+                b.innerHTML = "";
+            }
         });
     }
 
@@ -101,6 +100,8 @@ export default class AuthManager {
     _initLogout() {
         this.logoutBtn.addEventListener("click", async (e) => {
             e.preventDefault();
+            this._setLoading(this.logoutBtn, true);
+
             try {
                 // POST to the web logout route which invalidates the PHP session
                 // AND revokes all Sanctum tokens in one request.
@@ -109,7 +110,8 @@ export default class AuthManager {
                     headers: this._headers(),
                 });
             } catch (err) {
-                console.error("Logout failed", err);
+                window.flash?.("লগআউট ব্যর্থ হয়েছে!", "error", 2000);
+                this._setLoading(this.logoutBtn, false);
             } finally {
                 window.flash?.("লগআউট সফল হয়েছে!", "success", 2000);
                 // Always clear local storage and redirect regardless of server response.
@@ -131,40 +133,51 @@ export default class AuthManager {
             this._clearErrors(errorBox);
             this._setLoading(btn, true);
 
+            const rawLogin = form.querySelector('[name="login"]').value.trim();
+
+            const cleanLogin =
+                window.ValidationManager.cleanLoginInput(rawLogin);
+
+            if (!cleanLogin) {
+                this._setLoading(btn, false);
+                return this._showError(
+                    errorBox,
+                    "সঠিক ইমেইল বা মোবাইল নম্বর লিখুন (১১ ডিজিট)।",
+                );
+            }
+
             try {
-                // POST to the web route (/login) so PHP session is established.
                 const res = await fetch("/login", {
                     method: "POST",
                     headers: this._headers(),
                     body: JSON.stringify({
-                        login: form
-                            .querySelector('[name="login"]')
-                            .value.trim(),
+                        login: cleanLogin,
                         password: form.querySelector('[name="password"]').value,
                         session_token: this.sessionToken,
-                        remember: form.querySelector('[name="remember"]')?.checked ?? false,
+                        remember:
+                            form.querySelector('[name="remember"]')?.checked ??
+                            false,
                     }),
                 });
 
                 const data = await res.json();
                 if (res.ok && data.success) {
                     window.flash?.("লগইন সফল হয়েছে!", "success", 2000);
-                    // Store Sanctum token for subsequent JS API calls.
                     localStorage.setItem("auth_token", data.data.token);
-                    // Wipe guest cart token — it has been merged server-side.
                     localStorage.removeItem("bionic_cart_token");
-                    // Session was regenerated server-side — update CSRF meta tag
-                    // so any request before the redirect doesn't get a 419.
                     this._refreshCsrfMeta(res);
-                    // Redirect to intended URL (e.g. /checkout) or fall back to home.
-                    const intended = new URLSearchParams(window.location.search).get("redirect");
+
+                    const intended = new URLSearchParams(
+                        window.location.search,
+                    ).get("redirect");
                     setTimeout(() => {
                         window.location.href = intended || "/";
                     }, 1500);
                 } else {
                     this._showError(
                         errorBox,
-                        data.message || "লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।",
+                        data.message ||
+                            "লগইন ব্যর্থ হয়েছে। তথ্যগুলো আবার যাচাই করুন।",
                     );
                 }
             } catch {
@@ -187,24 +200,43 @@ export default class AuthManager {
             const errorBox = document.getElementById("error-box");
             const errorList = document.getElementById("error-list");
 
-            this._clearErrors(errorBox);
+            this._clearErrors(errorBox, errorList);
             this._setLoading(btn, true);
 
-            const emailVal = form
+            const rawPhone = form.querySelector('[name="phone"]').value.trim();
+            const rawEmail = form
                 .querySelector('[name="email"]')
                 ?.value?.trim();
 
+            // TRANSFORM THE DATA
+            const cleanPhone = window.ValidationManager.cleanPhone(rawPhone);
+            const cleanEmail = rawEmail
+                ? window.ValidationManager.cleanEmail(rawEmail)
+                : null;
+
+            // --- VALIDATION CHECKS ---
+            if (!cleanPhone) {
+                this._setLoading(btn, false);
+                return this._showErrorList(errorBox, errorList, [
+                    "একটি সঠিক মোবাইল নম্বর লিখুন।",
+                ]);
+            }
+
+            if (rawEmail && !cleanEmail) {
+                this._setLoading(btn, false); // Must turn off loading before returning!
+                return this._showErrorList(errorBox, errorList, [
+                    "দয়া করে শুধুমাত্র Gmail বা Yahoo ইমেইল ব্যবহার করুন।",
+                ]);
+            }
+
             try {
-                // POST to the web route (/register) so PHP session is established.
                 const res = await fetch("/register", {
                     method: "POST",
                     headers: this._headers(),
                     body: JSON.stringify({
                         name: form.querySelector('[name="name"]').value.trim(),
-                        email: emailVal || null,
-                        phone: form
-                            .querySelector('[name="phone"]')
-                            .value.trim(),
+                        email: cleanEmail,
+                        phone: cleanPhone,
                         password: form.querySelector('[name="password"]').value,
                         password_confirmation: form.querySelector(
                             '[name="password_confirmation"]',
@@ -230,7 +262,7 @@ export default class AuthManager {
                         : [data.message || "নিবন্ধন ব্যর্থ হয়েছে।"];
                     this._showErrorList(errorBox, errorList, errors);
                 }
-            } catch {
+            } catch (err) {
                 this._showErrorList(errorBox, errorList, [
                     "সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।",
                 ]);
@@ -326,7 +358,7 @@ export default class AuthManager {
                     this._showError(
                         errorBox,
                         data.message ||
-                        "Password reset failed. The link may have expired.",
+                            "Password reset failed. The link may have expired.",
                     );
                 }
             } catch {
