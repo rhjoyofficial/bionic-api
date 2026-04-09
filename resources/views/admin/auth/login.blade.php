@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,6 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css'])
 </head>
+
 <body class="bg-gray-100 font-[Inter] antialiased">
 
     <div class="min-h-screen flex items-center justify-center px-4 py-12">
@@ -22,7 +24,7 @@
             <div class="text-center mb-8">
                 <a href="{{ url('/') }}">
                     <img src="{{ asset('assets/images/bionic-logo.png') }}" alt="{{ config('app.name') }}"
-                         class="h-14 mx-auto">
+                        class="h-14 mx-auto">
                 </a>
                 <h1 class="mt-4 text-xl font-bold text-gray-800">Admin Panel</h1>
                 <p class="text-sm text-gray-500 mt-1">Sign in to continue</p>
@@ -55,12 +57,12 @@
                         <label for="login" class="block text-sm font-medium text-gray-700 mb-1">
                             Email or Phone
                         </label>
-                        <input id="login" name="login" type="text" value="{{ old('login') }}" required autofocus
-                               autocomplete="username"
-                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                        <input id="login" name="login" type="text" value="{{ old('login') }}" required
+                            autofocus autocomplete="username"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
                                       focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600
                                       placeholder-gray-400 transition"
-                               placeholder="admin@example.com">
+                            placeholder="admin@example.com">
                     </div>
 
                     {{-- Password --}}
@@ -68,28 +70,27 @@
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
                             Password
                         </label>
-                        <input id="password" name="password" type="password" required
-                               autocomplete="current-password"
-                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                        <input id="password" name="password" type="password" required autocomplete="current-password"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
                                       focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600
                                       placeholder-gray-400 transition"
-                               placeholder="Enter your password">
+                            placeholder="Enter your password">
                     </div>
 
                     {{-- Remember me --}}
                     <div class="flex items-center justify-between mb-6">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" name="remember"
-                                   class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600">
+                                class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600">
                             <span class="text-sm text-gray-600">Remember me</span>
                         </label>
                     </div>
 
                     {{-- Submit --}}
                     <button type="submit"
-                            class="w-full py-2.5 px-4 bg-green-700 text-white text-sm font-semibold rounded-lg
+                        class="w-full py-2.5 px-4 bg-green-700 text-white text-sm font-semibold rounded-lg
                                    hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600
-                                   focus:ring-offset-2 transition active:scale-[0.98]">
+                                   focus:ring-offset-2 transition active:scale-[0.98] cursor-pointer">
                         Sign In
                     </button>
                 </form>
@@ -102,4 +103,5 @@
     </div>
 
 </body>
+
 </html>

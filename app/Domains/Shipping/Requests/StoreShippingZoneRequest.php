@@ -8,18 +8,18 @@ class StoreShippingZoneRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()->can('shipping.manage');
+        return auth()->user()->can('shipping.create');
     }
 
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:150',
-            'base_charge' => 'required|numeric|min:0',
+            'name'                    => 'required|string|max:150|unique:shipping_zones,name',
+            'base_charge'             => 'required|numeric|min:0',
             'free_shipping_threshold' => 'nullable|numeric|min:0',
-            'estimated_days' => 'nullable|integer|min:1',
-            'is_active'  => 'boolean',
-            'sort_order' => 'nullable|integer|min:0|max:9999',
+            'estimated_days'          => 'nullable|integer|min:1',
+            'is_active'               => 'boolean',
+            'sort_order'              => 'nullable|integer|min:0|max:9999',
         ];
     }
 }

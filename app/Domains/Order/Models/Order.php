@@ -30,15 +30,17 @@ class Order extends Model
         'order_status',
         'placed_at',
         'notes',
-        'checkout_token'
+        'checkout_token',
+        'gateway_transaction_id',
     ];
 
     protected $casts = [
-        'placed_at' => 'datetime',
-        'confirmed_at' => 'datetime',
-        'shipped_at' => 'datetime',
-        'delivered_at' => 'datetime',
-        'cancelled_at' => 'datetime',
+        'placed_at'     => 'datetime',
+        'confirmed_at'  => 'datetime',
+        'processing_at' => 'datetime',
+        'shipped_at'    => 'datetime',
+        'delivered_at'  => 'datetime',
+        'cancelled_at'  => 'datetime',
     ];
 
     public function user()
@@ -69,6 +71,16 @@ class Order extends Model
     public function coupon()
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function adminNotes()
+    {
+        return $this->hasMany(OrderNote::class)->latest();
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(OrderTransaction::class)->orderBy('created_at');
     }
 
     /**

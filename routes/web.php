@@ -176,25 +176,48 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         return view('admin.products.edit', ['productId' => $product->id]);
     })->name('admin.products.edit')->middleware('permission:product.update');
 
+    // Combos
+    Route::get('/combos', fn() => view('admin.combos.index'))->name('admin.combos')
+        ->middleware('permission:product.view');
+    Route::get('/combos/create', fn() => view('admin.combos.create'))->name('admin.combos.create')
+        ->middleware('permission:product.create');
+    Route::get('/combos/{combo}/edit', function (\App\Domains\Product\Models\Combo $combo) {
+        return view('admin.combos.edit', ['comboId' => $combo->id]);
+    })->name('admin.combos.edit')->middleware('permission:product.update');
+
     // Categories — all CRUD handled inline via Alpine.js modals on the index page
     Route::get('/categories', fn() => view('admin.categories.index'))->name('admin.categories')
         ->middleware('permission:category.view');
 
     // Orders
-    Route::get('/orders',        fn() => view('admin.orders.index'))->name('admin.orders')
+    Route::get('/orders', fn() => view('admin.orders.index'))->name('admin.orders')
         ->middleware('permission:order.view');
-    Route::get('/orders/{order}', fn() => view('admin.orders.show'))->name('admin.orders.show')
-        ->middleware('permission:order.view');
+    Route::get('/orders/{order}', function (\App\Domains\Order\Models\Order $order) {
+        return view('admin.orders.show', ['orderId' => $order->id]);
+    })->name('admin.orders.show')->middleware('permission:order.view');
 
-    // Coupons
-    Route::get('/coupons',        fn() => view('admin.coupons.index'))->name('admin.coupons')
+    // Customers
+    Route::get('/customers', fn() => view('admin.customers.index'))->name('admin.customers')
+        ->middleware('permission:customer.view');
+    Route::get('/customers/{user}', function (\App\Models\User $user) {
+        return view('admin.customers.show', ['customerId' => $user->id]);
+    })->name('admin.customers.show')->middleware('permission:customer.view');
+
+    // Coupons (create/edit via modal on index)
+    Route::get('/coupons', fn() => view('admin.coupons.index'))->name('admin.coupons')
         ->middleware('permission:coupon.view');
-    Route::get('/coupons/create', fn() => view('admin.coupons.create'))->name('admin.coupons.create')
-        ->middleware('permission:coupon.create');
 
     // Shipping
     Route::get('/shipping', fn() => view('admin.shipping.index'))->name('admin.shipping')
         ->middleware('permission:shipping.view');
+
+    // Transactions & Reconciliation
+    Route::get('/transactions', fn() => view('admin.transactions.index'))->name('admin.transactions')
+        ->middleware('permission:order.view');
+
+    // Notifications
+    Route::get('/notifications', fn() => view('admin.notifications.index'))->name('admin.notifications')
+        ->middleware('permission:notification.view');
 
     // Webhooks
     Route::get('/webhooks', fn() => view('admin.webhooks.index'))->name('admin.webhooks')

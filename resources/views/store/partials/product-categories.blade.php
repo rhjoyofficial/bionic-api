@@ -1,7 +1,7 @@
-<section class="py-16 px-4 md:px-8 bg-white overflow-hidden">
+<section class="py-16 px-4 md:px-8 bg-white overflow-hidden" id="allProducts">
     <div class="max-w-8xl mx-auto text-center">
 
-        <h2 class="font-heading text-2xl md:text-4xl font-bold text-gray-900 mb-8">
+        <h2 id="" class="font-heading text-2xl md:text-4xl font-bold text-gray-900 mb-8">
             Shop By Categories
         </h2>
 
@@ -35,7 +35,7 @@
         </div>
 
         {{-- PRODUCTS GRID --}}
-        <div id="categoryProductGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6 mb-12 min-h-[450px]">
+        <div id="categoryProductGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6 mb-12 min-h-112.5">
             @forelse ($categoryProducts as $product)
                 <div class="product-item-wrapper transition-all duration-500 ease-in-out transform hidden opacity-0 scale-95"
                     data-category="{{ $product->category['id'] ?? 0 }}">

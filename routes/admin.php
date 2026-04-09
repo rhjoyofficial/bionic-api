@@ -1,11 +1,15 @@
 <?php
 
 use App\Domains\Category\Controllers\AdminCategoryController;
+use App\Domains\Customer\Controllers\AdminCustomerController;
+use App\Domains\Notification\Controllers\AdminNotificationController;
+use App\Domains\Product\Controllers\AdminComboController;
 use App\Domains\Product\Controllers\AdminProductController;
 use App\Domains\Product\Controllers\ProductTierPriceController;
 use App\Domains\Shipping\Controllers\AdminShippingZoneController;
 use App\Domains\Coupon\Controllers\AdminCouponController;
 use App\Domains\Order\Controllers\AdminOrderController;
+use App\Domains\Order\Controllers\AdminTransactionController;
 use App\Domains\Product\Controllers\ProductRelationController;
 use App\Domains\Webhook\Controllers\AdminWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +37,16 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::put('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:product.update');
     Route::delete('products/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:product.delete');
 
+    // --- Combos ---
+    Route::middleware('permission:product.view')->group(function () {
+        Route::get('combos', [AdminComboController::class, 'index']);
+        Route::get('combos/{combo}', [AdminComboController::class, 'show']);
+    });
+    Route::post('combos', [AdminComboController::class, 'store'])->middleware('permission:product.create');
+    Route::put('combos/{combo}', [AdminComboController::class, 'update'])->middleware('permission:product.update');
+    Route::patch('combos/{combo}/toggle-active', [AdminComboController::class, 'toggleActive'])->middleware('permission:product.update');
+    Route::delete('combos/{combo}', [AdminComboController::class, 'destroy'])->middleware('permission:product.delete');
+
     // --- Product Tier Prices ---
     Route::group(['middleware' => 'permission:product.update'], function () {
         Route::post('products/{variant}/tier-prices', [ProductTierPriceController::class, 'store']);
@@ -51,6 +65,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         });
 
         Route::post('/', [AdminShippingZoneController::class, 'store'])->middleware('permission:shipping.create');
+        Route::patch('/reorder', [AdminShippingZoneController::class, 'reorder'])->middleware('permission:shipping.update');
         Route::put('/{shipping_zone}', [AdminShippingZoneController::class, 'update'])->middleware('permission:shipping.update');
         Route::delete('/{shipping_zone}', [AdminShippingZoneController::class, 'destroy'])->middleware('permission:shipping.delete');
     });
@@ -59,18 +74,64 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::group(['prefix' => 'coupons'], function () {
         Route::middleware('permission:coupon.view')->group(function () {
             Route::get('/', [AdminCouponController::class, 'index']);
+            Route::get('/stats', [AdminCouponController::class, 'stats']);
             Route::get('/{coupon}', [AdminCouponController::class, 'show']);
         });
 
         Route::post('/', [AdminCouponController::class, 'store'])->middleware('permission:coupon.create');
+        Route::post('/bulk-generate', [AdminCouponController::class, 'bulkGenerate'])->middleware('permission:coupon.create');
         Route::put('/{coupon}', [AdminCouponController::class, 'update'])->middleware('permission:coupon.update');
         Route::delete('/{coupon}', [AdminCouponController::class, 'destroy'])->middleware('permission:coupon.delete');
     });
 
     // --- Order Management ---
-    Route::get('orders', [AdminOrderController::class, 'index'])->middleware('permission:order.view');
-    Route::get('orders/{order}', [AdminOrderController::class, 'show'])->middleware('permission:order.view');
+    Route::middleware('permission:order.view')->group(function () {
+        Route::get('orders', [AdminOrderController::class, 'index']);
+        Route::get('orders/{order}', [AdminOrderController::class, 'show']);
+    });
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
+    Route::post('orders/{order}/notes', [AdminOrderController::class, 'addNote'])->middleware('permission:order.update');
+
+    // --- Transactions & Payment Reconciliation ---
+    Route::group(['prefix' => 'transactions'], function () {
+        Route::middleware('permission:order.view')->group(function () {
+            Route::get('/summary', [AdminTransactionController::class, 'summary']);
+            Route::get('/', [AdminTransactionController::class, 'index']);
+            Route::get('/reconciliation', [AdminTransactionController::class, 'reconciliation']);
+            Route::get('/order/{order}', [AdminTransactionController::class, 'orderTransactions']);
+        });
+
+        Route::middleware('permission:order.update')->group(function () {
+            Route::post('/order/{order}', [AdminTransactionController::class, 'store']);
+            Route::patch('/order/{order}/payment-status', [AdminTransactionController::class, 'updatePaymentStatus']);
+        });
+    });
+
+    // --- Customers ---
+    Route::middleware('permission:customer.view')->group(function () {
+        Route::get('customers', [AdminCustomerController::class, 'index']);
+        Route::get('customers/{user}', [AdminCustomerController::class, 'show']);
+    });
+    Route::patch('customers/{user}/toggle-active', [AdminCustomerController::class, 'toggleActive'])
+        ->middleware('permission:customer.deactivate');
+
+    // --- Notifications ---
+    Route::group(['prefix' => 'notifications'], function () {
+        Route::middleware('permission:notification.view')->group(function () {
+            Route::get('/stats', [AdminNotificationController::class, 'stats']);
+            Route::get('/', [AdminNotificationController::class, 'index']);
+            Route::get('/failed-jobs', [AdminNotificationController::class, 'failedJobs']);
+        });
+
+        Route::middleware('permission:notification.send')
+            ->post('/send', [AdminNotificationController::class, 'send']);
+
+        Route::middleware('permission:notification.manage')->group(function () {
+            Route::post('/failed-jobs/{uuid}/retry', [AdminNotificationController::class, 'retryJob']);
+            Route::post('/failed-jobs/retry-all', [AdminNotificationController::class, 'retryAllFailed']);
+            Route::delete('/failed-jobs/{uuid}', [AdminNotificationController::class, 'deleteFailedJob']);
+        });
+    });
 
     // --- System / Webhooks ---
     Route::group(['middleware' => 'permission:system.webhooks'], function () {
