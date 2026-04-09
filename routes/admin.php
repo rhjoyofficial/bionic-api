@@ -68,9 +68,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
 
     // --- Order Management ---
-    Route::get('orders', [AdminOrderController::class, 'index'])->middleware('permission:order.view');
-    Route::get('orders/{order}', [AdminOrderController::class, 'show'])->middleware('permission:order.view');
+    Route::middleware('permission:order.view')->group(function () {
+        Route::get('orders', [AdminOrderController::class, 'index']);
+        Route::get('orders/{order}', [AdminOrderController::class, 'show']);
+    });
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
+    Route::post('orders/{order}/notes', [AdminOrderController::class, 'addNote'])->middleware('permission:order.update');
 
     // --- System / Webhooks ---
     Route::group(['middleware' => 'permission:system.webhooks'], function () {
