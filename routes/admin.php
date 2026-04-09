@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Category\Controllers\AdminCategoryController;
+use App\Domains\Customer\Controllers\AdminCustomerController;
 use App\Domains\Product\Controllers\AdminProductController;
 use App\Domains\Product\Controllers\ProductTierPriceController;
 use App\Domains\Shipping\Controllers\AdminShippingZoneController;
@@ -74,6 +75,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
     Route::post('orders/{order}/notes', [AdminOrderController::class, 'addNote'])->middleware('permission:order.update');
+
+    // --- Customers ---
+    Route::middleware('permission:customer.view')->group(function () {
+        Route::get('customers', [AdminCustomerController::class, 'index']);
+        Route::get('customers/{user}', [AdminCustomerController::class, 'show']);
+    });
+    Route::patch('customers/{user}/toggle-active', [AdminCustomerController::class, 'toggleActive'])
+        ->middleware('permission:customer.deactivate');
 
     // --- System / Webhooks ---
     Route::group(['middleware' => 'permission:system.webhooks'], function () {
