@@ -4,7 +4,7 @@ namespace App\Domains\Coupon\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCouponRequest extends FormRequest
+class BulkGenerateCouponRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +14,8 @@ class StoreCouponRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code'           => 'required|string|unique:coupons,code|max:50',
+            'prefix'         => 'required|string|max:10|alpha_num',
+            'count'          => 'required|integer|min:1|max:500',
             'type'           => 'required|in:fixed,percentage',
             'value'          => 'required|numeric|min:0',
             'min_purchase'   => 'nullable|numeric|min:0',
@@ -23,6 +24,14 @@ class StoreCouponRequest extends FormRequest
             'start_date'     => 'nullable|date',
             'end_date'       => 'nullable|date|after_or_equal:start_date',
             'is_active'      => 'boolean',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'prefix.alpha_num' => 'Prefix must contain only letters and numbers.',
+            'count.max'        => 'Cannot generate more than 500 coupons at once.',
         ];
     }
 }
