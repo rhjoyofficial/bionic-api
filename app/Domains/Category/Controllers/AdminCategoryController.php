@@ -24,9 +24,13 @@ class AdminCategoryController extends Controller
         try {
             $this->authorize('category.view');
 
-            $categories = Category::latest()->paginate(10);
+            $perPage = min((int) request('per_page', 10), 100);
 
-            // Use the paginated helper for consistent meta data
+            $categories = Category::withCount('products')
+                ->when(request('q'), fn($q, $search) => $q->where('name', 'like', "%{$search}%"))
+                ->latest()
+                ->paginate($perPage);
+
             return ApiResponse::paginated(CategoryResource::collection($categories));
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to retrieve categories');
