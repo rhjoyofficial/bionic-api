@@ -86,6 +86,12 @@
                         'permission' => 'shipping.view',
                     ],
                     [
+                        'label' => 'Notifications',
+                        'route' => 'admin.notifications',
+                        'icon' => 'fa-bell',
+                        'permission' => 'notification.view',
+                    ],
+                    [
                         'label' => 'Webhooks',
                         'route' => 'admin.webhooks',
                         'icon' => 'fa-link',

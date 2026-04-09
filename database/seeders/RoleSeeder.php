@@ -51,6 +51,7 @@ class RoleSeeder extends Seeder
             // Notifications
             'notification.view',
             'notification.send',
+            'notification.manage',  // retry/delete failed jobs
 
             // System / Settings
             'system.settings',

@@ -2,6 +2,7 @@
 
 use App\Domains\Category\Controllers\AdminCategoryController;
 use App\Domains\Customer\Controllers\AdminCustomerController;
+use App\Domains\Notification\Controllers\AdminNotificationController;
 use App\Domains\Product\Controllers\AdminComboController;
 use App\Domains\Product\Controllers\AdminProductController;
 use App\Domains\Product\Controllers\ProductTierPriceController;
@@ -97,6 +98,24 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
     Route::patch('customers/{user}/toggle-active', [AdminCustomerController::class, 'toggleActive'])
         ->middleware('permission:customer.deactivate');
+
+    // --- Notifications ---
+    Route::group(['prefix' => 'notifications'], function () {
+        Route::middleware('permission:notification.view')->group(function () {
+            Route::get('/stats', [AdminNotificationController::class, 'stats']);
+            Route::get('/', [AdminNotificationController::class, 'index']);
+            Route::get('/failed-jobs', [AdminNotificationController::class, 'failedJobs']);
+        });
+
+        Route::middleware('permission:notification.send')
+            ->post('/send', [AdminNotificationController::class, 'send']);
+
+        Route::middleware('permission:notification.manage')->group(function () {
+            Route::post('/failed-jobs/{uuid}/retry', [AdminNotificationController::class, 'retryJob']);
+            Route::post('/failed-jobs/retry-all', [AdminNotificationController::class, 'retryAllFailed']);
+            Route::delete('/failed-jobs/{uuid}', [AdminNotificationController::class, 'deleteFailedJob']);
+        });
+    });
 
     // --- System / Webhooks ---
     Route::group(['middleware' => 'permission:system.webhooks'], function () {

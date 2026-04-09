@@ -211,6 +211,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/shipping', fn() => view('admin.shipping.index'))->name('admin.shipping')
         ->middleware('permission:shipping.view');
 
+    // Notifications
+    Route::get('/notifications', fn() => view('admin.notifications.index'))->name('admin.notifications')
+        ->middleware('permission:notification.view');
+
     // Webhooks
     Route::get('/webhooks', fn() => view('admin.webhooks.index'))->name('admin.webhooks')
         ->middleware('permission:system.webhooks');
