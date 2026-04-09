@@ -206,4 +206,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     // Activity Log
     Route::get('/activity-log', AdminActivityLogController::class)->name('admin.activity-log')
         ->middleware('permission:system.activity_log');
+
 });

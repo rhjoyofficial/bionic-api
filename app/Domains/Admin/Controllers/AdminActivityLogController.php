@@ -2,16 +2,16 @@
 
 namespace App\Domains\Admin\Controllers;
 
+use App\Domains\ActivityLog\Models\ActivityLog;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Spatie\Activitylog\Models\Activity;
 
 class AdminActivityLogController extends Controller
 {
     public function __invoke(Request $request): View
     {
-        $query = Activity::query()
+        $query = ActivityLog::query()
             ->with('causer')
             ->latest();
 

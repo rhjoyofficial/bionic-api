@@ -2,11 +2,14 @@
 
 namespace App\Domains\Auth\Controllers;
 
+use App\Domains\ActivityLog\Models\ActivityLog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\ActivityLogger;
 
 /**
  * AdminAuthController — session-based authentication for the Blade admin panel.
@@ -75,10 +78,7 @@ class AdminAuthController extends Controller
         $request->session()->regenerate();
 
         // Log activity
-        activity('admin-auth')
-            ->causedBy($user)
-            ->withProperties(['ip' => $request->ip()])
-            ->log('Admin logged in');
+        $this->logAuthActivity($request, $user, 'Admin logged in');
 
         return redirect()->intended(route('admin.dashboard'));
     }
@@ -90,10 +90,7 @@ class AdminAuthController extends Controller
         $user = Auth::user();
 
         if ($user) {
-            activity('admin-auth')
-                ->causedBy($user)
-                ->withProperties(['ip' => $request->ip()])
-                ->log('Admin logged out');
+            $this->logAuthActivity($request, $user, 'Admin logged out');
         }
 
         Auth::guard('web')->logout();
@@ -131,5 +128,26 @@ class AdminAuthController extends Controller
                 'seconds' => $seconds,
             ]),
         ]);
+    }
+
+    private function logAuthActivity(Request $request, $user, string $description): void
+    {
+        try {
+            ActivityLog::query()->create([
+                'log_name' => 'admin-auth',
+                'description' => $description,
+                'causer_type' => $user ? get_class($user) : null,
+                'causer_id' => $user?->id,
+                'properties' => [
+                    'ip' => $request->ip(),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Admin activity logging failed', [
+                'description' => $description,
+                'user_id' => $user?->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

@@ -1,39 +1,74 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Combo Packs')
+@section('title', 'Activity Log')
 
 @section('content')
-    <section class="py-10 md:py-14 px-4 md:px-8">
-        <div class="max-w-8xl mx-auto">
-            <nav class="flex text-gray-500 text-xs md:text-sm mb-4" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li><a href="/" class="hover:text-primary">Home</a></li>
-                    <li><span class="mx-2">›</span></li>
-                    <li class="text-gray-800 font-medium">Combos</li>
-                </ol>
-            </nav>
+    <div class="bg-white border border-gray-200 rounded-xl">
+        <div class="p-4 border-b border-gray-100 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+            <h2 class="text-sm font-semibold text-gray-700">System Activity</h2>
 
-            <header class="mb-8">
-                <h1 class="text-2xl md:text-4xl font-bold text-gray-900 mb-2">All Combo Packs</h1>
-                <p class="text-gray-600 text-sm md:text-base">Browse every active bundle and add your favorite combos to
-                    cart.</p>
-            </header>
-
-            @if ($combos->count())
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
-                    @foreach ($combos as $combo)
-                        <x-combo-card :combo="$combo" />
-                    @endforeach
-                </div>
-
-                <div class="mt-10 flex justify-center">
-                    {{ $combos->links() }}
-                </div>
-            @else
-                <div class="rounded-2xl border border-gray-100 bg-white p-8 text-center text-gray-500">
-                    No combos available right now.
-                </div>
-            @endif
+            <form method="GET" class="flex gap-2">
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search description/log"
+                    class="w-52 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+                <select name="log"
+                    class="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600 cursor-pointer">
+                    <option value="">All Logs</option>
+                    <option value="admin-auth" @selected(request('log') === 'admin-auth')>Admin Auth</option>
+                    <option value="default" @selected(request('log') === 'default')>Default</option>
+                </select>
+                <button type="submit"
+                    class="rounded-lg bg-green-700 text-white px-3 py-2 text-sm font-medium hover:bg-green-800 cursor-pointer transition">
+                    Filter
+                </button>
+            </form>
         </div>
-    </section>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">When</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Log</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">User</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Properties</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse ($activities as $activity)
+                        <tr>
+                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                {{ $activity->created_at?->format('Y-m-d H:i:s') }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <span
+                                    class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+                                    {{ $activity->log_name ?: 'default' }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-800">{{ $activity->description }}</td>
+                            <td class="px-4 py-3 text-gray-600">
+                                {{ $activity->causer?->name ?? 'System' }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-500">
+                                @if (!empty($activity->properties))
+                                    <code class="text-xs">{{ json_encode($activity->properties) }}</code>
+                                @else
+                                    —
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-gray-400">No activity found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-4 border-t border-gray-100">
+            {{ $activities->links() }}
+        </div>
+    </div>
 @endsection

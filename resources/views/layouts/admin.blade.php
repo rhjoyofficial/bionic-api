@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,30 +16,30 @@
     @vite(['resources/css/app.css'])
 
     <style>
-        [x-cloak] { display: none !important; }
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
     @stack('styles')
 </head>
+
 <body class="h-full bg-gray-50 font-[Inter] antialiased" x-data="{ sidebarOpen: false }">
 
     {{-- Mobile sidebar overlay --}}
-    <div x-show="sidebarOpen" x-cloak
-         class="fixed inset-0 z-40 bg-black/50 lg:hidden"
-         @click="sidebarOpen = false"
-         x-transition:enter="transition-opacity duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"></div>
+    <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-40 bg-black/50 lg:hidden" @click="sidebarOpen = false"
+        x-transition:enter="transition-opacity duration-200" x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity duration-200"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
 
     {{-- Sidebar --}}
-    <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform transition-transform duration-200 lg:translate-x-0"
-           :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+    <aside
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform transition-transform duration-200 lg:translate-x-0"
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
         {{-- Brand --}}
         <div class="flex items-center gap-3 px-5 h-16 border-b border-gray-800">
-            <img src="{{ asset('assets/images/bionic-logo.png') }}" alt="" class="h-8 w-auto brightness-0 invert">
+            <img src="{{ asset('assets/images/bionic-logo.png') }}" alt=""
+                class="h-8 w-auto brightness-0 invert">
             <span class="text-white font-bold text-base tracking-tight">Admin</span>
         </div>
 
@@ -46,21 +47,56 @@
         <nav class="mt-4 px-3 space-y-1 overflow-y-auto" style="max-height: calc(100vh - 8rem);">
             @php
                 $nav = [
-                    ['label' => 'Dashboard',    'route' => 'admin.dashboard',    'icon' => 'fa-chart-pie',        'permission' => null],
-                    ['label' => 'Orders',       'route' => 'admin.orders',       'icon' => 'fa-box',              'permission' => 'order.view'],
-                    ['label' => 'Products',     'route' => 'admin.products',     'icon' => 'fa-leaf',             'permission' => 'product.view'],
-                    ['label' => 'Categories',   'route' => 'admin.categories',   'icon' => 'fa-layer-group',      'permission' => 'category.view'],
-                    ['label' => 'Coupons',      'route' => 'admin.coupons',      'icon' => 'fa-ticket',           'permission' => 'coupon.view'],
-                    ['label' => 'Shipping',     'route' => 'admin.shipping',     'icon' => 'fa-truck',            'permission' => 'shipping.view'],
-                    ['label' => 'Webhooks',     'route' => 'admin.webhooks',     'icon' => 'fa-link',             'permission' => 'system.webhooks'],
-                    ['label' => 'Activity Log', 'route' => 'admin.activity-log', 'icon' => 'fa-clock-rotate-left','permission' => 'system.activity_log'],
+                    [
+                        'label' => 'Dashboard',
+                        'route' => 'admin.dashboard',
+                        'icon' => 'fa-chart-pie',
+                        'permission' => null,
+                    ],
+                    ['label' => 'Orders', 'route' => 'admin.orders', 'icon' => 'fa-box', 'permission' => 'order.view'],
+                    [
+                        'label' => 'Products',
+                        'route' => 'admin.products',
+                        'icon' => 'fa-leaf',
+                        'permission' => 'product.view',
+                    ],
+                    [
+                        'label' => 'Categories',
+                        'route' => 'admin.categories',
+                        'icon' => 'fa-layer-group',
+                        'permission' => 'category.view',
+                    ],
+                    [
+                        'label' => 'Coupons',
+                        'route' => 'admin.coupons',
+                        'icon' => 'fa-ticket',
+                        'permission' => 'coupon.view',
+                    ],
+                    [
+                        'label' => 'Shipping',
+                        'route' => 'admin.shipping',
+                        'icon' => 'fa-truck',
+                        'permission' => 'shipping.view',
+                    ],
+                    [
+                        'label' => 'Webhooks',
+                        'route' => 'admin.webhooks',
+                        'icon' => 'fa-link',
+                        'permission' => 'system.webhooks',
+                    ],
+                    [
+                        'label' => 'Activity Log',
+                        'route' => 'admin.activity-log',
+                        'icon' => 'fa-clock-rotate-left',
+                        'permission' => 'system.activity_log',
+                    ],
                 ];
             @endphp
 
             @foreach ($nav as $item)
                 @if ($item['permission'] === null || auth()->user()->can($item['permission']))
                     <a href="{{ route($item['route']) }}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
                               {{ request()->routeIs($item['route'] . '*') ? 'bg-green-700 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200' }}">
                         <i class="fa-solid {{ $item['icon'] }} w-5 text-center text-xs"></i>
                         {{ $item['label'] }}
@@ -72,7 +108,8 @@
         {{-- Bottom: user info --}}
         <div class="absolute bottom-0 left-0 right-0 border-t border-gray-800 px-4 py-3">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center text-white text-xs font-bold">
+                <div
+                    class="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center text-white text-xs font-bold">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
                 <div class="flex-1 min-w-0">
@@ -87,7 +124,8 @@
     <div class="lg:ml-64 min-h-screen flex flex-col">
 
         {{-- Topbar --}}
-        <header class="sticky top-0 z-30 bg-white border-b border-gray-200 h-16 flex items-center px-4 lg:px-6 shrink-0">
+        <header
+            class="sticky top-0 z-30 bg-white border-b border-gray-200 h-16 flex items-center px-4 lg:px-6 shrink-0">
             {{-- Mobile hamburger --}}
             <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden mr-3 text-gray-500 hover:text-gray-700">
                 <i class="fa-solid fa-bars text-lg"></i>
@@ -100,7 +138,7 @@
             <div class="ml-auto flex items-center gap-4">
                 {{-- Visit store --}}
                 <a href="{{ route('home') }}" target="_blank"
-                   class="hidden sm:flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-700 transition">
+                    class="hidden sm:flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-700 transition">
                     <i class="fa-solid fa-external-link text-xs"></i>
                     Visit Store
                 </a>
@@ -109,7 +147,7 @@
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button type="submit"
-                            class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition">
+                        class="cursor-pointer flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition">
                         <i class="fa-solid fa-right-from-bracket text-xs"></i>
                         Logout
                     </button>
@@ -144,4 +182,5 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @stack('scripts')
 </body>
+
 </html>
