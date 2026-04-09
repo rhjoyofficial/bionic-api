@@ -3,13 +3,6 @@
 @section('title', 'Healthy Products')
 
 @section('content')
-    @php
-        $products = \App\Domains\Product\Models\Product::query()
-            ->where('is_active', true)
-            ->with(['variants.tierPrices'])
-            ->latest()
-            ->paginate(12);
-    @endphp
     <div class="max-w-8xl mx-auto px-4 py-6 md:py-10">
         {{-- Breadcrumbs --}}
         <nav class="flex text-gray-500 text-xs md:text-sm mb-4" aria-label="Breadcrumb">
@@ -21,8 +14,12 @@
         </nav>
 
         <header class="mb-8">
-            <h1 class="text-2xl md:text-4xl font-bold text-gray-900 mb-2">Shop Pure Organic Products</h1>
-            <p class="text-gray-600 text-sm md:text-base">Carefully sourced, naturally processed, and quality tested.</p>
+            <h1 class="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
+                {{ $selectedCategory ? $selectedCategory->name . ' Products' : 'Shop Pure Organic Products' }}
+            </h1>
+            <p class="text-gray-600 text-sm md:text-base">
+                {{ $searchQuery ? 'Search results for "' . $searchQuery . '"' : 'Carefully sourced, naturally processed, and quality tested.' }}
+            </p>
         </header>
 
         <div class="flex flex-col lg:flex-row gap-8">
@@ -42,7 +39,8 @@
                         @foreach ($globalCategories as $category)
                             <label class="flex items-center gap-3 cursor-pointer group">
                                 <input type="checkbox" name="categories[]" value="{{ $category->id }}"
-                                    class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                    class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    {{ $selectedCategory?->id === $category->id ? 'checked' : '' }}>
                                 <span class="text-sm text-gray-600 group-hover:text-primary transition-colors">
                                     {{ $category->name }}
                                 </span>
@@ -56,7 +54,7 @@
                     <h3 class="font-bold text-gray-900 mb-4 border-b pb-2">Price Range</h3>
                     <input type="range" min="500" max="4000"
                         class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
-                    <div class="flex justify-between mt-2 text-xs font-medium text-gray-500">
+                    <div class="flex justify-between mt-2 text-xs font-medium font-bengali text-gray-500">
                         <span>৳500</span>
                         <span>৳4000</span>
                     </div>

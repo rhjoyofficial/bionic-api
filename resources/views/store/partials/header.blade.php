@@ -153,12 +153,15 @@
 
         <!-- MOBILE SEARCH -->
         <div class="w-full md:hidden">
-            <div class="flex bg-white rounded-full shadow p-1">
-                <input class="flex-1 px-4 py-2 text-sm outline-none placeholder:text-slate-400"
+            <div class="flex bg-white rounded-full shadow p-1 relative">
+                <input id="searchInputMobile" class="flex-1 px-4 py-2 text-sm outline-none placeholder:text-slate-400"
                     placeholder="Search products/ Categories..." autocomplete="off">
-                <button class="bg-primary text-white px-4 rounded-full text-sm">
+                <button id="searchButtonMobile" class="bg-primary text-white px-4 rounded-full text-sm">
                     Go
                 </button>
+                <div id="searchSuggestionsMobile"
+                    class="absolute left-0 top-full mt-1 w-full bg-white shadow-lg rounded-lg hidden z-50 max-h-96 overflow-y-auto">
+                </div>
             </div>
         </div>
 
@@ -170,7 +173,7 @@
         class="hidden md:hidden absolute left-4 right-4 top-auto mt-3 bg-white rounded-2xl shadow-xl z-40 max-h-[60vh] no-scrollbar overflow-y-auto">
 
         @foreach ($globalCategories as $category)
-            <a href="/category/{{ $category->slug }}"
+            <a href="{{ $category->category_page }}"
                 class="block px-5 py-3 border-b border-slate-100 text-sm hover:bg-slate-50">
                 {{ $category->name }}
             </a>

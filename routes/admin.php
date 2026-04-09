@@ -10,7 +10,7 @@ use App\Domains\Product\Controllers\ProductRelationController;
 use App\Domains\Webhook\Controllers\AdminWebhookController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:Admin'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::get('/dashboard', function () {
         return response()->json(['message' => 'Admin Access']);
