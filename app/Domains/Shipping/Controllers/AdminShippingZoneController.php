@@ -2,87 +2,137 @@
 
 namespace App\Domains\Shipping\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Domains\Shipping\Models\ShippingZone;
+use App\Domains\Shipping\Requests\ReorderShippingZonesRequest;
 use App\Domains\Shipping\Requests\StoreShippingZoneRequest;
 use App\Domains\Shipping\Requests\UpdateShippingZoneRequest;
 use App\Domains\Shipping\Resources\ShippingZoneResource;
-use App\Helpers\ApiResponse; // Import your new helper
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AdminShippingZoneController extends Controller
 {
-    public function index()
+    /**
+     * Return all zones ordered by sort_order (no pagination — typically ≤30 zones).
+     */
+    public function index(): JsonResponse
     {
         try {
-            $zones = ShippingZone::latest()->paginate(10);
+            $zones = ShippingZone::withCount('orders')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get();
 
-            // Standardizes pagination meta data automatically
-            return ApiResponse::paginated(ShippingZoneResource::collection($zones));
+            return ApiResponse::success(ShippingZoneResource::collection($zones));
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to retrieve shipping zones');
         }
     }
 
-    public function store(StoreShippingZoneRequest $request)
+    public function show(ShippingZone $shippingZone): JsonResponse
     {
         try {
-            $zone = ShippingZone::create($request->validated());
-            Cache::forget(PublicShippingZoneController::CACHE_KEY);
+            $shippingZone->loadCount('orders');
 
-            return ApiResponse::success(
-                new ShippingZoneResource($zone),
-                'Shipping zone created successfully',
-                201
-            );
+            return ApiResponse::success(new ShippingZoneResource($shippingZone));
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Failed to retrieve shipping zone');
+        }
+    }
+
+    public function store(StoreShippingZoneRequest $request): JsonResponse
+    {
+        try {
+            // Default sort_order to max + 1 if not provided
+            $data = $request->validated();
+            if (! isset($data['sort_order'])) {
+                $data['sort_order'] = (ShippingZone::max('sort_order') ?? 0) + 1;
+            }
+
+            $zone = ShippingZone::create($data);
+            $this->bustCache();
+
+            return ApiResponse::success(new ShippingZoneResource($zone), 'Shipping zone created', 201);
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to create shipping zone');
         }
     }
 
-    public function update(UpdateShippingZoneRequest $request, ShippingZone $shippingZone)
+    public function update(UpdateShippingZoneRequest $request, ShippingZone $shippingZone): JsonResponse
     {
         try {
             $shippingZone->update($request->validated());
-            Cache::forget(PublicShippingZoneController::CACHE_KEY);
+            $this->bustCache();
 
-            return ApiResponse::success(
-                new ShippingZoneResource($shippingZone),
-                'Shipping zone updated successfully'
-            );
+            return ApiResponse::success(new ShippingZoneResource($shippingZone), 'Shipping zone updated');
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to update shipping zone');
         }
     }
 
-    public function destroy(ShippingZone $shippingZone)
+    public function destroy(ShippingZone $shippingZone): JsonResponse
     {
         try {
-            $shippingZone->delete();
-            Cache::forget(PublicShippingZoneController::CACHE_KEY);
+            if ($shippingZone->orders()->exists()) {
+                return ApiResponse::error(
+                    'Cannot delete a zone that has associated orders.',
+                    null,
+                    422
+                );
+            }
 
-            return ApiResponse::success(null, 'Shipping zone deleted successfully');
+            $shippingZone->delete();
+            $this->bustCache();
+
+            return ApiResponse::success(null, 'Shipping zone deleted');
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to delete shipping zone');
         }
     }
 
     /**
-     * Unified error handler using ApiResponse
+     * Bulk-update sort_order for all zones after drag-and-drop reorder.
+     * Expects: { zones: [{id, sort_order}, ...] }
      */
-    private function handleError(Exception $e, string $msg)
+    public function reorder(ReorderShippingZonesRequest $request): JsonResponse
+    {
+        try {
+            DB::transaction(function () use ($request) {
+                foreach ($request->validated()['zones'] as $item) {
+                    ShippingZone::where('id', $item['id'])
+                        ->update(['sort_order' => $item['sort_order']]);
+                }
+            });
+
+            $this->bustCache();
+
+            return ApiResponse::success(null, 'Zones reordered successfully');
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Failed to reorder shipping zones');
+        }
+    }
+
+    private function bustCache(): void
+    {
+        Cache::forget(PublicShippingZoneController::CACHE_KEY);
+    }
+
+    private function handleError(Exception $e, string $msg, int $code = 500): JsonResponse
     {
         Log::error($msg . ': ' . $e->getMessage(), [
             'file' => $e->getFile(),
-            'line' => $e->getLine()
+            'line' => $e->getLine(),
         ]);
 
         return ApiResponse::error(
             $msg,
             config('app.debug') ? $e->getMessage() : null,
-            500
+            $code
         );
     }
 }
