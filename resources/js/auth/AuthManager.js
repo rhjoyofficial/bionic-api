@@ -83,6 +83,8 @@ export default class AuthManager {
             list.appendChild(li);
         });
         box.classList.remove("hidden");
+        list.classList.remove("hidden");
+        // console.log("Full container after adding errors:", box);
     }
 
     _clearErrors(...boxes) {
@@ -227,7 +229,7 @@ export default class AuthManager {
             }
 
             if (rawEmail && !cleanEmail) {
-                this._setLoading(btn, false); // Must turn off loading before returning!
+                this._setLoading(btn, false);
                 return this._showErrorList(errorBox, errorList, [
                     "দয়া করে শুধুমাত্র Gmail বা Yahoo ইমেইল ব্যবহার করুন।",
                 ]);
@@ -264,6 +266,7 @@ export default class AuthManager {
                     const errors = data.errors
                         ? Object.values(data.errors).flat()
                         : [data.message || "নিবন্ধন ব্যর্থ হয়েছে।"];
+                    // console.log("Registration errors:", errors);
                     this._showErrorList(errorBox, errorList, errors);
                 }
             } catch (err) {

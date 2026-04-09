@@ -54,7 +54,7 @@
                     <h3 class="font-bold text-gray-900 mb-4 border-b pb-2">Price Range</h3>
                     <input type="range" min="500" max="4000"
                         class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
-                    <div class="flex justify-between mt-2 text-xs font-medium text-gray-500">
+                    <div class="flex justify-between mt-2 text-xs font-medium font-bengali text-gray-500">
                         <span>৳500</span>
                         <span>৳4000</span>
                     </div>

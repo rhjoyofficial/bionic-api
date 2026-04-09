@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Admin\Controllers\AdminActivityLogController;
 use App\Domains\Admin\Controllers\AdminDashboardController;
 use App\Domains\Auth\Controllers\AdminAuthController;
 use App\Domains\Auth\Controllers\WebAuthController;
@@ -7,10 +8,10 @@ use App\Domains\Cart\Controllers\PublicCartController;
 use App\Domains\Customer\Controllers\CustomerDashboard;
 use App\Domains\Order\Controllers\CheckoutController;
 use App\Domains\Order\Controllers\OrderController;
-use App\Domains\Store\Controllers\HomeController;
-use App\Domains\Store\Controllers\ProductPageController;
 use App\Domains\Store\Controllers\CatalogController;
 use App\Domains\Store\Controllers\ComboPageController;
+use App\Domains\Store\Controllers\HomeController;
+use App\Domains\Store\Controllers\ProductPageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -203,6 +204,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         ->middleware('permission:system.webhooks');
 
     // Activity Log
-    Route::get('/activity-log', fn() => view('admin.activity-log.index'))->name('admin.activity-log')
+    Route::get('/activity-log', AdminActivityLogController::class)->name('admin.activity-log')
         ->middleware('permission:system.activity_log');
 });

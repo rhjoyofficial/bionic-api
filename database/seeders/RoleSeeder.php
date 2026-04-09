@@ -74,43 +74,53 @@ class RoleSeeder extends Seeder
         $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
         $superAdmin->syncPermissions($permissions);
 
-        // Admin — everything except role management
+        // Admin — full operational access
         $admin = Role::firstOrCreate(['name' => 'Admin']);
-        $admin->syncPermissions(
-            collect($permissions)->reject(fn($p) => $p === 'role.manage')->all()
-        );
+        $admin->syncPermissions($permissions);
 
         // Order Manager — orders, shipping view, customer view, notifications
         $orderManager = Role::firstOrCreate(['name' => 'Order Manager']);
         $orderManager->syncPermissions([
-            'order.view', 'order.update', 'order.export',
+            'order.view',
+            'order.update',
+            'order.export',
             'shipping.view',
             'customer.view',
-            'notification.view', 'notification.send',
+            'notification.view',
+            'notification.send',
             'analytics.view',
         ]);
 
         // Inventory Clerk — products and categories only
         $inventoryClerk = Role::firstOrCreate(['name' => 'Inventory Clerk']);
         $inventoryClerk->syncPermissions([
-            'product.view', 'product.create', 'product.update', 'product.delete',
+            'product.view',
+            'product.create',
+            'product.update',
+            'product.delete',
             'category.view',
         ]);
 
         // Marketing — coupons, analytics, notifications
         $marketing = Role::firstOrCreate(['name' => 'Marketing']);
         $marketing->syncPermissions([
-            'coupon.view', 'coupon.create', 'coupon.update', 'coupon.delete',
+            'coupon.view',
+            'coupon.create',
+            'coupon.update',
+            'coupon.delete',
             'analytics.view',
-            'notification.view', 'notification.send',
+            'notification.view',
+            'notification.send',
         ]);
 
         // Customer Support — view orders, manage customers, send notifications
         $support = Role::firstOrCreate(['name' => 'Customer Support']);
         $support->syncPermissions([
             'order.view',
-            'customer.view', 'customer.update',
-            'notification.view', 'notification.send',
+            'customer.view',
+            'customer.update',
+            'notification.view',
+            'notification.send',
         ]);
 
         // Customer (storefront) — minimal
