@@ -68,6 +68,12 @@
                         'permission' => 'category.view',
                     ],
                     [
+                        'label' => 'Combos',
+                        'route' => 'admin.combos',
+                        'icon' => 'fa-cubes',
+                        'permission' => 'product.view',
+                    ],
+                    [
                         'label' => 'Coupons',
                         'route' => 'admin.coupons',
                         'icon' => 'fa-ticket',

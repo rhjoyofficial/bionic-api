@@ -176,6 +176,15 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         return view('admin.products.edit', ['productId' => $product->id]);
     })->name('admin.products.edit')->middleware('permission:product.update');
 
+    // Combos
+    Route::get('/combos', fn() => view('admin.combos.index'))->name('admin.combos')
+        ->middleware('permission:product.view');
+    Route::get('/combos/create', fn() => view('admin.combos.create'))->name('admin.combos.create')
+        ->middleware('permission:product.create');
+    Route::get('/combos/{combo}/edit', function (\App\Domains\Product\Models\Combo $combo) {
+        return view('admin.combos.edit', ['comboId' => $combo->id]);
+    })->name('admin.combos.edit')->middleware('permission:product.update');
+
     // Categories — all CRUD handled inline via Alpine.js modals on the index page
     Route::get('/categories', fn() => view('admin.categories.index'))->name('admin.categories')
         ->middleware('permission:category.view');
