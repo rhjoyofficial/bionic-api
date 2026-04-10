@@ -63,6 +63,7 @@ class OrderStatusService
 
     /**
      * Finalize the inventory: Move items out of 'reserved' and out of 'physical stock'.
+     * Uses min() to prevent stock/reserved_stock from going negative under any race condition.
      */
     private function fulfillStock(Order $order): void
     {
@@ -72,15 +73,16 @@ class OrderStatusService
                 foreach ($item->combo->items as $comboItem) {
                     $variant = ProductVariant::lockForUpdate()->find($comboItem->product_variant_id);
                     if ($variant) {
-                        $variant->decrement('stock', $comboItem->quantity * $item->quantity);
-                        $variant->decrement('reserved_stock', $comboItem->quantity * $item->quantity);
+                        $qty = $comboItem->quantity * $item->quantity;
+                        $variant->decrement('stock', min($variant->stock, $qty));
+                        $variant->decrement('reserved_stock', min($variant->reserved_stock, $qty));
                     }
                 }
             } elseif ($item->variant_id) {
                 $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
                 if ($variant) {
-                    $variant->decrement('stock', $item->quantity);
-                    $variant->decrement('reserved_stock', $item->quantity);
+                    $variant->decrement('stock', min($variant->stock, $item->quantity));
+                    $variant->decrement('reserved_stock', min($variant->reserved_stock, $item->quantity));
                 }
             }
         }
@@ -88,6 +90,7 @@ class OrderStatusService
 
     /**
      * Release reserved stock back to the available pool (for cancellations).
+     * Uses min() to prevent reserved_stock from going negative.
      */
     private function releaseStock(Order $order): void
     {
@@ -96,11 +99,16 @@ class OrderStatusService
             if ($item->combo_id && $item->combo) {
                 foreach ($item->combo->items as $comboItem) {
                     $variant = ProductVariant::lockForUpdate()->find($comboItem->product_variant_id);
-                    $variant?->decrement('reserved_stock', $comboItem->quantity * $item->quantity);
+                    if ($variant) {
+                        $qty = $comboItem->quantity * $item->quantity;
+                        $variant->decrement('reserved_stock', min($variant->reserved_stock, $qty));
+                    }
                 }
             } elseif ($item->variant_id) {
                 $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
-                $variant?->decrement('reserved_stock', $item->quantity);
+                if ($variant) {
+                    $variant->decrement('reserved_stock', min($variant->reserved_stock, $item->quantity));
+                }
             }
         }
     }

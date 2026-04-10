@@ -10,7 +10,12 @@ class Cart extends Model
     protected $fillable = [
         'user_id',
         'session_token',
-        'status'
+        'status',
+        'expires_at',
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
     ];
 
     public function scopeActive(Builder $query): void

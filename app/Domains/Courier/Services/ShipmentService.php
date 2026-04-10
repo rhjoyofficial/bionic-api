@@ -3,7 +3,9 @@
 namespace App\Domains\Courier\Services;
 
 use App\Domains\Courier\Models\CourierShipment;
+use App\Domains\Order\Enums\OrderStatus;
 use App\Domains\Order\Models\Order;
+use App\Domains\Order\Services\OrderStatusService;
 use App\Infrastructure\Courier\CourierService;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +15,7 @@ class ShipmentService
 {
     public function __construct(
         private readonly CourierService $courierService,
+        private readonly OrderStatusService $orderStatusService,
     ) {}
 
     /**
@@ -129,14 +132,22 @@ class ShipmentService
                 'delivered_at'           => ($newStatus === 'delivered' && !$shipment->delivered_at) ? now() : $shipment->delivered_at,
             ]);
 
-            // Auto-update order status if shipment is delivered
+            // Auto-update order status if shipment is delivered.
+            // Route through OrderStatusService to ensure fulfillStock() runs,
+            // transition validation is enforced, and OrderStatusChanged event fires.
             if ($newStatus === 'delivered' && $oldStatus !== 'delivered') {
                 $order = $shipment->order;
                 if ($order && in_array($order->order_status, ['shipped', 'processing'])) {
-                    $order->update([
-                        'order_status'  => 'delivered',
-                        'delivered_at'  => now(),
-                    ]);
+                    try {
+                        // If order is still processing, move to shipped first (required by state machine)
+                        if ($order->order_status === 'processing') {
+                            $this->orderStatusService->changeStatus($order, OrderStatus::Shipped);
+                            $order->refresh();
+                        }
+                        $this->orderStatusService->changeStatus($order, OrderStatus::Delivered);
+                    } catch (Exception $e) {
+                        Log::warning("ShipmentService: could not auto-deliver order #{$order->id}: {$e->getMessage()}");
+                    }
                 }
             }
         }
