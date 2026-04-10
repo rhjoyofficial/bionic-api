@@ -231,4 +231,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/activity-log', AdminActivityLogController::class)->name('admin.activity-log')
         ->middleware('permission:system.activity_log');
 
+    // Settings & System Health
+    Route::get('/settings', fn() => view('admin.settings.index'))->name('admin.settings')
+        ->middleware('permission:system.settings');
+
 });
