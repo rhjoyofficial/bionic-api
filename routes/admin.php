@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Admin\Controllers\AdminSettingsController;
 use App\Domains\Auth\Controllers\AdminRoleController;
 use App\Domains\Category\Controllers\AdminCategoryController;
 use App\Domains\Customer\Controllers\AdminCustomerController;
@@ -161,5 +162,15 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         // Admin staff list + role assignment
         Route::get('/admin-users',            [AdminRoleController::class, 'adminUsers']);
         Route::patch('/admin-users/{user}/role', [AdminRoleController::class, 'assignRole']);
+    });
+
+    // --- Settings & System Health ---
+    Route::group(['prefix' => 'settings', 'middleware' => 'permission:system.settings'], function () {
+        Route::get('/',         [AdminSettingsController::class, 'index']);
+        Route::put('/',         [AdminSettingsController::class, 'update']);
+        Route::get('/health',   [AdminSettingsController::class, 'health']);
+        Route::post('/clear-cache',          [AdminSettingsController::class, 'clearCache']);
+        Route::post('/toggle-maintenance',   [AdminSettingsController::class, 'toggleMaintenance']);
+        Route::post('/optimize',             [AdminSettingsController::class, 'optimizeApp']);
     });
 });

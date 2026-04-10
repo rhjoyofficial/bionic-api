@@ -110,6 +110,12 @@
                         'icon' => 'fa-shield-halved',
                         'permission' => 'role.manage',
                     ],
+                    [
+                        'label' => 'Settings',
+                        'route' => 'admin.settings',
+                        'icon' => 'fa-gear',
+                        'permission' => 'system.settings',
+                    ],
                 ];
             @endphp
 
