@@ -4,6 +4,7 @@ namespace App\Domains\Order\Models;
 
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Courier\Models\CourierShipment;
+use App\Domains\Marketing\Models\LandingPage;
 use App\Domains\Shipping\Models\ShippingZone;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,8 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'order_status',
+        'source',
+        'landing_page_id',
         'placed_at',
         'notes',
         'checkout_token',
@@ -73,6 +76,11 @@ class Order extends Model
     public function coupon()
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function landingPage()
+    {
+        return $this->belongsTo(LandingPage::class);
     }
 
     public function adminNotes()

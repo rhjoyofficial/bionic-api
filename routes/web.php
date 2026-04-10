@@ -11,6 +11,7 @@ use App\Domains\Order\Controllers\OrderController;
 use App\Domains\Store\Controllers\CatalogController;
 use App\Domains\Store\Controllers\ComboPageController;
 use App\Domains\Store\Controllers\HomeController;
+use App\Domains\Landing\Controllers\LandingPageController;
 use App\Domains\Store\Controllers\ProductPageController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,9 +33,7 @@ Route::get('/category/{slug}', [CatalogController::class, 'category'])->name('ca
 Route::get('/product/{slug}', [ProductPageController::class, 'show'])->name('product.show');
 Route::get('/combos', [ComboPageController::class, 'index'])->name('combos.index');
 
-Route::get('/landing/{slug}', function () {
-    return view('store.landing');
-})->name('landing.page');
+Route::get('/landing/{slug}', [LandingPageController::class, 'show'])->name('landing.page');
 
 
 /*
@@ -228,6 +227,15 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     // Webhooks
     Route::get('/webhooks', fn() => view('admin.webhooks.index'))->name('admin.webhooks')
         ->middleware('permission:system.webhooks');
+
+    // Landing Pages
+    Route::get('/landing-pages', fn() => view('admin.landing-pages.index'))->name('admin.landing-pages')
+        ->middleware('permission:product.view');
+    Route::get('/landing-pages/create', fn() => view('admin.landing-pages.create'))->name('admin.landing-pages.create')
+        ->middleware('permission:product.create');
+    Route::get('/landing-pages/{landingPage}/edit', function (\App\Domains\Marketing\Models\LandingPage $landingPage) {
+        return view('admin.landing-pages.edit', ['landingPageId' => $landingPage->id]);
+    })->name('admin.landing-pages.edit')->middleware('permission:product.update');
 
     // Activity Log
     Route::get('/activity-log', AdminActivityLogController::class)->name('admin.activity-log')
