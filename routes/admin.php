@@ -14,6 +14,7 @@ use App\Domains\Coupon\Controllers\AdminCouponController;
 use App\Domains\Order\Controllers\AdminOrderController;
 use App\Domains\Order\Controllers\AdminTransactionController;
 use App\Domains\Product\Controllers\ProductRelationController;
+use App\Domains\Landing\Controllers\AdminLandingPageController;
 use App\Domains\Webhook\Controllers\AdminWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -91,7 +92,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     // Static routes BEFORE wildcard {order} to avoid route conflicts
     Route::get('orders/search-products', [AdminOrderController::class, 'searchProducts'])
         ->middleware('permission:order.update');
-    Route::get('orders/shipping-zones', [AdminOrderController::class, 'shippingZones'])
+    Route::get('/shipping-zones', [AdminOrderController::class, 'shippingZones'])
         ->middleware('permission:order.view');
 
     Route::middleware('permission:order.view')->group(function () {
@@ -192,6 +193,19 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         // Admin staff list + role assignment
         Route::get('/admin-users',            [AdminRoleController::class, 'adminUsers']);
         Route::patch('/admin-users/{user}/role', [AdminRoleController::class, 'assignRole']);
+    });
+
+    // --- Landing Pages ---
+    Route::group(['prefix' => 'landing-pages'], function () {
+        Route::middleware('permission:product.view')->group(function () {
+            Route::get('/', [AdminLandingPageController::class, 'index']);
+            Route::get('/{landingPage}', [AdminLandingPageController::class, 'show']);
+        });
+
+        Route::post('/', [AdminLandingPageController::class, 'store'])->middleware('permission:product.create');
+        Route::put('/{landingPage}', [AdminLandingPageController::class, 'update'])->middleware('permission:product.update');
+        Route::patch('/{landingPage}/toggle-active', [AdminLandingPageController::class, 'toggleActive'])->middleware('permission:product.update');
+        Route::delete('/{landingPage}', [AdminLandingPageController::class, 'destroy'])->middleware('permission:product.delete');
     });
 
     // --- Settings & System Health ---
