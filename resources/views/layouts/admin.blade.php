@@ -104,6 +104,18 @@
                         'icon' => 'fa-clock-rotate-left',
                         'permission' => 'system.activity_log',
                     ],
+                    [
+                        'label' => 'Access Control',
+                        'route' => 'admin.access-control',
+                        'icon' => 'fa-shield-halved',
+                        'permission' => 'role.manage',
+                    ],
+                    [
+                        'label' => 'Settings',
+                        'route' => 'admin.settings',
+                        'icon' => 'fa-gear',
+                        'permission' => 'system.settings',
+                    ],
                 ];
             @endphp
 

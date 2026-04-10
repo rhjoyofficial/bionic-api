@@ -1,5 +1,7 @@
 <?php
 
+use App\Domains\Admin\Controllers\AdminSettingsController;
+use App\Domains\Auth\Controllers\AdminRoleController;
 use App\Domains\Category\Controllers\AdminCategoryController;
 use App\Domains\Customer\Controllers\AdminCustomerController;
 use App\Domains\Notification\Controllers\AdminNotificationController;
@@ -138,5 +140,37 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         Route::get('/webhooks', [AdminWebhookController::class, 'index']);
         Route::post('/webhooks', [AdminWebhookController::class, 'store']);
         Route::delete('/webhooks/{webhook}', [AdminWebhookController::class, 'destroy']);
+    });
+
+    // --- Access Control (Roles & Permissions) ---
+    Route::group(['prefix' => 'access-control', 'middleware' => 'permission:role.manage'], function () {
+        // Role list + matrix
+        Route::get('/roles',  [AdminRoleController::class, 'index']);
+        Route::get('/matrix', [AdminRoleController::class, 'matrix']);
+
+        // Role CRUD
+        Route::post('/roles',        [AdminRoleController::class, 'store']);
+        Route::put('/roles/{role}',  [AdminRoleController::class, 'update']);
+        Route::delete('/roles/{role}', [AdminRoleController::class, 'destroy']);
+
+        // Sync permissions for a single role (matrix save)
+        Route::put('/roles/{role}/permissions', [AdminRoleController::class, 'syncPermissions']);
+
+        // Role → Users
+        Route::get('/roles/{role}/users', [AdminRoleController::class, 'users']);
+
+        // Admin staff list + role assignment
+        Route::get('/admin-users',            [AdminRoleController::class, 'adminUsers']);
+        Route::patch('/admin-users/{user}/role', [AdminRoleController::class, 'assignRole']);
+    });
+
+    // --- Settings & System Health ---
+    Route::group(['prefix' => 'settings', 'middleware' => 'permission:system.settings'], function () {
+        Route::get('/',         [AdminSettingsController::class, 'index']);
+        Route::put('/',         [AdminSettingsController::class, 'update']);
+        Route::get('/health',   [AdminSettingsController::class, 'health']);
+        Route::post('/clear-cache',          [AdminSettingsController::class, 'clearCache']);
+        Route::post('/toggle-maintenance',   [AdminSettingsController::class, 'toggleMaintenance']);
+        Route::post('/optimize',             [AdminSettingsController::class, 'optimizeApp']);
     });
 });
