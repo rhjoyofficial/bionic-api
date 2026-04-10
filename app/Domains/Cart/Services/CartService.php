@@ -25,7 +25,19 @@ class CartService
             return Cart::firstOrCreate(['user_id' => $userId, 'status' => 'active']);
         }
 
-        return Cart::firstOrCreate(['session_token' => $sessionToken, 'user_id' => null, 'status' => 'active']);
+        // Require a non-empty session token for guest carts.
+        // Without this guard, null tokens would share a single cart across all anonymous users.
+        if (!$sessionToken) {
+            throw new \InvalidArgumentException('A session token is required for guest carts.');
+        }
+
+        return Cart::firstOrCreate([
+            'session_token' => $sessionToken,
+            'user_id'       => null,
+            'status'        => 'active',
+        ], [
+            'expires_at' => now()->addDays(7),
+        ]);
     }
 
     public function addCombo(Cart $cart, int $comboId, int $qty = 1)
@@ -132,10 +144,18 @@ class CartService
 
             if ($item->combo_id) {
                 foreach ($item->combo->items as $ci) {
-                    $ci->variant->decrement('reserved_stock', $ci->quantity * $item->quantity);
+                    $variant = \App\Domains\Product\Models\ProductVariant::lockForUpdate()->find($ci->product_variant_id);
+                    if ($variant) {
+                        $releaseQty = min($variant->reserved_stock, $ci->quantity * $item->quantity);
+                        $variant->decrement('reserved_stock', $releaseQty);
+                    }
                 }
             } else {
-                $item->variant->decrement('reserved_stock', $item->quantity);
+                $variant = \App\Domains\Product\Models\ProductVariant::lockForUpdate()->find($item->variant_id);
+                if ($variant) {
+                    $releaseQty = min($variant->reserved_stock, $item->quantity);
+                    $variant->decrement('reserved_stock', $releaseQty);
+                }
             }
 
             $item->delete();
@@ -189,14 +209,23 @@ class CartService
 
             // 1. Handle Combo Items (Usually fixed price, but we refresh the snapshot anyway)
             if ($item->combo_id) {
-                $combo = Combo::with('items.variant')->findOrFail($item->combo_id);
+                $combo = Combo::with('items')->findOrFail($item->combo_id);
 
                 if ($diff > 0 && $combo->available_stock < $diff) {
                     throw new Exception("Insufficient stock for bundle update.");
                 }
 
                 foreach ($combo->items as $ci) {
-                    $ci->variant->increment('reserved_stock', $ci->quantity * $diff);
+                    $variant = \App\Domains\Product\Models\ProductVariant::lockForUpdate()->find($ci->product_variant_id);
+                    if (!$variant) continue;
+
+                    $delta = $ci->quantity * $diff;
+                    if ($delta >= 0) {
+                        $variant->increment('reserved_stock', $delta);
+                    } else {
+                        $releaseQty = min($variant->reserved_stock, abs($delta));
+                        $variant->decrement('reserved_stock', $releaseQty);
+                    }
                 }
 
                 // Refresh snapshot from the combo's current final price
@@ -281,19 +310,22 @@ class CartService
 
     public function reserveStock(Cart $cart)
     {
-        foreach ($cart->items as $item) {
-            if ($item->combo_id) {
-                $combo = Combo::with('items.variant')->find($item->combo_id);
-                if ($combo) {
-                    foreach ($combo->items as $ci) {
-                        $ci->variant->increment('reserved_stock', $ci->quantity * $item->quantity);
+        DB::transaction(function () use ($cart) {
+            foreach ($cart->items as $item) {
+                if ($item->combo_id) {
+                    $combo = Combo::with('items')->find($item->combo_id);
+                    if ($combo) {
+                        foreach ($combo->items as $ci) {
+                            $variant = ProductVariant::lockForUpdate()->find($ci->product_variant_id);
+                            $variant?->increment('reserved_stock', $ci->quantity * $item->quantity);
+                        }
                     }
+                } elseif ($item->variant_id) {
+                    $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
+                    $variant?->increment('reserved_stock', $item->quantity);
                 }
-            } elseif ($item->variant_id) {
-                ProductVariant::where('id', $item->variant_id)
-                    ->increment('reserved_stock', $item->quantity);
             }
-        }
+        });
     }
 
     public function formatCartDetails(Cart      $cart)

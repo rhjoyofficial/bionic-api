@@ -4,6 +4,7 @@ namespace App\Infrastructure\Webhook;
 
 use App\Domains\Webhook\Models\Webhook;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class WebhookService
 {
@@ -15,10 +16,18 @@ class WebhookService
 
     foreach ($webhooks as $hook) {
 
+      if (!$hook->secret) {
+        Log::warning("Webhook #{$hook->id} has no secret configured — skipping dispatch.", [
+          'event' => $event,
+          'url'   => $hook->url,
+        ]);
+        continue;
+      }
+
       $signature = hash_hmac(
         'sha256',
         json_encode($payload),
-        $hook->secret ?? 'bionic-default'
+        $hook->secret
       );
 
       Http::withHeaders([
