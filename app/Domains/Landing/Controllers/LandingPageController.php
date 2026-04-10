@@ -25,7 +25,7 @@ class LandingPageController extends Controller
 
         $zones = ShippingZone::where('is_active', true)
             ->orderBy('sort_order')
-            ->get(['id', 'name', 'delivery_cost', 'free_shipping_threshold']);
+            ->get(['id', 'name', 'base_charge', 'free_shipping_threshold']);
 
         $data = match ($landing->type) {
             LandingPage::TYPE_PRODUCT => $this->buildProductData($landing),

@@ -16,7 +16,9 @@ use App\Helpers\ApiResponse;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class AdminOrderController extends Controller
 {
@@ -105,7 +107,7 @@ class AdminOrderController extends Controller
                 ? User::find($validated['linked_user_id'])
                 : null;
 
-            $order = $creationService->create($validated, auth()->id(), $linkedUser);
+            $order = $creationService->create($validated, Auth::id(), $linkedUser);
 
             return ApiResponse::success(
                 new OrderResource($order->load(['items', 'zone', 'user', 'shippingAddress', 'shipments'])),
@@ -148,7 +150,7 @@ class AdminOrderController extends Controller
             $request->validate(['body' => 'required|string|max:2000']);
 
             $note = $order->adminNotes()->create([
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'body'    => $request->body,
             ]);
 
@@ -250,7 +252,7 @@ class AdminOrderController extends Controller
             $updated = $editService->applyEdit(
                 $order,
                 $request->items,
-                auth()->id(),
+                Auth::id(),
                 $customerData,
                 $request->zone_id,
             );
@@ -274,50 +276,75 @@ class AdminOrderController extends Controller
      */
     public function searchProducts(Request $request)
     {
-        $q = $request->get('q', '');
+        try {
+            $q = trim($request->get('q', ''));
 
-        if (strlen($q) < 2) {
-            return ApiResponse::success([]);
+            if (strlen($q) < 2) {
+                return ApiResponse::success([]);
+            }
+
+            // 1. Fetch Variants
+            $variants = ProductVariant::with('product:id,name,thumbnail')
+                ->where('is_active', true)
+                ->where(function ($query) use ($q) {
+                    $query->where('title', 'like', "%{$q}%")
+                        ->orWhere('sku', 'like', "%{$q}%")
+                        ->orWhereHas('product', fn($p) => $p->where('name', 'like', "%{$q}%"));
+                })
+                ->limit(15)
+                ->get()
+                ->map(fn($v) => [
+                    'type'            => 'variant',
+                    'variant_id'      => $v->id,
+                    'combo_id'        => null,
+                    'product_name'    => $v->product?->name,
+                    'variant_title'   => $v->title,
+                    'sku'             => $v->sku,
+                    'price'           => (float) $v->final_price,
+                    'available_stock' => $v->available_stock,
+                    'thumbnail'       => $v->product?->thumbnail ? asset('storage/' . $v->product->thumbnail) : null,
+                ]);
+
+            // 2. Fetch Combos
+            // Eager load 'items.variant' to prevent N+1 query performance issues 
+            // when calculating final_price and available_stock inside the map function.
+            $combos = Combo::with(['items.variant'])
+                ->where('is_active', true)
+                ->where('title', 'like', "%{$q}%")
+                ->limit(5)
+                ->get()
+                ->map(fn($c) => [
+                    'type'            => 'combo',
+                    'variant_id'      => null,
+                    'combo_id'        => $c->id,
+                    'product_name'    => $c->title,
+                    'variant_title'   => 'Bundle',
+                    'sku'             => null,
+                    'price'           => (float) $c->final_price,
+                    'available_stock' => $c->available_stock, // Fixed from hardcoded 999
+                    'thumbnail'       => $c->image ? asset('storage/' . $c->image) : null,
+                ]);
+
+            return ApiResponse::success($variants->concat($combos)->values());
+        } catch (Throwable $e) {
+            // Log the exact error for your debugging
+            Log::error('Product Search Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Return a clean error response to the frontend 
+            // Note: Change `ApiResponse::error` to match your actual custom response class methods
+            if (method_exists(ApiResponse::class, 'error')) {
+                return ApiResponse::error('An error occurred while searching for products.', 500);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while searching for products.'
+            ], 500);
         }
-
-        $variants = ProductVariant::with('product:id,name,thumbnail')
-            ->where('is_active', true)
-            ->where(function ($query) use ($q) {
-                $query->where('title', 'like', "%{$q}%")
-                    ->orWhere('sku', 'like', "%{$q}%")
-                    ->orWhereHas('product', fn($p) => $p->where('name', 'like', "%{$q}%"));
-            })
-            ->limit(15)
-            ->get()
-            ->map(fn($v) => [
-                'type'            => 'variant',
-                'variant_id'      => $v->id,
-                'combo_id'        => null,
-                'product_name'    => $v->product?->name,
-                'variant_title'   => $v->title,
-                'sku'             => $v->sku,
-                'price'           => (float) $v->final_price,
-                'available_stock' => $v->available_stock,
-                'thumbnail'       => $v->product?->thumbnail ? asset('storage/' . $v->product->thumbnail) : null,
-            ]);
-
-        $combos = Combo::where('is_active', true)
-            ->where('title', 'like', "%{$q}%")
-            ->limit(5)
-            ->get()
-            ->map(fn($c) => [
-                'type'            => 'combo',
-                'variant_id'      => null,
-                'combo_id'        => $c->id,
-                'product_name'    => $c->title,
-                'variant_title'   => 'Bundle',
-                'sku'             => null,
-                'price'           => (float) $c->final_price,
-                'available_stock' => 999,
-                'thumbnail'       => $c->image ? asset('storage/' . $c->image) : null,
-            ]);
-
-        return ApiResponse::success($variants->concat($combos)->values());
     }
 
     // ──────────────────────────────────────────────────────────────

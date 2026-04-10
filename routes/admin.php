@@ -34,6 +34,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // --- Products & Variants ---
     Route::middleware('permission:product.view')->group(function () {
+        Route::get('products/search', [AdminProductController::class, 'searchProducts']);
         Route::get('products', [AdminProductController::class, 'index']);
         Route::get('products/{product}', [AdminProductController::class, 'show']);
     });
@@ -43,6 +44,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // --- Combos ---
     Route::middleware('permission:product.view')->group(function () {
+        Route::get('combos/search', [AdminComboController::class, 'searchCombos']);
         Route::get('combos', [AdminComboController::class, 'index']);
         Route::get('combos/{combo}', [AdminComboController::class, 'show']);
     });

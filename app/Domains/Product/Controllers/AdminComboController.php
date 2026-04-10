@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 class AdminComboController extends Controller
 {
@@ -81,7 +82,9 @@ class AdminComboController extends Controller
                 $this->syncItems($combo, $items);
             });
 
-            $combo->load(['items.variant.product']);
+            if ($combo) {
+                $combo->load(['items.variant.product']);
+            }
 
             return ApiResponse::success(new ComboResource($combo), 'Combo created successfully', 201);
         } catch (Exception $e) {
@@ -157,6 +160,48 @@ class AdminComboController extends Controller
         }
     }
 
+    /**
+     * Search from the Combo model.
+     */
+    public function searchCombos(Request $request)
+    {
+        try {
+            // The frontend uses ?search= for combos
+            $search = trim($request->get('search', ''));
+            $limit = (int) $request->get('per_page', 10);
+
+            if (strlen($search) < 2) {
+                return response()->json(['data' => []]);
+            }
+
+            $combos = Combo::select('id', 'title', 'image')
+                ->where('is_active', true)
+                ->where('title', 'like', "%{$search}%")
+                ->limit($limit)
+                ->get()
+                ->map(function ($combo) {
+                    return [
+                        'id' => $combo->id,
+                        // Mapped 'title' to 'name' because your Alpine.js uses x-text="c.name"
+                        'name' => $combo->title,
+                        'image' => $combo->image_url
+                    ];
+                });
+
+            return response()->json(['data' => $combos]);
+        } catch (Throwable $e) {
+            Log::error('Landing Page Combo Search Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while searching for combos.',
+                'data' => []
+            ], 500);
+        }
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
@@ -185,8 +230,8 @@ class AdminComboController extends Controller
 
         while (
             Combo::where('slug', $candidate)
-                ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
-                ->exists()
+            ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
+            ->exists()
         ) {
             $candidate = $slug . '-' . $i++;
         }

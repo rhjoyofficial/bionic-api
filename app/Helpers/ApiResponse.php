@@ -24,19 +24,22 @@ class ApiResponse
         ], $status);
     }
 
-    public static function paginated($resource): JsonResponse
+    public static function paginated($resource, string $message = null): JsonResponse
     {
-        $data = $resource->response()->getData(true);
+        $paginated = $resource->toArray();
 
         return response()->json([
             'success' => true,
-            'data' => $data['data'],
-            'meta' => $data['meta'] ?? [
-                'current_page' => $resource->currentPage(),
-                'per_page' => $resource->perPage(),
-                'total' => $resource->total(),
-                'last_page' => $resource->lastPage()
+            'message' => $message,
+            'data'    => $paginated['data'],
+            'meta'    => [
+                'current_page' => $paginated['current_page'],
+                'per_page'     => $paginated['per_page'],
+                'total'        => $paginated['total'],
+                'last_page'    => $paginated['last_page'],
+                'from'         => $paginated['from'],
+                'to'           => $paginated['to'],
             ]
-        ]);
+        ], 200);
     }
 }

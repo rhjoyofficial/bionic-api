@@ -12,6 +12,8 @@ use App\Helpers\ApiResponse; // Import your new helper
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;
+use Throwable;
+use Illuminate\Http\Request;
 
 class AdminProductController extends Controller
 {
@@ -83,6 +85,42 @@ class AdminProductController extends Controller
             return ApiResponse::success(null, 'Product deleted successfully');
         } catch (Exception $e) {
             return $this->handleError($e, 'Product deletion failed');
+        }
+    }
+
+    /**
+     * Search directly from the Product model (no variants).
+     */
+    public function searchProducts(Request $request)
+    {
+        try {
+            // The frontend uses ?q=
+            $q = trim($request->get('q', ''));
+
+            if (strlen($q) < 2) {
+                return response()->json(['data' => []]);
+            }
+
+            $products = Product::select('id', 'name', 'sku', 'thumbnail')
+                ->where('is_active', true)
+                ->where(function ($query) use ($q) {
+                    $query->where('name', 'like', "%{$q}%")
+                        ->orWhere('sku', 'like', "%{$q}%");
+                })
+                ->limit(15)
+                ->get();
+
+            return response()->json(['data' => $products]);
+        } catch (Throwable $e) {
+            Log::error('Landing Page Product Search Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while searching for products.',
+                'data' => []
+            ], 500);
         }
     }
 

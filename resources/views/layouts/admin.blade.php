@@ -53,9 +53,24 @@
                         'icon' => 'fa-chart-pie',
                         'permission' => null,
                     ],
-                    ['label' => 'Orders', 'route' => 'admin.orders', 'icon' => 'fa-box', 'permission' => 'order.view'],
-                    ['label' => 'Transactions', 'route' => 'admin.transactions', 'icon' => 'fa-money-bill-transfer', 'permission' => 'order.view'],
-                    ['label' => 'Customers', 'route' => 'admin.customers', 'icon' => 'fa-users', 'permission' => 'customer.view'],
+                    [
+                        'label' => 'Orders',
+                        'route' => 'admin.orders',
+                        'icon' => 'fa-box',
+                        'permission' => 'order.view',
+                    ],
+                    [
+                        'label' => 'Transactions',
+                        'route' => 'admin.transactions',
+                        'icon' => 'fa-money-bill-transfer',
+                        'permission' => 'order.view',
+                    ],
+                    [
+                        'label' => 'Customers',
+                        'route' => 'admin.customers',
+                        'icon' => 'fa-users',
+                        'permission' => 'customer.view',
+                    ],
                     [
                         'label' => 'Products',
                         'route' => 'admin.products',
@@ -85,6 +100,12 @@
                         'route' => 'admin.shipping',
                         'icon' => 'fa-truck',
                         'permission' => 'shipping.view',
+                    ],
+                    [
+                        'label' => 'Landing Pages',
+                        'route' => 'admin.landing-pages',
+                        'icon' => 'fa-link',
+                        'permission' => 'landing-pages.edit',
                     ],
                     [
                         'label' => 'Notifications',
