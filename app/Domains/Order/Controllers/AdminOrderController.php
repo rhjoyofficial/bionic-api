@@ -6,19 +6,24 @@ use App\Domains\Order\Enums\OrderStatus;
 use App\Domains\Order\Models\Order;
 use App\Domains\Order\Requests\UpdateOrderStatusRequest;
 use App\Domains\Order\Resources\OrderResource;
+use App\Domains\Order\Services\AdminOrderCreationService;
 use App\Domains\Order\Services\OrderEditService;
 use App\Domains\Order\Services\OrderStatusService;
 use App\Domains\Product\Models\Combo;
-use App\Domains\Product\Models\Product;
 use App\Domains\Product\Models\ProductVariant;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class AdminOrderController extends Controller
 {
+    // ──────────────────────────────────────────────────────────────
+    // LISTING & DETAIL
+    // ──────────────────────────────────────────────────────────────
+
     public function index()
     {
         try {
@@ -59,6 +64,61 @@ class AdminOrderController extends Controller
             return $this->handleError($e, 'Failed to retrieve order details');
         }
     }
+
+    // ──────────────────────────────────────────────────────────────
+    // ADMIN CREATE ORDER
+    // ──────────────────────────────────────────────────────────────
+
+    /**
+     * Create a brand-new order from the admin panel.
+     * Bypasses cart flow — admin provides all data directly.
+     */
+    public function store(Request $request, AdminOrderCreationService $creationService)
+    {
+        $validated = $request->validate([
+            'customer_name'    => 'required|string|max:200',
+            'customer_phone'   => 'required|string|max:20',
+            'customer_email'   => 'nullable|email|max:200',
+            'address_line'     => 'required|string|max:500',
+            'area'             => 'nullable|string|max:200',
+            'city'             => 'nullable|string|max:100',
+            'postal_code'      => 'nullable|string|max:20',
+            'zone_id'          => 'required|integer|exists:shipping_zones,id',
+            'payment_method'   => 'required|string|in:cod,online',
+            'coupon_code'      => 'nullable|string|max:50',
+            'notes'            => 'nullable|string|max:2000',
+            'linked_user_id'   => 'nullable|integer|exists:users,id',
+            'items'            => 'required|array|min:1',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        // Each item needs variant_id or combo_id
+        foreach ($validated['items'] as $i => $item) {
+            if (empty($item['variant_id']) && empty($item['combo_id'])) {
+                return ApiResponse::error("Item #{$i} must have variant_id or combo_id.", null, 422);
+            }
+        }
+
+        try {
+            $linkedUser = !empty($validated['linked_user_id'])
+                ? User::find($validated['linked_user_id'])
+                : null;
+
+            $order = $creationService->create($validated, auth()->id(), $linkedUser);
+
+            return ApiResponse::success(
+                new OrderResource($order->load(['items', 'zone', 'user', 'shippingAddress', 'shipments'])),
+                'Order created successfully.',
+                201
+            );
+        } catch (Exception $e) {
+            return $this->handleError($e, $e->getMessage(), 422);
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // STATUS & NOTES
+    // ──────────────────────────────────────────────────────────────
 
     public function updateStatus(
         UpdateOrderStatusRequest $request,
@@ -105,11 +165,12 @@ class AdminOrderController extends Controller
     }
 
     // ──────────────────────────────────────────────────────────────
-    // ORDER EDIT ENDPOINTS
+    // ORDER EDITING (items + customer/address/zone)
     // ──────────────────────────────────────────────────────────────
 
     /**
-     * Get order data prepared for editing (items + stock info).
+     * Return current order data for the edit form.
+     * Now includes customer info, address, zone.
      */
     public function editData(Order $order, OrderEditService $editService)
     {
@@ -122,16 +183,17 @@ class AdminOrderController extends Controller
     }
 
     /**
-     * Preview recalculated totals without applying changes.
+     * Preview recalculated totals without committing.
+     * Accepts optional new zone_id to preview shipping changes.
      */
     public function previewEdit(Request $request, Order $order, OrderEditService $editService)
     {
         $request->validate([
             'items'            => 'required|array|min:1',
             'items.*.quantity' => 'required|integer|min:1',
+            'zone_id'          => 'nullable|integer|exists:shipping_zones,id',
         ]);
 
-        // Each item must have either variant_id or combo_id
         foreach ($request->items as $i => $item) {
             if (empty($item['variant_id']) && empty($item['combo_id'])) {
                 return ApiResponse::error("Item #{$i} must have variant_id or combo_id.", null, 422);
@@ -139,7 +201,7 @@ class AdminOrderController extends Controller
         }
 
         try {
-            $preview = $editService->previewEdit($order, $request->items);
+            $preview = $editService->previewEdit($order, $request->items, $request->zone_id);
             return ApiResponse::success($preview);
         } catch (Exception $e) {
             return $this->handleError($e, $e->getMessage(), 422);
@@ -147,13 +209,22 @@ class AdminOrderController extends Controller
     }
 
     /**
-     * Apply the edit — replace items and recalculate totals.
+     * Apply full order edit — items, customer info, address, zone.
      */
     public function applyEdit(Request $request, Order $order, OrderEditService $editService)
     {
         $request->validate([
-            'items'            => 'required|array|min:1',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items'              => 'required|array|min:1',
+            'items.*.quantity'   => 'required|integer|min:1',
+            'zone_id'            => 'nullable|integer|exists:shipping_zones,id',
+            'customer_name'      => 'nullable|string|max:200',
+            'customer_phone'     => 'nullable|string|max:20',
+            'customer_email'     => 'nullable|email|max:200',
+            'address_line'       => 'nullable|string|max:500',
+            'area'               => 'nullable|string|max:200',
+            'city'               => 'nullable|string|max:100',
+            'postal_code'        => 'nullable|string|max:20',
+            'notes'              => 'nullable|string|max:2000',
         ]);
 
         foreach ($request->items as $i => $item) {
@@ -162,20 +233,43 @@ class AdminOrderController extends Controller
             }
         }
 
+        // Collect customer/address fields if provided
+        $customerData = array_filter([
+            'customer_name'  => $request->customer_name,
+            'customer_phone' => $request->customer_phone,
+            'customer_email' => $request->customer_email,
+            'address_line'   => $request->address_line,
+            'area'           => $request->area,
+            'city'           => $request->city,
+            'postal_code'    => $request->postal_code,
+            'notes'          => $request->notes,
+        ], fn($v) => $v !== null);
+
         try {
-            $updated = $editService->applyEdit($order, $request->items, auth()->id());
+            $updated = $editService->applyEdit(
+                $order,
+                $request->items,
+                auth()->id(),
+                $customerData,
+                $request->zone_id,
+            );
 
             return ApiResponse::success(
                 new OrderResource($updated->load(['items', 'zone', 'user', 'shippingAddress', 'adminNotes.admin', 'shipments.creator'])),
-                'Order items updated and totals recalculated.',
+                'Order updated successfully.',
             );
         } catch (Exception $e) {
             return $this->handleError($e, $e->getMessage(), 422);
         }
     }
 
+    // ──────────────────────────────────────────────────────────────
+    // PRODUCT SEARCH (used by edit + create forms)
+    // ──────────────────────────────────────────────────────────────
+
     /**
-     * Search products/variants for the "add item" form.
+     * Search active variants and combos by name / SKU.
+     * Used by both the order edit panel and the create order form.
      */
     public function searchProducts(Request $request)
     {
@@ -185,7 +279,6 @@ class AdminOrderController extends Controller
             return ApiResponse::success([]);
         }
 
-        // Search variants
         $variants = ProductVariant::with('product:id,name,thumbnail')
             ->where('is_active', true)
             ->where(function ($query) use ($q) {
@@ -207,7 +300,6 @@ class AdminOrderController extends Controller
                 'thumbnail'       => $v->product?->thumbnail ? asset('storage/' . $v->product->thumbnail) : null,
             ]);
 
-        // Search combos
         $combos = Combo::where('is_active', true)
             ->where('title', 'like', "%{$q}%")
             ->limit(5)
@@ -226,6 +318,25 @@ class AdminOrderController extends Controller
 
         return ApiResponse::success($variants->concat($combos)->values());
     }
+
+    // ──────────────────────────────────────────────────────────────
+    // SHIPPING ZONES (for dropdowns in create/edit forms)
+    // ──────────────────────────────────────────────────────────────
+
+    /**
+     * Return all active shipping zones for dropdowns.
+     */
+    public function shippingZones()
+    {
+        $zones = \App\Domains\Shipping\Models\ShippingZone::orderBy('sort_order')
+            ->get(['id', 'name', 'base_rate', 'free_above']);
+
+        return ApiResponse::success($zones);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // PRIVATE
+    // ──────────────────────────────────────────────────────────────
 
     private function handleError(Exception $e, string $msg, int $code = 500)
     {

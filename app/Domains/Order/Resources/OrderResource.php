@@ -27,7 +27,7 @@ class OrderResource extends JsonResource
             'coupon_discount' => (float) $this->coupon_discount,
             'coupon_code'     => $this->coupon_code_snapshot,
 
-            'is_editable' => $this->isEditable(),
+            'is_editable' => $this->canAdminEdit(),
 
             'items_count' => $this->whenCounted('items'),
 

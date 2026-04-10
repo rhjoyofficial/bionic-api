@@ -88,22 +88,30 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
 
     // --- Order Management ---
-    // Static routes BEFORE wildcard {order} to avoid conflicts
+    // Static routes BEFORE wildcard {order} to avoid route conflicts
     Route::get('orders/search-products', [AdminOrderController::class, 'searchProducts'])
         ->middleware('permission:order.update');
+    Route::get('orders/shipping-zones', [AdminOrderController::class, 'shippingZones'])
+        ->middleware('permission:order.view');
 
     Route::middleware('permission:order.view')->group(function () {
         Route::get('orders', [AdminOrderController::class, 'index']);
         Route::get('orders/{order}', [AdminOrderController::class, 'show']);
     });
+
+    // Admin create order
+    Route::post('orders', [AdminOrderController::class, 'store'])
+        ->middleware('permission:order.create');
+
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
     Route::post('orders/{order}/notes', [AdminOrderController::class, 'addNote'])->middleware('permission:order.update');
 
-    // --- Order Editing ---
+    // --- Order Editing (items + customer + address + zone) ---
     Route::middleware('permission:order.update')->group(function () {
         Route::get('orders/{order}/edit-data', [AdminOrderController::class, 'editData']);
         Route::post('orders/{order}/preview-edit', [AdminOrderController::class, 'previewEdit']);
-        Route::put('orders/{order}/items', [AdminOrderController::class, 'applyEdit']);
+        // PUT /orders/{order} applies full edit: items + customer + address + zone
+        Route::put('orders/{order}', [AdminOrderController::class, 'applyEdit']);
     });
 
     // --- Courier & Shipments ---

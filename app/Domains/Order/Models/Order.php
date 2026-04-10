@@ -104,11 +104,32 @@ class Order extends Model
     }
 
     /**
-     * Check if this order is editable (pending or confirmed).
+     * Check if this order is in a non-terminal status (legacy / customer-facing).
      */
     public function isEditable(): bool
     {
         return in_array($this->order_status, ['pending', 'confirmed']);
+    }
+
+    /**
+     * Full admin-edit check: order is not terminal AND no shipment has been picked up.
+     * Uses the loaded 'shipments' relation to avoid N+1 when called from a collection.
+     */
+    public function canAdminEdit(): bool
+    {
+        // Terminal orders can never be edited
+        if (in_array($this->order_status, ['delivered', 'returned', 'cancelled'])) {
+            return false;
+        }
+
+        // Statuses that mean the parcel has left the warehouse
+        $blockedShipmentStatuses = ['picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'partial_delivery'];
+
+        if ($this->relationLoaded('shipments')) {
+            return $this->shipments->whereIn('status', $blockedShipmentStatuses)->isEmpty();
+        }
+
+        return !$this->shipments()->whereIn('status', $blockedShipmentStatuses)->exists();
     }
 
     /**

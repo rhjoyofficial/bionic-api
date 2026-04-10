@@ -12,8 +12,14 @@
             <h2 class="text-lg font-bold text-gray-800">Orders</h2>
             <p class="text-sm text-gray-500 mt-0.5">Manage and track all customer orders</p>
         </div>
-        <div class="flex items-center gap-3 text-sm text-gray-500" x-show="meta.total !== undefined">
-            <span x-text="meta.total + ' orders'"></span>
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-500" x-show="meta.total !== undefined" x-text="meta.total + ' orders'"></span>
+            @can('order.create')
+            <a href="{{ route('admin.orders.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-plus text-xs"></i> Create Order
+            </a>
+            @endcan
         </div>
     </div>
 
