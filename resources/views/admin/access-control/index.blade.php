@@ -790,6 +790,7 @@
                         const d = await r.json();
                         if (r.ok && d.success) {
                             this.savedRoles[roleId] = true;
+                            window.flash?.('Permissions updated for role', 'success');
                             // Also update roles tab permission_count
                             const ri = this.roles.findIndex(r => r.id == roleId);
                             if (ri > -1) this.roles[ri].permissions_count = d.data.permissions_count ?? granted.length;

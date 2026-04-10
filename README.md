@@ -343,3 +343,603 @@ php artisan optimize:clear
 
 This project is open-sourced under the [MIT license](https://opensource.org/licenses/MIT).
 
+
+```
+bionic-api
+├─ app
+│  ├─ Console
+│  │  └─ Commands
+│  │     ├─ AbandonExpiredCarts.php
+│  │     └─ ExpireCoupons.php
+│  ├─ Core
+│  │  ├─ BaseController.php
+│  │  ├─ BaseRepository.php
+│  │  └─ BaseService.php
+│  ├─ Domains
+│  │  ├─ ActivityLog
+│  │  │  └─ Models
+│  │  │     └─ ActivityLog.php
+│  │  ├─ Admin
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ AdminActivityLogController.php
+│  │  │  │  ├─ AdminDashboardController.php
+│  │  │  │  └─ AdminSettingsController.php
+│  │  │  ├─ Models
+│  │  │  │  └─ Setting.php
+│  │  │  └─ Services
+│  │  │     └─ DashboardStatsService.php
+│  │  ├─ Auth
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ AdminAuthController.php
+│  │  │  │  ├─ AdminRoleController.php
+│  │  │  │  ├─ AuthController.php
+│  │  │  │  ├─ ForgotPasswordController.php
+│  │  │  │  └─ WebAuthController.php
+│  │  │  ├─ Requests
+│  │  │  │  ├─ LoginRequest.php
+│  │  │  │  └─ RegisterRequest.php
+│  │  │  ├─ Resources
+│  │  │  │  └─ UserResource.php
+│  │  │  └─ Services
+│  │  │     └─ AuthService.php
+│  │  ├─ Cart
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ CartController.php
+│  │  │  │  └─ PublicCartController.php
+│  │  │  ├─ Models
+│  │  │  │  ├─ Cart.php
+│  │  │  │  └─ CartItem.php
+│  │  │  ├─ Resources
+│  │  │  │  └─ CartItemResource.php
+│  │  │  └─ Services
+│  │  │     ├─ CartMergeService.php
+│  │  │     ├─ CartPricingService.php
+│  │  │     └─ CartService.php
+│  │  ├─ Category
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ AdminCategoryController.php
+│  │  │  │  └─ PublicCategoryController.php
+│  │  │  ├─ Models
+│  │  │  │  └─ Category.php
+│  │  │  ├─ Requests
+│  │  │  │  ├─ StoreCategoryRequest.php
+│  │  │  │  └─ UpdateCategoryRequest.php
+│  │  │  ├─ Resources
+│  │  │  │  └─ CategoryResource.php
+│  │  │  └─ Services
+│  │  │     └─ CategoryService.php
+│  │  ├─ Coupon
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ AdminCouponController.php
+│  │  │  │  └─ PublicCouponController.php
+│  │  │  ├─ Models
+│  │  │  │  ├─ Coupon.php
+│  │  │  │  └─ CouponUsage.php
+│  │  │  ├─ Requests
+│  │  │  │  ├─ BulkGenerateCouponRequest.php
+│  │  │  │  ├─ StoreCouponRequest.php
+│  │  │  │  └─ UpdateCouponRequest.php
+│  │  │  ├─ Resources
+│  │  │  │  └─ CouponResource.php
+│  │  │  └─ Services
+│  │  │     └─ CouponValidationService.php
+│  │  ├─ Courier
+│  │  │  ├─ Controllers
+│  │  │  │  └─ AdminCourierController.php
+│  │  │  ├─ Models
+│  │  │  │  └─ CourierShipment.php
+│  │  │  └─ Services
+│  │  │     └─ ShipmentService.php
+│  │  ├─ Customer
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ AdminCustomerController.php
+│  │  │  │  └─ CustomerDashboard.php
+│  │  │  └─ Resources
+│  │  │     └─ AdminCustomerResource.php
+│  │  ├─ Intelligence
+│  │  │  └─ Services
+│  │  │     ├─ DynamicPricingService.php
+│  │  │     ├─ FraudScoreService.php
+│  │  │     ├─ InventoryPredictionService.php
+│  │  │     ├─ RecommendationService.php
+│  │  │     ├─ SegmentationService.php
+│  │  │     └─ UpsellSuggestionService.php
+│  │  ├─ Marketing
+│  │  │  ├─ Models
+│  │  │  │  ├─ LandingPage.php
+│  │  │  │  └─ MarketingEvent.php
+│  │  │  ├─ Repository
+│  │  │  │  └─ LandingPageRepository.php
+│  │  │  ├─ Resource
+│  │  │  │  └─ LandingPageResource.php
+│  │  │  └─ Services
+│  │  │     ├─ GTMEventService.php
+│  │  │     ├─ LandingPageService.php
+│  │  │     └─ MetaConversionService.php
+│  │  ├─ Notification
+│  │  │  ├─ Controllers
+│  │  │  │  └─ AdminNotificationController.php
+│  │  │  └─ Requests
+│  │  │     └─ SendNotificationRequest.php
+│  │  ├─ Order
+│  │  │  ├─ Actions
+│  │  │  │  ├─ ConfirmOrderAction.php
+│  │  │  │  ├─ CreateOrderAction.php
+│  │  │  │  └─ ShipOrderAction.php
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ AdminOrderController.php
+│  │  │  │  ├─ AdminTransactionController.php
+│  │  │  │  ├─ CheckoutController.php
+│  │  │  │  ├─ OrderController.php
+│  │  │  │  └─ OrderTrackingController.php
+│  │  │  ├─ DTOs
+│  │  │  │  └─ CheckoutPricingResult.php
+│  │  │  ├─ Enums
+│  │  │  │  └─ OrderStatus.php
+│  │  │  ├─ Models
+│  │  │  │  ├─ Commission.php
+│  │  │  │  ├─ Order.php
+│  │  │  │  ├─ OrderAddress.php
+│  │  │  │  ├─ OrderItem.php
+│  │  │  │  ├─ OrderNote.php
+│  │  │  │  └─ OrderTransaction.php
+│  │  │  ├─ Requests
+│  │  │  │  ├─ CheckoutPreviewRequest.php
+│  │  │  │  ├─ CheckoutRequest.php
+│  │  │  │  ├─ StoreTransactionRequest.php
+│  │  │  │  ├─ UpdateOrderStatusRequest.php
+│  │  │  │  └─ UpdatePaymentStatusRequest.php
+│  │  │  ├─ Resources
+│  │  │  │  ├─ OrderResource.php
+│  │  │  │  └─ TransactionResource.php
+│  │  │  └─ Services
+│  │  │     ├─ CheckoutPricingService.php
+│  │  │     ├─ OrderEditService.php
+│  │  │     ├─ OrderService.php
+│  │  │     └─ OrderStatusService.php
+│  │  ├─ Product
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ AdminComboController.php
+│  │  │  │  ├─ AdminProductController.php
+│  │  │  │  ├─ ProductLandingController.php
+│  │  │  │  ├─ ProductRecommendationController.php
+│  │  │  │  ├─ ProductRelationController.php
+│  │  │  │  ├─ ProductSearchController.php
+│  │  │  │  ├─ ProductTierPriceController.php
+│  │  │  │  └─ PublicProductController.php
+│  │  │  ├─ Models
+│  │  │  │  ├─ Combo.php
+│  │  │  │  ├─ ComboItem.php
+│  │  │  │  ├─ Product.php
+│  │  │  │  ├─ ProductRelation.php
+│  │  │  │  ├─ ProductTierPrice.php
+│  │  │  │  └─ ProductVariant.php
+│  │  │  ├─ Requests
+│  │  │  │  ├─ ProductSearchRequest.php
+│  │  │  │  ├─ StoreComboRequest.php
+│  │  │  │  ├─ StoreProductRequest.php
+│  │  │  │  ├─ UpdateComboRequest.php
+│  │  │  │  └─ UpdateProductRequest.php
+│  │  │  ├─ Resources
+│  │  │  │  ├─ ComboResource.php
+│  │  │  │  ├─ ProductLandingResource.php
+│  │  │  │  ├─ ProductResource.php
+│  │  │  │  ├─ ProductTierResource.php
+│  │  │  │  └─ ProductVariantResource.php
+│  │  │  └─ Services
+│  │  │     ├─ PricingService.php
+│  │  │     ├─ ProductRelationService.php
+│  │  │     ├─ ProductSearchService.php
+│  │  │     └─ ProductService.php
+│  │  ├─ Shipping
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ AdminShippingZoneController.php
+│  │  │  │  └─ PublicShippingZoneController.php
+│  │  │  ├─ Models
+│  │  │  │  └─ ShippingZone.php
+│  │  │  ├─ Requests
+│  │  │  │  ├─ ReorderShippingZonesRequest.php
+│  │  │  │  ├─ StoreShippingZoneRequest.php
+│  │  │  │  └─ UpdateShippingZoneRequest.php
+│  │  │  ├─ Resources
+│  │  │  │  └─ ShippingZoneResource.php
+│  │  │  └─ Services
+│  │  │     └─ ShippingCalculator.php
+│  │  ├─ Store
+│  │  │  ├─ Controllers
+│  │  │  │  ├─ CatalogController.php
+│  │  │  │  ├─ ComboPageController.php
+│  │  │  │  ├─ HomeController.php
+│  │  │  │  └─ ProductPageController.php
+│  │  │  └─ Models
+│  │  │     └─ HeroBanner.php
+│  │  └─ Webhook
+│  │     ├─ Controllers
+│  │     │  └─ AdminWebhookController.php
+│  │     └─ Models
+│  │        └─ Webhook.php
+│  ├─ Events
+│  │  ├─ CouponExpired.php
+│  │  ├─ OrderCreated.php
+│  │  └─ OrderStatusChanged.php
+│  ├─ Helpers
+│  │  ├─ ApiResponse.php
+│  │  ├─ flash.php
+│  │  └─ format.php
+│  ├─ Http
+│  │  ├─ Controllers
+│  │  │  └─ Controller.php
+│  │  └─ Middleware
+│  │     ├─ EnsureUserIsAdmin.php
+│  │     ├─ HandleCartSession.php
+│  │     └─ SecureHeaders.php
+│  ├─ Infrastructure
+│  │  ├─ Courier
+│  │  │  ├─ CourierInterface.php
+│  │  │  ├─ CourierService.php
+│  │  │  └─ Drivers
+│  │  │     ├─ CarryBeeCourier.php
+│  │  │     ├─ PathaoCourier.php
+│  │  │     └─ SteadfastCourier.php
+│  │  ├─ Notification
+│  │  │  └─ Services
+│  │  │     ├─ EmailService.php
+│  │  │     └─ SmsService.php
+│  │  ├─ SMS
+│  │  │  └─ SMSService.php
+│  │  ├─ Webhook
+│  │  │  └─ WebhookService.php
+│  │  └─ WhatsApp
+│  │     └─ WhatsAppService.php
+│  ├─ Jobs
+│  │  ├─ SendSMSJob.php
+│  │  ├─ SendWebhookJob.php
+│  │  └─ SendWhatsAppJob.php
+│  ├─ Listeners
+│  │  ├─ CreateCourierShipmentListener.php
+│  │  ├─ CreateReferralCommissionListener.php
+│  │  ├─ DeactivateExpiredCoupons.php
+│  │  ├─ NotifyAdminOnNewOrder.php
+│  │  ├─ OrderStatusNotificationListener.php
+│  │  ├─ SendOrderConfirmationEmail.php
+│  │  ├─ SendOrderSMSListener.php
+│  │  ├─ SendOrderStatusEmail.php
+│  │  └─ SendOrderWhatsAppListener.php
+│  ├─ Mail
+│  │  └─ OrderConfirmationMail.php
+│  ├─ Models
+│  │  └─ User.php
+│  ├─ Notifications
+│  │  ├─ AdminBroadcastNotification.php
+│  │  └─ OrderStatusPushNotification.php
+│  ├─ Policies
+│  │  └─ ProductPolicy.php
+│  ├─ Providers
+│  │  ├─ AppServiceProvider.php
+│  │  └─ ViewServiceProvider.php
+│  └─ View
+│     └─ Components
+├─ artisan
+├─ bootstrap
+│  ├─ app.php
+│  ├─ cache
+│  │  ├─ packages.php
+│  │  └─ services.php
+│  └─ providers.php
+├─ composer.json
+├─ composer.lock
+├─ config
+│  ├─ activitylog.php
+│  ├─ app.php
+│  ├─ auth.php
+│  ├─ bionic.php
+│  ├─ cache.php
+│  ├─ courier.php
+│  ├─ database.php
+│  ├─ filesystems.php
+│  ├─ firebase.php
+│  ├─ logging.php
+│  ├─ mail.php
+│  ├─ permission.php
+│  ├─ purifier.php
+│  ├─ queue.php
+│  ├─ sanctum.php
+│  ├─ services.php
+│  ├─ session.php
+│  ├─ sms.php
+│  └─ whatsapp.php
+├─ database
+│  ├─ factories
+│  │  └─ UserFactory.php
+│  ├─ migrations
+│  │  ├─ 0001_01_01_000000_create_users_table.php
+│  │  ├─ 0001_01_01_000001_create_cache_table.php
+│  │  ├─ 0001_01_01_000002_create_jobs_table.php
+│  │  ├─ 2026_02_27_145848_create_personal_access_tokens_table.php
+│  │  ├─ 2026_02_27_145953_create_permission_tables.php
+│  │  ├─ 2026_02_27_151202_create_categories_table.php
+│  │  ├─ 2026_02_27_153707_create_products_table.php
+│  │  ├─ 2026_02_27_153731_create_product_variants_table.php
+│  │  ├─ 2026_02_27_153804_create_product_tier_prices_table.php
+│  │  ├─ 2026_02_27_153805_create_product_relations_table.php
+│  │  ├─ 2026_02_27_153806_create_combos_table.php
+│  │  ├─ 2026_02_27_153807_create_combo_items_table.php
+│  │  ├─ 2026_02_27_153821_create_shipping_zones_table.php
+│  │  ├─ 2026_02_27_153842_create_coupons_table.php
+│  │  ├─ 2026_02_27_153902_create_orders_table.php
+│  │  ├─ 2026_02_27_153903_create_order_addresses_table.php
+│  │  ├─ 2026_02_27_153904_create_coupon_usages_table.php
+│  │  ├─ 2026_02_27_153938_create_order_items_table.php
+│  │  ├─ 2026_02_27_154527_create_landing_pages_table.php
+│  │  ├─ 2026_03_04_053308_create_carts_table.php
+│  │  ├─ 2026_03_04_053331_create_cart_items_table.php
+│  │  ├─ 2026_03_07_153023_create_device_tokens_table.php
+│  │  ├─ 2026_03_07_153203_create_courier_shipments_table.php
+│  │  ├─ 2026_03_07_154330_create_webhooks_table.php
+│  │  ├─ 2026_03_14_074212_create_hero_banners_table.php
+│  │  ├─ 2026_03_28_155636_create_order_transactions_table.php
+│  │  ├─ 2026_03_28_155815_create_commissions_table.php
+│  │  ├─ 2026_04_08_161603_add_sort_order_to_shipping_zones_table.php
+│  │  ├─ 2026_04_08_192246_create_order_notes_table.php
+│  │  ├─ 2026_04_09_000001_create_activity_log_table.php
+│  │  ├─ 2026_04_09_100001_create_notifications_table.php
+│  │  ├─ 2026_04_09_110001_add_gateway_ref_to_orders_table.php
+│  │  ├─ 2026_04_09_120001_create_settings_table.php
+│  │  └─ 2026_04_10_100001_enhance_courier_shipments_table.php
+│  └─ seeders
+│     ├─ CategorySeeder.php
+│     ├─ ComboSeeder.php
+│     ├─ CouponSeeder.php
+│     ├─ DatabaseSeeder.php
+│     ├─ HeroBannerSeeder.php
+│     ├─ LandingPageSeeder.php
+│     ├─ ProductSeeder.php
+│     ├─ RoleSeeder.php
+│     ├─ ShippingZoneSeeder.php
+│     ├─ UserSeeder.php
+│     └─ WebhookSeeder.php
+├─ FLOW_AUDIT.md
+├─ package-lock.json
+├─ package.json
+├─ phpunit.xml
+├─ public
+│  ├─ .htaccess
+│  ├─ assets
+│  │  ├─ ads
+│  │  │  ├─ promo-image-1.jpg
+│  │  │  ├─ promo-image-2.jpg
+│  │  │  ├─ promo-image-3.jpg
+│  │  │  └─ ramadan-banner.jpg
+│  │  ├─ categories
+│  │  │  ├─ dates.gif
+│  │  │  ├─ ghee.gif
+│  │  │  ├─ honey.gif
+│  │  │  ├─ nuts.gif
+│  │  │  ├─ oils.gif
+│  │  │  └─ seeds.gif
+│  │  ├─ certificates
+│  │  │  ├─ bsti.png
+│  │  │  ├─ gmo.png
+│  │  │  ├─ gmp.jpeg
+│  │  │  ├─ gmp.png
+│  │  │  ├─ haccp.jpeg
+│  │  │  ├─ haccp.png
+│  │  │  ├─ halal-food.png
+│  │  │  ├─ halal.jpeg
+│  │  │  ├─ halal.png
+│  │  │  ├─ iso.jpeg
+│  │  │  ├─ iso.png
+│  │  │  ├─ msg.png
+│  │  │  ├─ premium.png
+│  │  │  └─ pure.png
+│  │  ├─ combo-products
+│  │  │  ├─ combo.jpg
+│  │  │  ├─ combo.png
+│  │  │  └─ combo1.jpg
+│  │  ├─ hero-products
+│  │  │  ├─ beet-root.png
+│  │  │  ├─ floral-honey.png
+│  │  │  ├─ honey-gift.png
+│  │  │  ├─ honey-jar-2.png
+│  │  │  └─ honey-jar.png
+│  │  ├─ images
+│  │  │  ├─ bionic-logo.png
+│  │  │  ├─ bionic-white-logo.png
+│  │  │  ├─ certificates
+│  │  │  │  ├─ bsti.png
+│  │  │  │  ├─ gmo-free.png
+│  │  │  │  ├─ haccp.png
+│  │  │  │  ├─ halal.png
+│  │  │  │  ├─ iso-22000.png
+│  │  │  │  └─ no-msg.png
+│  │  │  ├─ customer1.png
+│  │  │  ├─ customer2.png
+│  │  │  ├─ customer3.png
+│  │  │  ├─ dates.png
+│  │  │  ├─ honey-gift.png
+│  │  │  ├─ honey-jar-2.png
+│  │  │  ├─ honey-jar.png
+│  │  │  ├─ offer-1.jpg
+│  │  │  ├─ offer-2.jpg
+│  │  │  ├─ offer-3.jpg
+│  │  │  ├─ offer1.png
+│  │  │  ├─ offer2.png
+│  │  │  ├─ offer3.png
+│  │  │  ├─ product-1.png
+│  │  │  ├─ product-2.png
+│  │  │  ├─ product-3.png
+│  │  │  ├─ product-4.png
+│  │  │  ├─ product-5.png
+│  │  │  └─ product-6.png
+│  │  ├─ offer
+│  │  │  └─ products.gif
+│  │  ├─ products
+│  │  │  ├─ honey-jar.png
+│  │  │  ├─ product-1.jpg
+│  │  │  ├─ product-2.jpg
+│  │  │  ├─ product-3.jpg
+│  │  │  ├─ product-4.jpg
+│  │  │  ├─ product-5.jpg
+│  │  │  ├─ product-6.jpg
+│  │  │  ├─ product-7.jpg
+│  │  │  └─ product-8.jpg
+│  │  ├─ review
+│  │  │  ├─ review-1.jpeg
+│  │  │  ├─ review-2.jpeg
+│  │  │  └─ review-3.jpeg
+│  │  └─ video
+│  │     ├─ video-file.mp4
+│  │     └─ video-thumbnail.png
+│  ├─ favicon.ico
+│  ├─ favicon.png
+│  ├─ index.php
+│  └─ robots.txt
+├─ README.md
+├─ resources
+│  ├─ css
+│  │  ├─ app.css
+│  │  └─ flash.css
+│  ├─ js
+│  │  ├─ admin.js
+│  │  ├─ api
+│  │  │  ├─ auth.js
+│  │  │  ├─ cart.js
+│  │  │  ├─ client.js
+│  │  │  ├─ coupon.js
+│  │  │  ├─ order.js
+│  │  │  └─ product.js
+│  │  ├─ app.js
+│  │  ├─ auth
+│  │  │  └─ AuthManager.js
+│  │  ├─ bootstrap.js
+│  │  ├─ cart
+│  │  │  ├─ AddToCartBinder.js
+│  │  │  ├─ CartManager.js
+│  │  │  ├─ CartPageRenderer.js
+│  │  │  ├─ CartRenderer.js
+│  │  │  └─ product-card.js
+│  │  ├─ filter
+│  │  │  └─ categoryFilter.js
+│  │  ├─ flash.js
+│  │  ├─ managers
+│  │  │  ├─ CheckoutManager.js
+│  │  │  ├─ ValidationManager.js
+│  │  │  └─ video-manager.js
+│  │  └─ search-suggestion.js
+│  └─ views
+│     ├─ admin
+│     │  ├─ access-control
+│     │  │  └─ index.blade.php
+│     │  ├─ activity-log
+│     │  │  └─ index.blade.php
+│     │  ├─ auth
+│     │  │  └─ login.blade.php
+│     │  ├─ categories
+│     │  │  └─ index.blade.php
+│     │  ├─ combos
+│     │  │  ├─ create.blade.php
+│     │  │  ├─ edit.blade.php
+│     │  │  ├─ index.blade.php
+│     │  │  └─ _combo_form_script.blade.php
+│     │  ├─ coupons
+│     │  │  └─ index.blade.php
+│     │  ├─ customers
+│     │  │  ├─ index.blade.php
+│     │  │  └─ show.blade.php
+│     │  ├─ dashboard.blade.php
+│     │  ├─ notifications
+│     │  │  └─ index.blade.php
+│     │  ├─ orders
+│     │  │  ├─ index.blade.php
+│     │  │  └─ show.blade.php
+│     │  ├─ products
+│     │  │  ├─ create.blade.php
+│     │  │  ├─ edit.blade.php
+│     │  │  └─ index.blade.php
+│     │  ├─ settings
+│     │  │  └─ index.blade.php
+│     │  ├─ shipping
+│     │  │  └─ index.blade.php
+│     │  └─ transactions
+│     │     └─ index.blade.php
+│     ├─ auth
+│     │  ├─ forgot-password.blade.php
+│     │  ├─ login.blade.php
+│     │  ├─ register.blade.php
+│     │  └─ reset-password.blade.php
+│     ├─ components
+│     │  ├─ combo-card.blade.php
+│     │  ├─ flash-container.blade.php
+│     │  ├─ floating-object.blade.php
+│     │  ├─ footer.blade.php
+│     │  ├─ navbar.blade.php
+│     │  ├─ page-header.blade.php
+│     │  └─ product-card.blade.php
+│     ├─ customer
+│     │  ├─ dashboard.blade.php
+│     │  ├─ order-details.blade.php
+│     │  ├─ orders.blade.php
+│     │  ├─ partials
+│     │  │  └─ nav.blade.php
+│     │  └─ profile.blade.php
+│     ├─ emails
+│     │  └─ order-confirmation.blade.php
+│     ├─ layouts
+│     │  ├─ admin.blade.php
+│     │  ├─ app.blade.php
+│     │  └─ guest.blade.php
+│     └─ store
+│        ├─ cart.blade.php
+│        ├─ checkout.blade.php
+│        ├─ order-failed.blade.php
+│        ├─ order-success.blade.php
+│        ├─ pages
+│        │  ├─ combos.blade.php
+│        │  ├─ home.blade.php
+│        │  └─ products.blade.php
+│        ├─ partials
+│        │  ├─ ad-promotions.blade.php
+│        │  ├─ cart-drawer.blade.php
+│        │  ├─ certifications.blade.php
+│        │  ├─ combo-products.blade.php
+│        │  ├─ footer.blade.php
+│        │  ├─ header.blade.php
+│        │  ├─ hero.blade.php
+│        │  ├─ product-categories.blade.php
+│        │  ├─ testimonial-showcase.blade.php
+│        │  ├─ trending-products.blade.php
+│        │  └─ video-promotion.blade.php
+│        ├─ product.blade.php
+│        └─ shop.blade.php
+├─ routes
+│  ├─ admin.php
+│  ├─ api.php
+│  ├─ console.php
+│  ├─ public.php
+│  └─ web.php
+├─ storage
+│  ├─ app
+│  │  ├─ private
+│  │  └─ public
+│  ├─ framework
+│  │  ├─ cache
+│  │  │  └─ data
+│  │  ├─ sessions
+│  │  ├─ testing
+│  │  └─ views
+│  └─ logs
+├─ tests
+│  ├─ Feature
+│  │  ├─ ExampleTest.php
+│  │  ├─ OrderTest.php
+│  │  ├─ ProductTest.php
+│  │  └─ Unit
+│  │     └─ AuthServiceTest.php
+│  ├─ TestCase.php
+│  └─ Unit
+│     ├─ ExampleTest.php
+│     └─ PricingServiceTest.php
+└─ vite.config.js
+
+```
+
