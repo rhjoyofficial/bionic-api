@@ -27,6 +27,8 @@ class OrderResource extends JsonResource
             'coupon_discount' => (float) $this->coupon_discount,
             'coupon_code'     => $this->coupon_code_snapshot,
 
+            'is_editable' => $this->isEditable(),
+
             'items_count' => $this->whenCounted('items'),
 
             'placed_at'     => $this->placed_at?->toDateTimeString(),
@@ -56,13 +58,16 @@ class OrderResource extends JsonResource
             ] : null),
 
             'items' => $this->whenLoaded('items', fn() => $this->items->map(fn($i) => [
-                'product_name'   => $i->product_name_snapshot,
-                'variant_title'  => $i->variant_title_snapshot,
-                'sku'            => $i->sku_snapshot,
-                'qty'            => $i->quantity,
-                'unit_price'     => (float) $i->unit_price,
-                'original_price' => (float) $i->original_unit_price,
-                'total'          => (float) $i->total_price,
+                'id'              => $i->id,
+                'variant_id'      => $i->variant_id,
+                'combo_id'        => $i->combo_id,
+                'product_name'    => $i->product_name_snapshot,
+                'variant_title'   => $i->variant_title_snapshot,
+                'sku'             => $i->sku_snapshot,
+                'qty'             => $i->quantity,
+                'unit_price'      => (float) $i->unit_price,
+                'original_price'  => (float) $i->original_unit_price,
+                'total'           => (float) $i->total_price,
             ])->values()),
 
             'admin_notes' => $this->whenLoaded('adminNotes', fn() => $this->adminNotes->map(fn($n) => [
@@ -70,6 +75,31 @@ class OrderResource extends JsonResource
                 'body'       => $n->body,
                 'admin_name' => $n->admin?->name ?? 'System',
                 'created_at' => $n->created_at?->toDateTimeString(),
+            ])->values()),
+
+            'shipments' => $this->whenLoaded('shipments', fn() => $this->shipments->map(fn($s) => [
+                'id'                     => $s->id,
+                'courier'                => $s->courier,
+                'courier_label'          => match ($s->courier) {
+                    'pathao'    => 'Pathao',
+                    'steadfast' => 'Steadfast',
+                    'carrybee'  => 'CarryBee',
+                    default     => ucfirst($s->courier),
+                },
+                'tracking_code'          => $s->tracking_code,
+                'consignment_id'         => $s->consignment_id,
+                'status'                 => $s->status,
+                'status_label'           => $s->status_label,
+                'delivery_fee'           => $s->delivery_fee ? (float) $s->delivery_fee : null,
+                'cod_amount'             => $s->cod_amount ? (float) $s->cod_amount : null,
+                'courier_status_message' => $s->courier_status_message,
+                'is_cancellable'         => $s->isCancellable(),
+                'is_terminal'            => $s->isTerminal(),
+                'created_by_name'        => $s->creator?->name ?? null,
+                'picked_at'              => $s->picked_at?->toDateTimeString(),
+                'delivered_at'           => $s->delivered_at?->toDateTimeString(),
+                'status_synced_at'       => $s->status_synced_at?->toDateTimeString(),
+                'created_at'             => $s->created_at?->toDateTimeString(),
             ])->values()),
 
             'timeline' => $this->buildTimeline(),
