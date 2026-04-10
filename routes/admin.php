@@ -3,6 +3,7 @@
 use App\Domains\Admin\Controllers\AdminSettingsController;
 use App\Domains\Auth\Controllers\AdminRoleController;
 use App\Domains\Category\Controllers\AdminCategoryController;
+use App\Domains\Courier\Controllers\AdminCourierController;
 use App\Domains\Customer\Controllers\AdminCustomerController;
 use App\Domains\Notification\Controllers\AdminNotificationController;
 use App\Domains\Product\Controllers\AdminComboController;
@@ -87,12 +88,33 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
 
     // --- Order Management ---
+    // Static routes BEFORE wildcard {order} to avoid conflicts
+    Route::get('orders/search-products', [AdminOrderController::class, 'searchProducts'])
+        ->middleware('permission:order.update');
+
     Route::middleware('permission:order.view')->group(function () {
         Route::get('orders', [AdminOrderController::class, 'index']);
         Route::get('orders/{order}', [AdminOrderController::class, 'show']);
     });
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
     Route::post('orders/{order}/notes', [AdminOrderController::class, 'addNote'])->middleware('permission:order.update');
+
+    // --- Order Editing ---
+    Route::middleware('permission:order.update')->group(function () {
+        Route::get('orders/{order}/edit-data', [AdminOrderController::class, 'editData']);
+        Route::post('orders/{order}/preview-edit', [AdminOrderController::class, 'previewEdit']);
+        Route::put('orders/{order}/items', [AdminOrderController::class, 'applyEdit']);
+    });
+
+    // --- Courier & Shipments ---
+    Route::group(['prefix' => 'courier', 'middleware' => 'permission:order.update'], function () {
+        Route::get('/drivers', [AdminCourierController::class, 'drivers']);
+        Route::post('/assign', [AdminCourierController::class, 'assign']);
+        Route::post('/bulk-assign', [AdminCourierController::class, 'bulkAssign']);
+        Route::get('/shipments/{order}', [AdminCourierController::class, 'orderShipments']);
+        Route::post('/shipments/{shipment}/sync', [AdminCourierController::class, 'syncStatus']);
+        Route::post('/shipments/{shipment}/cancel', [AdminCourierController::class, 'cancel']);
+    });
 
     // --- Transactions & Payment Reconciliation ---
     Route::group(['prefix' => 'transactions'], function () {

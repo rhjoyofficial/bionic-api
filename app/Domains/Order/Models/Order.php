@@ -3,10 +3,12 @@
 namespace App\Domains\Order\Models;
 
 use App\Domains\Coupon\Models\Coupon;
+use App\Domains\Courier\Models\CourierShipment;
 use App\Domains\Shipping\Models\ShippingZone;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
@@ -81,6 +83,32 @@ class Order extends Model
     public function transactions()
     {
         return $this->hasMany(OrderTransaction::class)->orderBy('created_at');
+    }
+
+    /**
+     * Courier shipments for this order.
+     */
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(CourierShipment::class)->latest();
+    }
+
+    /**
+     * The latest active (non-cancelled) shipment.
+     */
+    public function activeShipment(): HasOne
+    {
+        return $this->hasOne(CourierShipment::class)
+            ->whereNotIn('status', ['cancelled'])
+            ->latest();
+    }
+
+    /**
+     * Check if this order is editable (pending or confirmed).
+     */
+    public function isEditable(): bool
+    {
+        return in_array($this->order_status, ['pending', 'confirmed']);
     }
 
     /**
