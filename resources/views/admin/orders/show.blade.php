@@ -136,7 +136,66 @@
                     <div class="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-blue-800">
                             <i class="fas fa-pen-to-square"></i>
-                            <span class="text-sm font-semibold">Edit Mode — Modify items, then preview & apply</span>
+                            <span class="text-sm font-semibold">Edit Mode — Full order modification before courier pickup</span>
+                        </div>
+                    </div>
+
+                    {{-- Customer Info Edit --}}
+                    <div class="bg-white border border-gray-200 rounded-xl">
+                        <div class="px-5 py-3 border-b border-gray-100">
+                            <h4 class="text-sm font-bold text-gray-700"><i class="fas fa-user mr-2 text-gray-400"></i>Customer Information</h4>
+                        </div>
+                        <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Full Name</label>
+                                <input type="text" x-model="editCustomer.customer_name"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Phone</label>
+                                <input type="text" x-model="editCustomer.customer_phone"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Email</label>
+                                <input type="email" x-model="editCustomer.customer_email"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Optional">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Address Line</label>
+                                <textarea x-model="editCustomer.address_line" rows="2"
+                                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Area / Thana</label>
+                                <input type="text" x-model="editCustomer.area"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">City</label>
+                                <input type="text" x-model="editCustomer.city"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Postal Code</label>
+                                <input type="text" x-model="editCustomer.postal_code"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Shipping Zone</label>
+                                <select x-model="editCustomer.zone_id" @change="previewData = null"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">— No change —</option>
+                                    <template x-for="zone in zones" :key="zone.id">
+                                        <option :value="zone.id" x-text="zone.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Order Notes</label>
+                                <textarea x-model="editCustomer.notes" rows="2"
+                                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Internal notes…"></textarea>
+                            </div>
                         </div>
                     </div>
 
@@ -636,12 +695,20 @@ function orderDetail(orderId) {
         // Edit mode state
         editMode: false,
         editItems: [],
+        editCustomer: {
+            customer_name: '', customer_phone: '', customer_email: '',
+            address_line: '', area: '', city: '', postal_code: '',
+            zone_id: '', notes: '',
+        },
         productSearch: '',
         searchResults: [],
         previewData: null,
         previewing: false,
         applying: false,
         editError: null,
+
+        // Zones list (for edit + create forms)
+        zones: [],
 
         // Courier state
         selectedCourier: '',
@@ -667,7 +734,17 @@ function orderDetail(orderId) {
         },
 
         async init() {
-            await this.loadOrder();
+            await Promise.all([this.loadOrder(), this.loadZones()]);
+        },
+
+        async loadZones() {
+            try {
+                const r = await fetch('/api/v1/admin/orders/shipping-zones', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const j = await r.json();
+                this.zones = j.data ?? [];
+            } catch(e) {}
         },
 
         async loadOrder() {
@@ -750,7 +827,20 @@ function orderDetail(orderId) {
                 });
                 const data = await r.json();
                 if (r.ok) {
-                    this.editItems = data.data.items.map(i => ({ ...i }));
+                    const d = data.data;
+                    this.editItems = d.items.map(i => ({ ...i }));
+                    // Populate customer / address fields from current order data
+                    this.editCustomer = {
+                        customer_name:  d.customer_name  ?? '',
+                        customer_phone: d.customer_phone ?? '',
+                        customer_email: d.customer_email ?? '',
+                        address_line:   d.address?.address_line  ?? '',
+                        area:           d.address?.area          ?? '',
+                        city:           d.address?.city          ?? '',
+                        postal_code:    d.address?.postal_code   ?? '',
+                        zone_id:        d.zone_id ?? '',
+                        notes:          d.notes   ?? '',
+                    };
                     this.editMode = true;
                 } else {
                     this.editError = data.message || 'Cannot enter edit mode.';
@@ -767,6 +857,11 @@ function orderDetail(orderId) {
             this.editError = null;
             this.productSearch = '';
             this.searchResults = [];
+            this.editCustomer = {
+                customer_name: '', customer_phone: '', customer_email: '',
+                address_line: '', area: '', city: '', postal_code: '',
+                zone_id: '', notes: '',
+            };
         },
 
         async searchProducts() {
@@ -844,7 +939,10 @@ function orderDetail(orderId) {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                     },
-                    body: JSON.stringify({ items: this.buildEditPayload() }),
+                    body: JSON.stringify({
+                        items:   this.buildEditPayload(),
+                        zone_id: this.editCustomer.zone_id || null,
+                    }),
                 });
                 const data = await r.json();
                 if (r.ok) {
@@ -863,20 +961,29 @@ function orderDetail(orderId) {
             this.applying = true;
             this.editError = null;
             try {
-                const r = await fetch(`/api/v1/admin/orders/${this.orderId}/items`, {
+                const r = await fetch(`/api/v1/admin/orders/${this.orderId}`, {
                     method: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': this.csrf(),
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                     },
-                    body: JSON.stringify({ items: this.buildEditPayload() }),
+                    body: JSON.stringify({
+                        items:          this.buildEditPayload(),
+                        zone_id:        this.editCustomer.zone_id        || null,
+                        customer_name:  this.editCustomer.customer_name  || null,
+                        customer_phone: this.editCustomer.customer_phone || null,
+                        customer_email: this.editCustomer.customer_email || null,
+                        address_line:   this.editCustomer.address_line   || null,
+                        area:           this.editCustomer.area           || null,
+                        city:           this.editCustomer.city           || null,
+                        postal_code:    this.editCustomer.postal_code    || null,
+                        notes:          this.editCustomer.notes          !== undefined ? this.editCustomer.notes : null,
+                    }),
                 });
                 const data = await r.json();
                 if (r.ok) {
-                    this.editMode = false;
-                    this.editItems = [];
-                    this.previewData = null;
+                    this.cancelEdit();
                     this.order = data.data;
                 } else {
                     this.editError = data.message || 'Apply failed.';

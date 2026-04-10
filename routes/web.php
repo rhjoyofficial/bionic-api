@@ -192,6 +192,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     // Orders
     Route::get('/orders', fn() => view('admin.orders.index'))->name('admin.orders')
         ->middleware('permission:order.view');
+    Route::get('/orders/create', fn() => view('admin.orders.create'))->name('admin.orders.create')
+        ->middleware('permission:order.create');
     Route::get('/orders/{order}', function (\App\Domains\Order\Models\Order $order) {
         return view('admin.orders.show', ['orderId' => $order->id]);
     })->name('admin.orders.show')->middleware('permission:order.view');
