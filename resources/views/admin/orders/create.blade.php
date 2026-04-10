@@ -130,7 +130,7 @@
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">— Select zone —</option>
                                 <template x-for="zone in zones" :key="zone.id">
-                                    <option :value="zone.id" x-text="zone.name + ' (৳' + zone.base_rate + ')'"></option>
+                                    <option :value="zone.id" x-text="zone.name + ' (৳' + zone.base_charge + ')'"></option>
                                 </template>
                             </select>
                         </div>

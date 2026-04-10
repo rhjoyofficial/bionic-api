@@ -30,10 +30,11 @@ class AdminOrderController extends Controller
             $orders = Order::withCount('items')
                 ->with(['zone', 'user', 'shipments'])
                 ->when(request('q'), function ($q, $search) {
-                    $q->where(fn($inner) =>
+                    $q->where(
+                        fn($inner) =>
                         $inner->where('order_number', 'like', "%{$search}%")
-                              ->orWhere('customer_phone', 'like', "%{$search}%")
-                              ->orWhere('customer_name', 'like', "%{$search}%")
+                            ->orWhere('customer_phone', 'like', "%{$search}%")
+                            ->orWhere('customer_name', 'like', "%{$search}%")
                     );
                 })
                 ->when(request('status'), fn($q, $s) => $q->where('order_status', $s))
@@ -283,8 +284,8 @@ class AdminOrderController extends Controller
             ->where('is_active', true)
             ->where(function ($query) use ($q) {
                 $query->where('title', 'like', "%{$q}%")
-                      ->orWhere('sku', 'like', "%{$q}%")
-                      ->orWhereHas('product', fn($p) => $p->where('name', 'like', "%{$q}%"));
+                    ->orWhere('sku', 'like', "%{$q}%")
+                    ->orWhereHas('product', fn($p) => $p->where('name', 'like', "%{$q}%"));
             })
             ->limit(15)
             ->get()
@@ -329,7 +330,7 @@ class AdminOrderController extends Controller
     public function shippingZones()
     {
         $zones = \App\Domains\Shipping\Models\ShippingZone::orderBy('sort_order')
-            ->get(['id', 'name', 'base_rate', 'free_above']);
+            ->get(['id', 'name', 'base_charge', 'free_shipping_threshold']);
 
         return ApiResponse::success($zones);
     }
