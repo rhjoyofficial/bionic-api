@@ -3,6 +3,7 @@
 use App\Domains\Admin\Controllers\AdminSettingsController;
 use App\Domains\Auth\Controllers\AdminRoleController;
 use App\Domains\Category\Controllers\AdminCategoryController;
+use App\Domains\Courier\Controllers\AdminCourierController;
 use App\Domains\Customer\Controllers\AdminCustomerController;
 use App\Domains\Notification\Controllers\AdminNotificationController;
 use App\Domains\Product\Controllers\AdminComboController;
@@ -13,6 +14,7 @@ use App\Domains\Coupon\Controllers\AdminCouponController;
 use App\Domains\Order\Controllers\AdminOrderController;
 use App\Domains\Order\Controllers\AdminTransactionController;
 use App\Domains\Product\Controllers\ProductRelationController;
+use App\Domains\Landing\Controllers\AdminLandingPageController;
 use App\Domains\Webhook\Controllers\AdminWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +34,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // --- Products & Variants ---
     Route::middleware('permission:product.view')->group(function () {
+        Route::get('products/search', [AdminProductController::class, 'searchProducts']);
         Route::get('products', [AdminProductController::class, 'index']);
         Route::get('products/{product}', [AdminProductController::class, 'show']);
     });
@@ -41,6 +44,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // --- Combos ---
     Route::middleware('permission:product.view')->group(function () {
+        Route::get('combos/search', [AdminComboController::class, 'searchCombos']);
         Route::get('combos', [AdminComboController::class, 'index']);
         Route::get('combos/{combo}', [AdminComboController::class, 'show']);
     });
@@ -87,12 +91,41 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
 
     // --- Order Management ---
+    // Static routes BEFORE wildcard {order} to avoid route conflicts
+    Route::get('orders/search-products', [AdminOrderController::class, 'searchProducts'])
+        ->middleware('permission:order.update');
+    Route::get('/shipping-zones', [AdminOrderController::class, 'shippingZones'])
+        ->middleware('permission:order.view');
+
     Route::middleware('permission:order.view')->group(function () {
         Route::get('orders', [AdminOrderController::class, 'index']);
         Route::get('orders/{order}', [AdminOrderController::class, 'show']);
     });
+
+    // Admin create order
+    Route::post('orders', [AdminOrderController::class, 'store'])
+        ->middleware('permission:order.create');
+
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
     Route::post('orders/{order}/notes', [AdminOrderController::class, 'addNote'])->middleware('permission:order.update');
+
+    // --- Order Editing (items + customer + address + zone) ---
+    Route::middleware('permission:order.update')->group(function () {
+        Route::get('orders/{order}/edit-data', [AdminOrderController::class, 'editData']);
+        Route::post('orders/{order}/preview-edit', [AdminOrderController::class, 'previewEdit']);
+        // PUT /orders/{order} applies full edit: items + customer + address + zone
+        Route::put('orders/{order}', [AdminOrderController::class, 'applyEdit']);
+    });
+
+    // --- Courier & Shipments ---
+    Route::group(['prefix' => 'courier', 'middleware' => 'permission:order.update'], function () {
+        Route::get('/drivers', [AdminCourierController::class, 'drivers']);
+        Route::post('/assign', [AdminCourierController::class, 'assign']);
+        Route::post('/bulk-assign', [AdminCourierController::class, 'bulkAssign']);
+        Route::get('/shipments/{order}', [AdminCourierController::class, 'orderShipments']);
+        Route::post('/shipments/{shipment}/sync', [AdminCourierController::class, 'syncStatus']);
+        Route::post('/shipments/{shipment}/cancel', [AdminCourierController::class, 'cancel']);
+    });
 
     // --- Transactions & Payment Reconciliation ---
     Route::group(['prefix' => 'transactions'], function () {
@@ -162,6 +195,19 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         // Admin staff list + role assignment
         Route::get('/admin-users',            [AdminRoleController::class, 'adminUsers']);
         Route::patch('/admin-users/{user}/role', [AdminRoleController::class, 'assignRole']);
+    });
+
+    // --- Landing Pages ---
+    Route::group(['prefix' => 'landing-pages'], function () {
+        Route::middleware('permission:product.view')->group(function () {
+            Route::get('/', [AdminLandingPageController::class, 'index']);
+            Route::get('/{landingPage}', [AdminLandingPageController::class, 'show']);
+        });
+
+        Route::post('/', [AdminLandingPageController::class, 'store'])->middleware('permission:product.create');
+        Route::put('/{landingPage}', [AdminLandingPageController::class, 'update'])->middleware('permission:product.update');
+        Route::patch('/{landingPage}/toggle-active', [AdminLandingPageController::class, 'toggleActive'])->middleware('permission:product.update');
+        Route::delete('/{landingPage}', [AdminLandingPageController::class, 'destroy'])->middleware('permission:product.delete');
     });
 
     // --- Settings & System Health ---

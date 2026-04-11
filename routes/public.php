@@ -11,6 +11,7 @@ use App\Domains\Coupon\Controllers\PublicCouponController;
 use App\Domains\Cart\Controllers\CartController;
 use App\Domains\Product\Controllers\ProductSearchController;
 use App\Domains\Product\Controllers\ProductLandingController;
+use App\Domains\Landing\Controllers\LandingCheckoutController;
 use App\Domains\Product\Controllers\ProductRecommendationController;
 
 Route::middleware('guest:sanctum')->group(function () {
@@ -49,3 +50,5 @@ Route::middleware(['throttle:60,1', 'cart.session'])->prefix('cart')->group(func
 });
 
 Route::get('/landing/{slug}', [ProductLandingController::class, 'show']);
+Route::post('/landing/{slug}/preview', [LandingCheckoutController::class, 'preview'])->middleware('throttle:30,1');
+Route::post('/landing/{slug}/checkout', [LandingCheckoutController::class, 'checkout'])->middleware('throttle:10,1');

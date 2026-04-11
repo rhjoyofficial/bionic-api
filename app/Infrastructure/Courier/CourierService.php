@@ -2,25 +2,42 @@
 
 namespace App\Infrastructure\Courier;
 
-use App\Services\Infrastructure\Drivers\PathaoCourier;
-use App\Services\Infrastructure\Drivers\RedXCourier;
-use App\Services\Infrastructure\Drivers\SteadfastCourier;
+use App\Infrastructure\Courier\Drivers\CarryBeeCourier;
+use App\Infrastructure\Courier\Drivers\PathaoCourier;
+use App\Infrastructure\Courier\Drivers\SteadfastCourier;
+use InvalidArgumentException;
 
 class CourierService
 {
-  public function driver()
-  {
-    $courier = config('courier.default');
+    /**
+     * Supported courier driver names.
+     */
+    public const DRIVERS = ['pathao', 'steadfast', 'carrybee'];
 
-    return match ($courier) {
+    /**
+     * Resolve a courier driver by name.
+     */
+    public function driver(?string $name = null): CourierInterface
+    {
+        $name = $name ?? config('courier.default', 'pathao');
 
-      'pathao' => app(PathaoCourier::class),
+        return match ($name) {
+            'pathao'    => app(PathaoCourier::class),
+            'steadfast' => app(SteadfastCourier::class),
+            'carrybee'  => app(CarryBeeCourier::class),
+            default     => throw new InvalidArgumentException("Unsupported courier driver: {$name}"),
+        };
+    }
 
-      'redx' => app(RedXCourier::class),
-
-      'steadfast' => app(SteadfastCourier::class),
-
-      default => throw new \Exception('Courier not supported')
-    };
-  }
+    /**
+     * Get list of available courier options for admin UI.
+     */
+    public function availableDrivers(): array
+    {
+        return [
+            ['value' => 'pathao',    'label' => 'Pathao Courier'],
+            ['value' => 'steadfast', 'label' => 'Steadfast Delivery'],
+            ['value' => 'carrybee',  'label' => 'CarryBee Logistics'],
+        ];
+    }
 }

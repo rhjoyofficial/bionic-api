@@ -2,10 +2,41 @@
 
 return [
 
-  'default' => env('COURIER_DRIVER', 'pathao'),
+    'default' => env('COURIER_DRIVER', 'pathao'),
 
-  'pathao_url' => env('PATHAO_API'),
+    /*
+    |--------------------------------------------------------------------------
+    | Pathao Courier
+    |--------------------------------------------------------------------------
+    */
+    'pathao' => [
+        'base_url'      => env('PATHAO_BASE_URL', 'https://api-hermes.pathao.com'),
+        'client_id'     => env('PATHAO_CLIENT_ID'),
+        'client_secret' => env('PATHAO_CLIENT_SECRET'),
+        'username'      => env('PATHAO_USERNAME'),
+        'password'      => env('PATHAO_PASSWORD'),
+        'store_id'      => env('PATHAO_STORE_ID'),
+    ],
 
-  'redx_url' => env('REDX_API'),
+    /*
+    |--------------------------------------------------------------------------
+    | Steadfast Courier
+    |--------------------------------------------------------------------------
+    */
+    'steadfast' => [
+        'base_url'   => env('STEADFAST_BASE_URL', 'https://portal.steadfast.com.bd/api/v1'),
+        'api_key'    => env('STEADFAST_API_KEY'),
+        'secret_key' => env('STEADFAST_SECRET_KEY'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | CarryBee Courier
+    |--------------------------------------------------------------------------
+    */
+    'carrybee' => [
+        'base_url' => env('CARRYBEE_BASE_URL', 'https://api.carrybee.com.bd/api/v1'),
+        'api_key'  => env('CARRYBEE_API_KEY'),
+    ],
 
 ];
