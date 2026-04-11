@@ -196,7 +196,8 @@ export default class CartPageRenderer {
 
             row.querySelector(".pagePlus").onclick = () => {
                 const item = this._getItem(itemId);
-                if (item) window.Cart.update(itemId, item.quantity + 1);
+                if (item)
+                    window.Cart.update(itemId, parseInt(item.quantity) + 1);
             };
 
             row.querySelector(".pageMinus").onclick = () => {
@@ -205,7 +206,7 @@ export default class CartPageRenderer {
                 if (item.quantity <= 1) {
                     window.Cart.remove(itemId);
                 } else {
-                    window.Cart.update(itemId, item.quantity - 1);
+                    window.Cart.update(itemId, parseInt(item.quantity) - 1);
                 }
             };
 
