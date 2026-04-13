@@ -3,6 +3,7 @@
 namespace App\Domains\Product\Models;
 
 use App\Domains\Category\Models\Category;
+use App\Domains\Certification\Models\Certification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -72,6 +73,11 @@ class Product extends Model
             'product_id',
             'related_product_id'
         )->wherePivot('relation_type', 'cross_sell');
+    }
+
+    public function certifications()
+    {
+        return $this->belongsToMany(Certification::class)->withTimestamps();
     }
 
     public function scopeActive(Builder $query): Builder
