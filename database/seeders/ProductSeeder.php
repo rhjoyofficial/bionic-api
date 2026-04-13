@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Domains\Category\Models\Category;
 use App\Domains\Product\Models\Product;
-use App\Domains\Product\Models\ProductVariant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -12,527 +11,395 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get all categories
+        // Fetch all categories to dynamically assign their IDs
         $categories = Category::all()->keyBy('name');
 
-        // ==================== HONEY PRODUCTS (Simple & Variable) ====================
+        // Helper to quickly grab the category ID by exact name
+        $getCategoryId = function ($name) use ($categories) {
+            return isset($categories[$name]) ? $categories[$name]->id : Category::first()->id;
+        };
 
-        // Simple Product - No variants
-        Product::create([
-            'category_id' => $categories['Honey']->id,
-            'name' => 'Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি)',
-            'slug' => 'mangrove-gold-honey',
-            'short_description' => 'Pure wild honey collected from Sundarban mangrove forest',
-            'description' => 'This honey is collected by traditional honey hunters from the Sundarbans. It has a distinct flavor and medicinal properties.',
-            'base_price' => 1200,
-            'sku' => 'HON-SUN-001',
+        // ==================== SPICES & POWDERS ====================
+
+        $pinkSalt = Product::create([
+            'category_id' => $getCategoryId('Spices'),
+            'name' => 'Himalayan Pink Salt (হিমালয়ান পিঙ্ক সল্ট)',
+            'slug' => Str::slug('Himalayan Pink Salt'),
+            'base_price' => 190,
+            'sku' => 'SLT-PNK-001',
+            'thumbnail' => 'products/pink-salt.jpg',
             'is_active' => true,
-            'is_featured' => true,
             'is_trending' => true,
+            'is_featured' => true,
+        ]);
+
+        $variants = $pinkSalt->variants()->createMany([
+            [
+                'title' => '140gm',
+                'sku' => 'SLT-PNK-140G',
+                'price' => 190,
+                'stock' => 1000,
+                'weight_grams' => 140,
+                'is_active' => true
+            ],
+            [
+                'title' => '1KG',
+                'sku' => 'SLT-PNK-1KG',
+                'price' => 870,
+                'stock' => 1000,
+                'weight_grams' => 1000,
+                'is_active' => true
+            ],
+        ]);
+
+        $variants->first()->tierPrices()->create([
+            'min_quantity' => 2,
+            'discount_type' => 'fixed',
+            'discount_value' => 60,
+        ]);
+
+        Product::create([
+            'category_id' => $getCategoryId('Spices'),
+            'name' => 'Beetroot Powder (বিটরুট পাউডার) 200gm',
+            'slug' => Str::slug('Beetroot Powder'),
+            'base_price' => 990,
+            'sku' => 'POW-BET-001',
+            'thumbnail' => 'products/beetroot-powder.jpg',
+            'is_active' => true,
+            'is_trending' => true,
+            'is_featured' => true,
+        ])->variants()->create([
+            'title' => '200gm',
+            'sku' => 'BET-200G',
+            'price' => 990,
+            'stock' => 1000,
+            'weight_grams' => 200,
+            'is_active' => true,
+        ]);
+
+
+        // ==================== HONEY ====================
+
+        $mangroveGoldHoney = Product::create([
+            'category_id' => $getCategoryId('Honey'),
+            'name' => 'Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) 500gm',
+            'slug' => Str::slug('Mangrove Gold Honey'),
+            'base_price' => 990,
+            'sku' => 'HON-MAN-001',
             'thumbnail' => 'products/mangrove-gold-honey.jpg',
-            'meta_title' => 'Buy Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) Online',
-            'meta_description' => 'Pure Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) with medicinal properties. 100% natural and unprocessed.',
-        ])->variants()->create([
-            'title' => '1kg',
-            'sku' => 'HON-SUN-1KG',
-            'price' => 1200,
-            'discount_type' => 'fixed',
-            'discount_value' => 100,
-            'stock' => 50,
-            'weight_grams' => 1000,
             'is_active' => true,
-        ]);
-
-        // Variable Product - Honey with multiple sizes
-        $honeyVariable = Product::create([
-            'category_id' => $categories['Honey']->id,
-            'name' => 'Organic Raw Honey (অর্গানিক রো হানি)',
-            'slug' => 'organic-raw-honey',
-            'short_description' => 'Certified organic raw honey, unprocessed and unfiltered',
-            'description' => 'Our organic raw honey is sourced from certified organic farms. It retains all natural enzymes and nutrients.',
-            'base_price' => 800,
-            'sku' => 'HON-ORG-001',
-            'is_active' => true,
-            'is_featured' => true,
             'is_trending' => true,
-            'thumbnail' => 'products/honey.jpg',
+            'is_featured' => true,
         ]);
 
-        // Variants for Organic Honey
-        $honeyVariable->variants()->createMany([
-            [
-                'title' => '250g',
-                'sku' => 'HON-ORG-250G',
-                'price' => 250,
-                'stock' => 100,
-                'weight_grams' => 250,
-                'is_active' => true,
-            ],
-            [
-                'title' => '500g',
-                'sku' => 'HON-ORG-500G',
-                'price' => 450,
-                'stock' => 80,
-                'weight_grams' => 500,
-                'is_active' => true,
-            ],
-            [
-                'title' => '1kg',
-                'sku' => 'HON-ORG-1KG',
-                'price' => 800,
-                'stock' => 60,
-                'weight_grams' => 1000,
-                'is_active' => true,
-            ],
-        ]);
-
-        // Simple Honey Product
-        Product::create([
-            'category_id' => $categories['Honey']->id,
-            'name' => 'Floral Gold Honey (ফ্লোরাল গোল্ড হানি)',
-            'slug' => 'floral-gold-honey',
-            'base_price' => 950,
-            'sku' => 'HON-FOR-001',
+        $mangroveGoldHoneyVariant = $mangroveGoldHoney->variants()->create([
+            'title' => '500gm',
+            'sku' => 'HON-MAN-500G',
+            'price' => 990,
+            'stock' => 1000,
+            'weight_grams' => 500,
             'is_active' => true,
+        ]);
+
+        $mangroveGoldHoneyVariant->tierPrices()->create([
+            'min_quantity' => 2,
+            'discount_type' => 'fixed',
+            'discount_value' => 60,
+        ]);
+
+        Product::create([
+            'category_id' => $getCategoryId('Honey'),
+            'name' => 'Floral Gold Honey (ফ্লোরাল গোল্ড হানি) 255gm',
+            'slug' => Str::slug('Floral Gold Honey'),
+            'base_price' => 499,
+            'sku' => 'HON-FLO-001',
             'thumbnail' => 'products/floral-gold-honey.jpg',
-        ])->variants()->create([
-            'title' => '1kg',
-            'sku' => 'HON-FOR-1KG',
-            'price' => 950,
-            'stock' => 40,
-            'weight_grams' => 1000,
             'is_active' => true,
-        ]);
-
-        // ==================== DATES PRODUCTS ====================
-
-        // Simple Date Product
-        Product::create([
-            'category_id' => $categories['Dates']->id,
-            'name' => 'Medjool Dates (মেজুল খেজুর)',
-            'slug' => 'medjool-dates',
-            'short_description' => 'Premium Medjool dates from Jordan',
-            'base_price' => 1800,
-            'sku' => 'DATE-MED-001',
-            'is_active' => true,
-            'is_featured' => true,
             'is_trending' => true,
-            'thumbnail' => 'products/medjool-dates.jpg',
-        ])->variants()->create([
-            'title' => '1kg',
-            'sku' => 'DATE-MED-1KG',
-            'price' => 1800,
-            'stock' => 30,
-            'weight_grams' => 1000,
-            'is_active' => true,
-        ]);
-
-        // Variable Date Product with multiple sizes
-        $ajwaDates = Product::create([
-            'category_id' => $categories['Dates']->id,
-            'name' => 'Ajwa Dates (আজওয়া খেজুর)',
-            'slug' => 'ajwa-dates',
-            'short_description' => 'Premium Ajwa dates from Madinah',
-            'base_price' => 2500,
-            'sku' => 'DATE-AJW-001',
-            'is_active' => true,
             'is_featured' => true,
-            'is_trending' => true,
-            'thumbnail' => 'products/ajwa-dates.jpg',
-        ]);
-
-        $ajwaVariant = $ajwaDates->variants()->create([
-            'title' => '1kg',
-            'sku' => 'DATE-AJW-1KG',
-            'price' => 2500,
-            'stock' => 25,
-            'weight_grams' => 1000,
+        ])->variants()->create([
+            'title' => '255gm',
+            'sku' => 'HON-FLO-255G',
+            'price' => 499,
+            'stock' => 1000,
+            'weight_grams' => 255,
             'is_active' => true,
         ]);
 
-        // Add tier pricing
-        $ajwaVariant->tierPrices()->create([
-            'min_quantity' => 3,
+
+        // ==================== GHEE ====================
+
+        $premiumGhee = Product::create([
+            'category_id' => $getCategoryId('Ghee'),
+            'name' => 'Premium Ghee (প্রিমিয়াম ঘি) 350gm',
+            'slug' => Str::slug('Premium Ghee'),
+            'base_price' => 870,
+            'sku' => 'GHE-PRE-001',
+            'thumbnail' => 'products/premium-ghee.jpg',
+            'is_active' => true,
+            'is_trending' => true,
+            'is_featured' => true,
+        ]);
+
+        $premiumGheeVariant = $premiumGhee->variants()->create([
+            'title' => '350gm',
+            'sku' => 'GHE-PRE-350G',
+            'price' => 870,
+            'stock' => 1000,
+            'weight_grams' => 350,
+            'is_active' => true,
+        ]);
+
+        $premiumGheeVariant->tierPrices()->create([
+            'min_quantity' => 2,
             'discount_type' => 'fixed',
-            'discount_value' => 150,
+            'discount_value' => 60,
         ]);
 
-        // Another simple date product
-        Product::create([
-            'category_id' => $categories['Dates']->id,
-            'name' => 'Sukkary Dates (সুক্কারি খেজুর)',
-            'slug' => 'sukkary-dates',
+
+        // ==================== DATES ====================
+
+        $kalmi = Product::create([
+            'category_id' => $getCategoryId('Dates'),
+            'name' => 'Kalmi Super Premium (কালমি সুপার প্রিমিয়াম)',
+            'slug' => Str::slug('Kalmi Super Premium'),
             'base_price' => 1600,
-            'sku' => 'DATE-SUK-001',
+            'sku' => 'DAT-KAL-001',
+            'thumbnail' => 'products/kalmi-dates.jpg',
             'is_active' => true,
-            'thumbnail' => 'products/sukkary-dates.jpg',
+        ]);
+        $kalmiVariant = $kalmi->variants()->createMany([
+            ['title' => '1KG', 'sku' => 'KAL-1KG', 'price' => 1600, 'stock' => 1000, 'weight_grams' => 1000, 'is_active' => true],
+            ['title' => '5KG', 'sku' => 'KAL-5KG', 'price' => 6500, 'stock' => 1000, 'weight_grams' => 5000, 'is_active' => true],
+        ]);
+
+        $kalmiVariant->first()->tierPrices()->create([
+            'min_quantity' => 5,
+            'discount_type' => 'fixed',
+            'discount_value' => 300,
+        ]);
+
+        $mariyam = Product::create([
+            'category_id' => $getCategoryId('Dates'),
+            'name' => 'Mariyam Super Premium Dates (মরিয়ম সুপার প্রিমিয়াম খেজুর)',
+            'slug' => Str::slug('Mariyam Super Premium Dates'),
+            'base_price' => 1920,
+            'sku' => 'DAT-MAR-001',
+            'thumbnail' => 'products/mariyam-dates.jpg',
+            'is_active' => true,
+        ]);
+        $mariyamVariant = $mariyam->variants()->createMany([
+            ['title' => '1KG', 'sku' => 'MAR-1KG', 'price' => 1920, 'stock' => 1000, 'weight_grams' => 1000, 'is_active' => true],
+            ['title' => '5KG', 'sku' => 'MAR-5KG', 'price' => 8900, 'stock' => 1000, 'weight_grams' => 5000, 'is_active' => true],
+        ]);
+
+        $mariyamVariant->first()->tierPrices()->create([
+            'min_quantity' => 5,
+            'discount_type' => 'fixed',
+            'discount_value' => 140,
+        ]);
+
+        $medjool = Product::create([
+            'category_id' => $getCategoryId('Dates'),
+            'name' => 'Egyptian Medjool (মেডজুল খেজুর)',
+            'slug' => Str::slug('Egyptian Medjool'),
+            'base_price' => 2200,
+            'sku' => 'DAT-MED-001',
+            'thumbnail' => 'products/medjool-dates.jpg',
+            'is_active' => true,
+            'is_trending' => true,
+            'is_featured' => true,
+        ]);
+        $medjool->variants()->createMany([
+            ['title' => '1KG Large', 'sku' => 'MED-1KG-LRG', 'price' => 2200, 'stock' => 1000, 'weight_grams' => 1000, 'is_active' => true],
+            ['title' => '5KG Large', 'sku' => 'MED-5KG-LRG', 'price' => 10500, 'stock' => 1000, 'weight_grams' => 5000, 'is_active' => true],
+            ['title' => '1KG Jambo', 'sku' => 'MED-1KG-JAM', 'price' => 2800, 'stock' => 1000, 'weight_grams' => 1000, 'is_active' => true],
+            ['title' => '5KG Jambo', 'sku' => 'MED-5KG-JAM', 'price' => 12800, 'stock' => 1000, 'weight_grams' => 5000, 'is_active' => true],
+        ]);
+
+        $ajwa = Product::create([
+            'category_id' => $getCategoryId('Dates'),
+            'name' => 'Ajwa Date (আজওয়া খেজুর)',
+            'slug' => Str::slug('Ajwa Date'),
+            'base_price' => 2100,
+            'sku' => 'DAT-AJW-001',
+            'thumbnail' => 'products/ajwa-dates.jpg',
+            'is_active' => true,
+            'is_trending' => true,
+            'is_featured' => true,
+        ]);
+        $ajwa->variants()->createMany([
+            ['title' => '1KG Large', 'sku' => 'AJW-1KG-LRG', 'price' => 2100, 'stock' => 1000, 'weight_grams' => 1000, 'is_active' => true],
+            ['title' => '5KG Large', 'sku' => 'AJW-5KG-LRG', 'price' => 9900, 'stock' => 1000, 'weight_grams' => 5000, 'is_active' => true],
+            ['title' => '1KG Premium', 'sku' => 'AJW-1KG-PREM', 'price' => 2500, 'stock' => 1000, 'weight_grams' => 1000, 'is_active' => true],
+            ['title' => '5KG Jambo', 'sku' => 'AJW-5KG-JAM', 'price' => 11500, 'stock' => 1000, 'weight_grams' => 5000, 'is_active' => true],
+        ]);
+
+        $sukkari = Product::create([
+            'category_id' => $getCategoryId('Dates'),
+            'name' => 'Sukkari (সুক্কারি খেজুর)',
+            'slug' => Str::slug('Sukkari'),
+            'base_price' => 1500,
+            'sku' => 'DAT-SUK-001',
+            'thumbnail' => 'products/sukkari-dates.jpg',
+            'is_active' => true,
+            'is_trending' => true,
+            'is_featured' => true,
+        ]);
+        $sukkari->variants()->createMany([
+            ['title' => '1KG', 'sku' => 'SUK-1KG', 'price' => 1500, 'stock' => 1000, 'weight_grams' => 1000, 'is_active' => true],
+            ['title' => '3KG', 'sku' => 'SUK-3KG', 'price' => 3900, 'stock' => 1000, 'weight_grams' => 3000, 'is_active' => true],
+        ]);
+
+
+        // ==================== MIXES & NUTS ====================
+
+        Product::create([
+            'category_id' => $getCategoryId('Nuts'),
+            'name' => 'Brain Booster Mix (ব্রেন বুস্টার মিক্স) 205gm',
+            'slug' => Str::slug('Brain Booster Mix'),
+            'base_price' => 699,
+            'sku' => 'MIX-BRA-001',
+            'thumbnail' => 'products/brain-booster-mix.jpg',
+            'is_active' => true,
         ])->variants()->create([
-            'title' => '1kg',
-            'sku' => 'DATE-SUK-1KG',
-            'price' => 1600,
-            'stock' => 35,
-            'weight_grams' => 1000,
+            'title' => '205gm',
+            'sku' => 'BRA-205G',
+            'price' => 699,
+            'stock' => 1000,
+            'weight_grams' => 205,
+            'is_active' => true,
+
+        ]);
+
+        Product::create([
+            'category_id' => $getCategoryId('Nuts'),
+            'name' => 'Vital Mix (ভাইটাল মিক্স) 205gm',
+            'slug' => Str::slug('Vital Mix'),
+            'base_price' => 495,
+            'sku' => 'MIX-VIT-001',
+            'thumbnail' => 'products/vital-mix.jpg',
+            'is_active' => true,
+            'is_trending' => true,
+            'is_featured' => true,
+        ])->variants()->create([
+            'title' => '205gm',
+            'sku' => 'VIT-205G',
+            'price' => 495,
+            'stock' => 1000,
+            'weight_grams' => 205,
             'is_active' => true,
         ]);
 
-        // ==================== OILS PRODUCTS ====================
 
-        // Variable Oil Product - multiple sizes
-        $coconutOil = Product::create([
-            'category_id' => $categories['Oils']->id,
-            'name' => 'Edible Virgin Coconut Oil (খাদ্য উপযোগী ভার্জিন নারকেল তেল)',
-            'slug' => 'edible-virgin-coconut-oil',
-            'short_description' => 'Cold-pressed virgin coconut oil',
-            'base_price' => 600,
+        // ==================== SEEDS ====================
+
+        Product::create([
+            'category_id' => $getCategoryId('Seeds'),
+            'name' => 'Chia Seeds (চিয়া সীডস) 500gm',
+            'slug' => Str::slug('Chia Seeds'),
+            'base_price' => 690,
+            'sku' => 'SED-CHI-001',
+            'thumbnail' => 'products/chia-seeds.jpg',
+            'is_active' => true,
+            'is_trending' => true,
+            'is_featured' => true,
+        ])->variants()->create([
+            'title' => '500gm',
+            'sku' => 'CHI-500G',
+            'price' => 690,
+            'stock' => 1000,
+            'weight_grams' => 500,
+            'is_active' => true,
+        ]);
+
+        Product::create([
+            'category_id' => $getCategoryId('Seeds'),
+            'name' => 'Premium Tokma (প্রিমিয়াম তোকমা) 240gm',
+            'slug' => Str::slug('Premium Tokma'),
+            'base_price' => 240,
+            'sku' => 'SED-TOK-001',
+            'thumbnail' => 'products/tokma-seeds.jpg',
+            'is_active' => true,
+        ])->variants()->create([
+            'title' => '240gm',
+            'sku' => 'TOK-240G',
+            'price' => 240,
+            'stock' => 1000,
+            'weight_grams' => 240,
+            'is_active' => true,
+        ]);
+
+
+        // ==================== OILS ====================
+
+        Product::create([
+            'category_id' => $getCategoryId('Oils'),
+            'name' => 'Black Seed Oil (কালোজিরার তেল) 200ml',
+            'slug' => Str::slug('Black Seed Oil'),
+            'base_price' => 490,
+            'sku' => 'OIL-BLK-001',
+            'thumbnail' => 'products/black-seed-oil.jpg',
+            'is_active' => true,
+        ])->variants()->create([
+            'title' => '200ml',
+            'sku' => 'BLK-200ML',
+            'price' => 490,
+            'stock' => 1000,
+            'weight_grams' => 200,
+            'is_active' => true,
+        ]);
+
+        Product::create([
+            'category_id' => $getCategoryId('Oils'),
+            'name' => 'Edible Virgin Coconut Oil (ভোজ্য ভার্জিন নারকেল তেল) 360ml',
+            'slug' => Str::slug('Edible Virgin Coconut Oil'),
+            'base_price' => 870,
             'sku' => 'OIL-COC-001',
+            'thumbnail' => 'products/coconut-oil.jpg',
             'is_active' => true,
-            'thumbnail' => 'products/edible-virgin-coconut-oil.jpg',
-        ]);
-
-        $coconutOil->variants()->createMany([
-            [
-                'title' => '500ml',
-                'sku' => 'OIL-COC-500ML',
-                'price' => 350,
-                'stock' => 45,
-                'weight_grams' => 500,
-                'is_active' => true,
-            ],
-            [
-                'title' => '1L',
-                'sku' => 'OIL-COC-1L',
-                'price' => 600,
-                'stock' => 30,
-                'weight_grams' => 1000,
-                'is_active' => true,
-            ],
-        ]);
-
-        // Simple Oil Product
-        Product::create([
-            'category_id' => $categories['Oils']->id,
-            'name' => 'Extra Virgin Olive Oil (এক্সট্রা ভার্জিন অলিভ অয়েল)',
-            'slug' => 'extra-virgin-olive-oil',
-            'base_price' => 1200,
-            'sku' => 'OIL-OLV-001',
-            'is_active' => true,
-            'is_featured' => true,
             'is_trending' => true,
-            'thumbnail' => 'products/extra-virgin-olive-oil.jpg',
+            'is_featured' => true,
         ])->variants()->create([
-            'title' => '1L',
-            'sku' => 'OIL-OLV-1L',
-            'price' => 1200,
-            'stock' => 40,
-            'weight_grams' => 1000,
+            'title' => '360ml',
+            'sku' => 'COC-360ML',
+            'price' => 870,
+            'stock' => 1000,
+            'weight_grams' => 360,
             'is_active' => true,
         ]);
 
-        // ==================== NUTS PRODUCTS ====================
-
-        // Variable Nuts Product - Example with Apple (as requested)
-        $appleProduct = Product::create([
-            'category_id' => $categories['Nuts']->id,
-            'name' => 'Fresh Apples (তাজা আপেল)',
-            'slug' => 'fresh-apples',
-            'short_description' => 'Premium quality fresh apples',
-            'description' => 'Crisp and juicy apples sourced from the best orchards. Available in different sizes.',
-            'base_price' => 400,
-            'sku' => 'FRT-APP-001',
+        $mustardOil = Product::create([
+            'category_id' => $getCategoryId('Oils'),
+            'name' => 'Mustard Oil (খাঁটি সরিষার তেল)',
+            'slug' => Str::slug('Mustard Oil'),
+            'base_price' => 1750,
+            'sku' => 'OIL-MUS-001',
+            'thumbnail' => 'products/mustard-oil.jpg',
             'is_active' => true,
-            'is_featured' => true,
-            'is_trending' => true,
-            'thumbnail' => 'products/fresh-apples.jpg',
+        ]);
+        $mustardOil->variants()->createMany([
+            ['title' => '5L', 'sku' => 'MUS-5L', 'price' => 1750, 'stock' => 1000, 'weight_grams' => 5000, 'is_active' => true],
+            ['title' => '8L', 'sku' => 'MUS-8L', 'price' => 2800, 'discount_type' => 'fixed', 'discount_value' => 150, 'stock' => 1000, 'weight_grams' => 8000, 'is_active' => true],
         ]);
 
-        // Apple variants with different prices per kg
-        $appleProduct->variants()->createMany([
-            [
-                'title' => '1kg',
-                'sku' => 'APP-SML-1KG',
-                'price' => 400,  // 400 BDT per 1kg 
-                'stock' => 100,
-                'weight_grams' => 1000,
-                'is_active' => true,
-            ],
-            [
-                'title' => '2kg',
-                'sku' => 'APP-MED-1KG',
-                'price' => 750,  // 750 BDT per 2kg
-                'stock' => 80,
-                'weight_grams' => 1000,
-                'is_active' => true,
-            ],
-            [
-                'title' => '3kg',
-                'sku' => 'APP-LRG-1KG',
-                'price' => 1050,  // 1050 BDT per 3kg
-                'stock' => 60,
-                'weight_grams' => 1000,
-                'is_active' => true,
-            ],
-        ]);
 
-        // Mixed Nuts with variants
-        $mixedNuts = Product::create([
-            'category_id' => $categories['Nuts']->id,
-            'name' => 'Mixed Premium Nuts (মিশ্র প্রিমিয়াম বাদাম)',
-            'slug' => 'mixed-premium-nuts',
-            'base_price' => 850,
-            'sku' => 'NUT-MIX-001',
-            'is_active' => true,
-            'is_featured' => true,
-            'is_trending' => true,
-            'thumbnail' => 'products/mixed-premium-nuts.jpg',
-        ]);
+        // ==================== SWEETENERS ====================
 
-        $mixedNuts->variants()->createMany([
-            [
-                'title' => '250g',
-                'sku' => 'NUT-MIX-250G',
-                'price' => 450,
-                'stock' => 60,
-                'weight_grams' => 250,
-                'is_active' => true,
-            ],
-            [
-                'title' => '500g',
-                'sku' => 'NUT-MIX-500G',
-                'price' => 850,
-                'stock' => 40,
-                'weight_grams' => 500,
-                'is_active' => true,
-            ],
-            [
-                'title' => '1kg',
-                'sku' => 'NUT-MIX-1KG',
-                'price' => 1600,
-                'stock' => 20,
-                'weight_grams' => 1000,
-                'is_active' => true,
-            ],
-        ]);
-
-        // Simple Almonds
         Product::create([
-            'category_id' => $categories['Nuts']->id,
-            'name' => 'California Almonds (ক্যালিফোর্নিয়া বাদাম)',
-            'slug' => 'california-almonds',
-            'base_price' => 950,
-            'sku' => 'NUT-ALM-001',
+            'category_id' => $getCategoryId('Sweeteners'),
+            'name' => 'Goler Gurr (গোলের গুড়) 500gm',
+            'slug' => Str::slug('Goler Gurr'),
+            'base_price' => 290,
+            'sku' => 'SWT-GUR-001',
+            'thumbnail' => 'products/goler-gurr.jpg',
             'is_active' => true,
-            'thumbnail' => 'products/california-almonds.jpg',
         ])->variants()->create([
-            'title' => '500g',
-            'sku' => 'ALM-500G',
-            'price' => 950,
-            'stock' => 70,
+            'title' => '500gm',
+            'sku' => 'GUR-500G',
+            'price' => 290,
+            'stock' => 1000,
             'weight_grams' => 500,
-            'is_active' => true,
-        ]);
-
-        // Simple Cashews
-        // Product::create([
-        //     'category_id' => $categories['Nuts']->id,
-        //     'name' => 'W240 Cashew Nuts',
-        //     'slug' => 'w240-cashew-nuts',
-        //     'base_price' => 1100,
-        //     'sku' => 'NUT-CAS-001',
-        //     'is_active' => true,
-        //     'thumbnail' => 'products/w240-cashew-nuts.jpg',
-        // ])->variants()->create([
-        //     'title' => '500g',
-        //     'sku' => 'CAS-500G',
-        //     'price' => 1100,
-        //     'stock' => 55,
-        //     'weight_grams' => 500,
-        //     'is_active' => true,
-        // ]);
-
-        // Walnuts
-        // Product::create([
-        //     'category_id' => $categories['Nuts']->id,
-        //     'name' => 'English Walnuts',
-        //     'slug' => 'english-walnuts',
-        //     'base_price' => 1200,
-        //     'sku' => 'NUT-WAL-001',
-        //     'is_active' => true,
-        //     'thumbnail' => 'products/english-walnuts.jpg',
-        // ])->variants()->create([
-        //     'title' => '500g',
-        //     'sku' => 'WAL-500G',
-        //     'price' => 1200,
-        //     'stock' => 40,
-        //     'weight_grams' => 500,
-        //     'is_active' => true,
-        // ]);
-
-        // ==================== SEEDS PRODUCTS ====================
-
-        // Chia Seeds with variants
-        $chiaSeeds = Product::create([
-            'category_id' => $categories['Seeds']->id,
-            'name' => 'Organic Chia Seeds (অর্গানিক চিয়া সিডস)',
-            'slug' => 'organic-chia-seeds',
-            'base_price' => 450,
-            'sku' => 'SED-CHA-001',
-            'is_active' => true,
-            'thumbnail' => 'products/organic-chia-seeds.jpg',
-        ]);
-
-        $chiaSeeds->variants()->createMany([
-            [
-                'title' => '250g',
-                'sku' => 'CHA-250G',
-                'price' => 250,
-                'stock' => 90,
-                'weight_grams' => 250,
-                'is_active' => true,
-            ],
-            [
-                'title' => '500g',
-                'sku' => 'CHA-500G',
-                'price' => 450,
-                'stock' => 70,
-                'weight_grams' => 500,
-                'is_active' => true,
-            ],
-        ]);
-
-        // Flax Seeds
-        // Product::create([
-        //     'category_id' => $categories['Seeds']->id,
-        //     'name' => 'Brown Flax Seeds',
-        //     'slug' => 'brown-flax-seeds',
-        //     'base_price' => 280,
-        //     'sku' => 'SED-FLA-001',
-        //     'is_active' => true,
-        //     'thumbnail' => 'products/brown-flax-seeds.jpg',
-        // ])->variants()->create([
-        //     'title' => '500g',
-        //     'sku' => 'FLA-500G',
-        //     'price' => 280,
-        //     'stock' => 85,
-        //     'weight_grams' => 500,
-        //     'is_active' => true,
-        // ]);
-
-        // ==================== GHEE PRODUCTS ====================
-
-        // Variable Ghee Product
-        $gheeProduct = Product::create([
-            'category_id' => $categories['Ghee']->id,
-            'name' => 'Royal Essence Pure Desi Ghee (রয়্যাল এসেন্স বিশুদ্ধ দেশী ঘি)',
-            'slug' => 'royal-essence-ghee',
-            'short_description' => 'Traditional desi ghee made from deshi cow milk',
-            'base_price' => 1800,
-            'sku' => 'GHE-DES-001',
-            'is_active' => true,
-            'is_featured' => true,
-            'is_trending' => true,
-            'thumbnail' => 'products/royal-essence-ghee.jpg',
-        ]);
-
-        $gheeProduct->variants()->createMany([
-            [
-                'title' => '500ml',
-                'sku' => 'GHE-500ML',
-                'price' => 1000,
-                'stock' => 30,
-                'weight_grams' => 500,
-                'is_active' => true,
-            ],
-            [
-                'title' => '900ml',
-                'sku' => 'GHE-900ML',
-                'price' => 1800,
-                'stock' => 20,
-                'weight_grams' => 900,
-                'is_active' => true,
-            ],
-            [
-                'title' => '1.8L',
-                'sku' => 'GHE-1.8L',
-                'price' => 3400,
-                'stock' => 10,
-                'weight_grams' => 1800,
-                'is_active' => true,
-            ],
-        ]);
-
-        // ==================== DRY FRUITS ====================
-
-        // Apricots
-        Product::create([
-            'category_id' => $categories['Dry Fruits']->id,
-            'name' => 'Dried Apricots (শুকনো খুরমা)',
-            'slug' => 'dried-apricots',
-            'base_price' => 650,
-            'sku' => 'DRY-APR-001',
-            'is_active' => true,
-            'thumbnail' => 'products/dried-apricots.jpg',
-        ])->variants()->create([
-            'title' => '500g',
-            'sku' => 'APR-500G',
-            'price' => 650,
-            'stock' => 45,
-            'weight_grams' => 500,
-            'is_active' => true,
-        ]);
-
-        // Raisins
-        // Product::create([
-        //     'category_id' => $categories['Dry Fruits']->id,
-        //     'name' => 'Golden Raisins',
-        //     'slug' => 'golden-raisins',
-        //     'base_price' => 400,
-        //     'sku' => 'DRY-RAI-001',
-        //     'is_active' => true,
-        //     'thumbnail' => 'products/golden-raisins.jpg',
-        // ])->variants()->create([
-        //     'title' => '500g',
-        //     'sku' => 'RAI-500G',
-        //     'price' => 400,
-        //     'stock' => 60,
-        //     'weight_grams' => 500,
-        //     'is_active' => true,
-        // ]);
-
-        // ==================== SPICES ====================
-
-        // Cardamom
-        Product::create([
-            'category_id' => $categories['Spices']->id,
-            'name' => 'Green Cardamom (সবুজ এলাচ)',
-            'slug' => 'green-cardamom',
-            'base_price' => 1200,
-            'sku' => 'SPI-CAR-001',
-            'is_active' => true,
-            'thumbnail' => 'products/green-cardamom.jpg',
-        ])->variants()->create([
-            'title' => '100g',
-            'sku' => 'CAR-100G',
-            'price' => 1200,
-            'stock' => 25,
-            'weight_grams' => 100,
-            'is_active' => true,
-        ]);
-
-        // Cinnamon
-        Product::create([
-            'category_id' => $categories['Spices']->id,
-            'name' => 'Ceylon Cinnamon (সিলন দারুচিনি)',
-            'slug' => 'ceylon-cinnamon',
-            'base_price' => 350,
-            'sku' => 'SPI-CIN-001',
-            'is_active' => true,
-            'thumbnail' => 'products/ceylon-cinnamon.jpg',
-        ])->variants()->create([
-            'title' => '250g',
-            'sku' => 'CIN-250G',
-            'price' => 350,
-            'stock' => 40,
-            'weight_grams' => 250,
             'is_active' => true,
         ]);
     }

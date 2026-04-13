@@ -162,4 +162,16 @@ class Order extends Model
         if ($this->shipped_at || !$this->placed_at) return false;
         return $this->placed_at->addHours(48)->isPast();
     }
+
+    /**
+     * Convert the grand total to words.
+     */
+    public function getAmountInWordsAttribute()
+    {
+        $number = $this->grand_total;
+        $f = new \NumberFormatter("en", \NumberFormatter::SPELLOUT);
+        $words = $f->format($number);
+
+        return strtoupper($words . " TAKA ONLY");
+    }
 }

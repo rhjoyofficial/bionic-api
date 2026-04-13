@@ -85,10 +85,6 @@ export default class CartManager {
     }
 
     setState(payload) {
-        // console.log("Cart updated:", payload);
-        // console.log("All Items:", payload.items);
-        // console.log("Subtotal:", payload.totals.subtotal);
-        // console.log("Total Quantity:", payload.totals.total_qty);
         if (payload.prices_updated && typeof flash === "function") {
             window.flash?.(
                 "Price Alert",
@@ -137,8 +133,6 @@ export default class CartManager {
         // Only add CSRF if available (Blade context)
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
         if (csrf) headers["X-CSRF-TOKEN"] = csrf;
-        // console.log("Request Headers:", headers);
-
         return headers;
     }
 
@@ -170,10 +164,11 @@ export default class CartManager {
     }
 
     async update(cartItemId, qty) {
+        const sanitizedQty = Math.max(1, parseInt(qty) || 1);
         try {
             const res = await this.api("/update", {
                 cart_item_id: cartItemId,
-                quantity: qty,
+                quantity: sanitizedQty,
             });
             this.setState(res.data);
         } catch (e) {
@@ -196,16 +191,16 @@ export default class CartManager {
         try {
             await this.api("/clear", {}, "DELETE");
             await this.refresh();
-            window.flash?.('Cart cleared', 'success')
+            window.flash?.("Cart cleared", "success");
         } catch {
             window.flash?.("Clear failed", "error");
         }
     }
 
     /**
-    * Navigate to the checkout page.
-    * The actual order submission is handled by CheckoutManager on /checkout.
-    */
+     * Navigate to the checkout page.
+     * The actual order submission is handled by CheckoutManager on /checkout.
+     */
     checkout() {
         window.location.href = "/checkout";
     }

@@ -153,7 +153,7 @@ export default class CartRenderer {
 
             row.querySelector(".plus").onclick = () => {
                 const item = this.getItem(itemId);
-                window.Cart.update(itemId, item.quantity + 1);
+                window.Cart.update(itemId, parseInt(item.quantity) + 1);
             };
 
             row.querySelector(".minus").onclick = () => {
@@ -162,7 +162,7 @@ export default class CartRenderer {
                     window.Cart.remove(itemId);
                     return;
                 }
-                window.Cart.update(itemId, item.quantity - 1);
+                window.Cart.update(itemId, parseInt(item.quantity) - 1);
             };
 
             row.querySelector(".remove").onclick = () => {
