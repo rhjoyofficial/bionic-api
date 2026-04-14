@@ -10,20 +10,9 @@ return new class extends Migration
     {
         Schema::create('certification_product', function (Blueprint $table) {
             $table->id();
-
-            // Link to Product
-            $table->foreignId('product_id')
-                ->constrained()
-                ->cascadeOnDelete(); // If a product is deleted, remove the link
-
-            // Link to Certification
-            $table->foreignId('certification_id')
-                ->constrained()
-                ->cascadeOnDelete(); // If a cert is deleted, remove the link
-
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete(); 
+            $table->foreignId('certification_id')->constrained()->cascadeOnDelete(); 
             $table->timestamps();
-
-            // Ensure a product can't be assigned the exact same certification twice
             $table->unique(['product_id', 'certification_id']);
         });
     }

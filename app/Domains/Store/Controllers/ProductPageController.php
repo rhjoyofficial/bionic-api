@@ -14,6 +14,7 @@ class ProductPageController extends Controller
             ->with([
                 'category',
                 'variants.tierPrices',
+                'certifications',
                 'upsells' => fn($query) => $query->active()->with(['variants.tierPrices', 'category']),
                 'crossSells' => fn($query) => $query->active()->with(['variants.tierPrices', 'category']),
             ])

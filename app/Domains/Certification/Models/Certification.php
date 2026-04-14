@@ -30,4 +30,14 @@ class Certification extends Model
     {
         return $this->belongsToMany(Product::class)->withTimestamps();
     }
+
+    public function getImageUrlAttribute(): string
+    {
+        return asset('storage/' . $this->image_path);
+    }
+
+    public function getLogoUrlAttribute(): string
+    {
+        return asset('storage/' . $this->logo_path);
+    }
 }

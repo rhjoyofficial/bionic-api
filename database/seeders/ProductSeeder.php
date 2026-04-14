@@ -22,7 +22,7 @@ class ProductSeeder extends Seeder
         // ==================== SPICES & POWDERS ====================
 
         $pinkSalt = Product::create([
-            'category_id' => $getCategoryId('Spices'),
+            'category_id' => $getCategoryId('Salts'),
             'name' => 'Himalayan Pink Salt (হিমালয়ান পিঙ্ক সল্ট)',
             'slug' => Str::slug('Himalayan Pink Salt'),
             'base_price' => 190,
