@@ -4,7 +4,7 @@ namespace App\Domains\Order\Models;
 
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Courier\Models\CourierShipment;
-use App\Domains\Marketing\Models\LandingPage;
+use App\Domains\Landing\Models\LandingPage;
 use App\Domains\Shipping\Models\ShippingZone;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;

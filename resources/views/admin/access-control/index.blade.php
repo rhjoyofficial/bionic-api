@@ -558,6 +558,7 @@
                     coupon: 'text-pink-600',
                     shipping: 'text-orange-600',
                     customer: 'text-teal-600',
+                    landing: 'text-orange-600',
                     notification: 'text-indigo-600',
                     system: 'text-gray-600',
                     analytics: 'text-cyan-600',

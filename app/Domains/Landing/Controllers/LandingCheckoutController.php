@@ -3,7 +3,7 @@
 namespace App\Domains\Landing\Controllers;
 
 use App\Domains\Landing\Services\LandingCheckoutService;
-use App\Domains\Marketing\Models\LandingPage;
+use App\Domains\Landing\Models\LandingPage;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use Exception;

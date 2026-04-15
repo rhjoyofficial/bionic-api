@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Marketing\Models;
+namespace App\Domains\Landing\Models;
 
 use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Models\ProductVariant;

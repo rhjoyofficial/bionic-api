@@ -94,6 +94,24 @@ class ProductService
         });
     }
 
+    public function toggleActiveStatus(Product $product): Product
+    {
+        $product->update([
+            'is_active' => !$product->is_active,
+        ]);
+
+        return $product->fresh();
+    }
+
+    public function toggleLandingStatus(Product $product): Product
+    {
+        $product->update([
+            'is_landing_enabled' => !$product->is_landing_enabled,
+        ]);
+
+        return $product->fresh();
+    }
+
     private function uploadGallery(array $files, array $existing): array
     {
         $newPaths = [];

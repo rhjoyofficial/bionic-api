@@ -124,6 +124,34 @@ class AdminProductController extends Controller
         }
     }
 
+    public function toggleActive(Product $product)
+    {
+        try {
+            $this->authorize('product.update');
+            $updated = $this->service->toggleActiveStatus($product);
+            return ApiResponse::success(
+                new ProductResource($updated),
+                'Product status updated successfully'
+            );
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Product update failed');
+        }
+    }
+
+    public function toggleLanding(Product $product)
+    {
+        try {
+            $this->authorize('product.update');
+            $updated = $this->service->toggleLandingStatus($product);
+            return ApiResponse::success(
+                new ProductResource($updated),
+                'Landing status updated successfully'
+            );
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Product update failed');
+        }
+    }
+
     /**
      * Updated to use standard ApiResponse
      */

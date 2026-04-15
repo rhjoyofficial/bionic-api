@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Domains\Marketing\Models\LandingPage;
+use App\Domains\Landing\Models\LandingPage;
 use App\Domains\Product\Models\Product;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -19,10 +19,8 @@ class LandingPageSeeder extends Seeder
         }
 
         foreach ($products as $product) {
-            $slug = Str::slug($product->name) . '-offer';
-
             LandingPage::updateOrCreate(
-                ['slug' => $slug],
+                ['slug' => $product->slug],
                 [
                     'product_id' => $product->id,
                     'title' => $product->name . ' Special Offer',

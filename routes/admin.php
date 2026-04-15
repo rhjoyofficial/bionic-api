@@ -40,6 +40,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     });
     Route::post('products', [AdminProductController::class, 'store'])->middleware('permission:product.create');
     Route::put('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:product.update');
+    Route::patch('products/{product}/toggle-landing-status', [AdminProductController::class, 'toggleLanding'])
+        ->middleware('permission:product.update');
+    Route::patch('products/{product}/toggle-active', [AdminProductController::class, 'toggleActive'])
+        ->middleware('permission:product.update');
     Route::delete('products/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:product.delete');
 
     // --- Combos ---
@@ -199,15 +203,15 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // --- Landing Pages ---
     Route::group(['prefix' => 'landing-pages'], function () {
-        Route::middleware('permission:product.view')->group(function () {
+        Route::middleware('permission:landing-pages.view')->group(function () {
             Route::get('/', [AdminLandingPageController::class, 'index']);
             Route::get('/{landingPage}', [AdminLandingPageController::class, 'show']);
         });
 
-        Route::post('/', [AdminLandingPageController::class, 'store'])->middleware('permission:product.create');
-        Route::put('/{landingPage}', [AdminLandingPageController::class, 'update'])->middleware('permission:product.update');
-        Route::patch('/{landingPage}/toggle-active', [AdminLandingPageController::class, 'toggleActive'])->middleware('permission:product.update');
-        Route::delete('/{landingPage}', [AdminLandingPageController::class, 'destroy'])->middleware('permission:product.delete');
+        Route::post('/', [AdminLandingPageController::class, 'store'])->middleware('permission:landing-pages.create');
+        Route::put('/{landingPage}', [AdminLandingPageController::class, 'update'])->middleware('permission:landing-pages.update');
+        Route::patch('/{landingPage}/toggle-active', [AdminLandingPageController::class, 'toggleActive'])->middleware('permission:landing-pages.update');
+        Route::delete('/{landingPage}', [AdminLandingPageController::class, 'destroy'])->middleware('permission:landing-pages.delete');
     });
 
     // --- Settings & System Health ---

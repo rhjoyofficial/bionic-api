@@ -25,7 +25,10 @@ class RoleSeeder extends Seeder
             'product.create',
             'product.update',
             'product.delete',
-            'landing-pages.edit',
+            'landing-pages.view',
+            'landing-pages.create',
+            'landing-pages.update',
+            'landing-pages.delete',
 
             // Order
             'order.create',

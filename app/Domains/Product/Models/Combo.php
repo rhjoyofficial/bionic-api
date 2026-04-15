@@ -3,11 +3,10 @@
 namespace App\Domains\Product\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Domains\Product\Models\ProductVariant;
 
 class Combo extends Model
 {
-    protected $fillable = ['title', 'slug', 'description', 'image', 'pricing_mode', 'manual_price', 'discount_type', 'discount_value', 'is_active', 'is_featured', 'is_landing_enabled'];
+    protected $fillable = ['title', 'slug', 'description', 'image', 'pricing_mode', 'manual_price', 'discount_type', 'discount_value', 'is_active', 'is_featured', 'is_landing_enabled', 'landing_slug'];
 
     public function items()
     {

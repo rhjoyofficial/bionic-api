@@ -2,8 +2,7 @@
 
 namespace App\Domains\Landing\Controllers;
 
-use App\Domains\Marketing\Models\LandingPage;
-use App\Domains\Marketing\Models\LandingPageItem;
+use App\Domains\Landing\Models\LandingPage;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use Exception;
@@ -12,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use App\Domains\Landing\Resources\LandingPageResource;
 
 /**
  * AdminLandingPageController
@@ -40,13 +40,13 @@ class AdminLandingPageController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('slug', 'like', "%{$search}%");
+                    ->orWhere('slug', 'like', "%{$search}%");
             });
         }
 
         $pages = $query->latest()->paginate($request->integer('per_page', 15));
 
-        return ApiResponse::paginated($pages, 'Landing pages retrieved');
+        return ApiResponse::paginated(LandingPageResource::collection($pages));
     }
 
     /**
@@ -61,7 +61,7 @@ class AdminLandingPageController extends Controller
             'items.combo:id,name',
         ]);
 
-        return ApiResponse::success($landingPage, 'Landing page retrieved');
+        return ApiResponse::success(new LandingPageResource($landingPage), 'Landing page retrieved');
     }
 
     /**
@@ -163,27 +163,23 @@ class AdminLandingPageController extends Controller
         ]);
 
         try {
-            return DB::transaction(function () use ($validated, $landingPage) {
-                $landingPage->update($validated);
+            return DB::transaction(function () use ($request, $validated, $landingPage) {
 
-                // Sync sales items if provided
-                if (array_key_exists('items', $validated)) {
-                    $landingPage->items()->delete();
+                $landingData = collect($validated)->except('items')->toArray();
+                $landingPage->update($landingData);
 
-                    if (!empty($validated['items'])) {
-                        foreach ($validated['items'] as $i => $item) {
-                            $landingPage->items()->create([
-                                'product_variant_id' => $item['product_variant_id'] ?? null,
-                                'combo_id'           => $item['combo_id'] ?? null,
-                                'is_preselected'     => $item['is_preselected'] ?? false,
-                                'sort_order'         => $item['sort_order'] ?? $i,
-                            ]);
-                        }
+                if (!empty($validated['items'])) {
+                    foreach ($validated['items'] as $i => $item) {
+                        $landingPage->items()->create([
+                            'product_variant_id' => $item['product_variant_id'] ?? null,
+                            'combo_id'           => $item['combo_id'] ?? null,
+                            'is_preselected'     => $item['is_preselected'] ?? false,
+                            'sort_order'         => $item['sort_order'] ?? $i,
+                        ]);
                     }
                 }
 
                 $landingPage->load(['product:id,name', 'combo:id,name', 'items']);
-
                 return ApiResponse::success($landingPage, 'Landing page updated');
             });
         } catch (Exception $e) {

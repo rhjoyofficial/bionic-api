@@ -4,7 +4,7 @@ namespace App\Domains\Landing\Services;
 
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Models\CouponUsage;
-use App\Domains\Marketing\Models\LandingPage;
+use App\Domains\Landing\Models\LandingPage;
 use App\Domains\Order\DTOs\CheckoutPricingResult;
 use App\Domains\Order\Models\Order;
 use App\Domains\Order\Services\CheckoutPricingService;

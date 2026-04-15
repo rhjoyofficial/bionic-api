@@ -52,8 +52,11 @@
                             <th class="text-left px-4 py-3 font-semibold text-gray-600">Slug</th>
                             <th class="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
                             <th class="text-left px-4 py-3 font-semibold text-gray-600">Linked To</th>
-                            <th class="text-center px-4 py-3 font-semibold text-gray-600">Status</th>
-                            <th class="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
+                            @can('landing-pages.update')
+                                <th class="text-center px-4 py-3 font-semibold text-gray-600">Status</th>
+                                <th class="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
+                            @endcan
+
                         </tr>
                     </thead>
                     <tbody>
@@ -98,29 +101,37 @@
                                         <span class="text-gray-400">Multiple items</span>
                                     </template>
                                 </td>
-                                <td class="px-4 py-3 text-center">
-                                    <button @click="toggleActive(page)"
-                                        class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer"
-                                        :class="page.is_active ? 'bg-green-500' : 'bg-gray-300'">
-                                        <span
-                                            class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow"
-                                            :class="page.is_active ? 'translate-x-4' : 'translate-x-0.5'"></span>
-                                    </button>
-                                </td>
-                                <td class="px-4 py-3 text-right">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <a :href="'/admin/landing-pages/' + page.id + '/edit'"
-                                            class="text-gray-400 hover:text-green-700 transition">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </a>
-                                        @can('product.delete')
-                                            <button @click="deletePage(page)"
-                                                class="text-gray-400 hover:text-red-600 transition cursor-pointer">
-                                                <i class="fa-solid fa-trash-can"></i>
+                                @can('landing-pages.update')
+                                    <td class="px-4 py-3 text-center">
+                                        @can('landing-pages.update')
+                                            <button @click="toggleActive(page)"
+                                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer"
+                                                :class="page.is_active ? 'bg-green-500' : 'bg-gray-300'">
+                                                <span
+                                                    class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow"
+                                                    :class="page.is_active ? 'translate-x-4' : 'translate-x-0.5'"></span>
                                             </button>
                                         @endcan
-                                    </div>
-                                </td>
+
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            @can('landing-pages.update')
+                                                <a :href="'/admin/landing-pages/' + page.id + '/edit'"
+                                                    class="text-gray-400 hover:text-green-700 transition">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </a>
+                                            @endcan
+
+                                            @can('landing-pages.delete')
+                                                <button @click="confirmDelete(page)"
+                                                    class="text-red-400 hover:text-red-600 transition cursor-pointer">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                @endcan
                             </tr>
                         </template>
                     </tbody>
@@ -147,106 +158,151 @@
                 </div>
             </div>
         </div>
+
+        {{-- Delete Confirm Modal --}}
+        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4"
+            x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100">
+            <div class="absolute inset-0 bg-black/50" @click="showDeleteModal = false"></div>
+            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm p-6 text-center"
+                x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100">
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+                </div>
+                <h3 class="text-base font-bold text-gray-800 mb-1">Delete Page?</h3>
+                <p class="text-sm text-gray-500 mb-1">
+                    You are about to delete: <strong x-text="deleteTarget?.title"></strong>
+                </p>
+                <p class="text-xs text-gray-400 mb-5">This will remove all are related with the page.
+                </p>
+                <div class="flex gap-3 justify-center">
+                    <button @click="showDeleteModal = false"
+                        class="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button @click="deletePage()"
+                        class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition cursor-pointer">
+                        Yes, Delete
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        function landingPageManager() {
-            return {
-                pages: [],
-                loading: true,
-                filters: {
-                    search: '',
-                    type: '',
-                    is_active: ''
-                },
-                pagination: {
-                    currentPage: 1,
-                    lastPage: 1,
-                    from: 0,
-                    to: 0,
-                    total: 0
-                },
 
-                async init() {
-                    await this.fetchPages();
-                },
+    @push('scripts')
+        <script>
+            function landingPageManager() {
+                return {
+                    pages: [],
+                    loading: true,
+                    filters: {
+                        search: '',
+                        type: '',
+                        is_active: ''
+                    },
+                    pagination: {
+                        currentPage: 1,
+                        lastPage: 1,
+                        from: 0,
+                        to: 0,
+                        total: 0
+                    },
+                    showDeleteModal: false,
+                    deleteTarget: null,
 
-                async fetchPages(page = 1) {
-                    this.loading = true;
-                    const params = new URLSearchParams({
-                        page,
-                        per_page: 15,
-                        ...Object.fromEntries(Object.entries(this.filters).filter(([_, v]) => v !== '')),
-                    });
+                    async init() {
+                        await this.fetchPages();
+                    },
 
-                    try {
-                        const res = await fetch(`/api/v1/admin/landing-pages?${params}`, {
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
+                    async fetchPages(page = 1) {
+                        this.loading = true;
+                        const params = new URLSearchParams({
+                            page,
+                            per_page: 15,
+                            ...Object.fromEntries(Object.entries(this.filters).filter(([_, v]) => v !== '')),
                         });
-                        const json = await res.json();
-                        if (json.success) {
-                            this.pages = json.data.data;
-                            this.pagination = {
-                                currentPage: json.data.current_page,
-                                lastPage: json.data.last_page,
-                                from: json.data.from || 0,
-                                to: json.data.to || 0,
-                                total: json.data.total || 0,
-                            };
+
+                        try {
+                            const res = await fetch(`/api/v1/admin/landing-pages?${params}`, {
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                            });
+
+                            const json = await res.json();
+
+                            if (json.success) {
+                                // FIX: The items are directly inside json.data
+                                this.pages = json.data;
+
+                                // FIX: The pagination details are inside json.meta
+                                this.pagination = {
+                                    currentPage: json.meta.current_page,
+                                    lastPage: json.meta.last_page,
+                                    from: json.meta.from || 0,
+                                    to: json.meta.to || 0,
+                                    total: json.meta.total || 0,
+                                };
+                            }
+                        } catch (e) {
+                            console.error('Failed to fetch landing pages:', e);
                         }
-                    } catch (e) {
-                        console.error('Failed to fetch landing pages:', e);
-                    }
-                    this.loading = false;
-                },
+                        this.loading = false;
+                    },
 
-                goToPage(page) {
-                    if (page >= 1 && page <= this.pagination.lastPage) {
-                        this.fetchPages(page);
-                    }
-                },
-
-                async toggleActive(page) {
-                    try {
-                        const res = await fetch(`/api/v1/admin/landing-pages/${page.id}/toggle-active`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                        });
-                        const json = await res.json();
-                        if (json.success) {
-                            page.is_active = json.data.is_active;
+                    goToPage(page) {
+                        if (page >= 1 && page <= this.pagination.lastPage) {
+                            this.fetchPages(page);
                         }
-                    } catch (e) {
-                        console.error('Failed to toggle landing page:', e);
-                    }
-                },
+                    },
 
-                async deletePage(page) {
-                    if (!confirm(`Delete landing page "${page.title}"? This cannot be undone.`)) return;
-                    try {
-                        const res = await fetch(`/api/v1/admin/landing-pages/${page.id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                        });
-                        const json = await res.json();
-                        if (json.success) {
-                            this.pages = this.pages.filter(p => p.id !== page.id);
+                    async toggleActive(page) {
+                        try {
+                            const res = await fetch(`/api/v1/admin/landing-pages/${page.id}/toggle-active`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                            });
+                            const json = await res.json();
+                            if (json.success) {
+                                page.is_active = json.data.is_active;
+                            }
+                        } catch (e) {
+                            console.error('Failed to toggle landing page:', e);
                         }
-                    } catch (e) {
-                        console.error('Failed to delete landing page:', e);
-                    }
-                },
-            };
-        }
-    </script>
+                    },
 
+                    confirmDelete(page) {
+                        this.deleteTarget = page;
+                        this.showDeleteModal = true;
+                    },
+
+                    async deletePage() {
+                        try {
+                            const res = await fetch(`/api/v1/admin/landing-pages/${this.deleteTarget.id}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                            });
+                            const json = await res.json();
+                            if (json.success) {
+                                this.showDeleteModal = false;
+                                window.flash?.('Page Deleted Successfully', 'success');
+                                await this.fetchPages(this.pagination.currentPage ?? 1);
+                            }
+                        } catch (e) {
+                            console.error('Failed to delete landing page:', e);
+                        }
+                    },
+                };
+            }
+        </script>
+    @endpush
 @endsection

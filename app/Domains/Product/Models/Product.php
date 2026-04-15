@@ -22,6 +22,7 @@ class Product extends Model
         'is_active',
         'is_featured',
         'is_trending',
+        'nutritional_info',
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -33,7 +34,8 @@ class Product extends Model
         'gallery' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
-        'is_trending' => 'boolean'
+        'is_trending' => 'boolean',
+        'nutritional_info' => 'array',
     ];
 
     public function category()

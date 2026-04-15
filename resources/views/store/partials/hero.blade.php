@@ -174,14 +174,14 @@
                             </h4>
                         </div>
 
-                        <div
+                        <a href="{{ route('product.show', 'egyptian-medjool') }}"
                             class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center transition-all duration-300 group-hover:bg-primary group-hover:text-white cursor-pointer shadow-sm">
                             <svg class="w-5 h-5 group-hover:text-white" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg" fill="currentColor">
                                 <path
                                     d="M17.92 6.62a1 1 0 0 0-.54-.54A1 1 0 0 0 17 6H7a1 1 0 0 0 0 2h7.59l-8.3 8.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0L16 9.41V17a1 1 0 0 0 2 0V7a1 1 0 0 0-.08-.38" />
                             </svg>
-                        </div>
+                        </a>
                     </div>
 
                     {{-- take middle right --}}
