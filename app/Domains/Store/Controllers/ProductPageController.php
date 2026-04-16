@@ -2,8 +2,9 @@
 
 namespace App\Domains\Store\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Domains\Landing\Models\LandingPage;
 use App\Domains\Product\Models\Product;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Collection;
 
 class ProductPageController extends Controller
@@ -23,13 +24,27 @@ class ProductPageController extends Controller
             ->firstOrFail();
 
         /**
-         * If landing enabled → redirect to landing PAGE
-         * NOT landing API
+         * Safe landing-page redirect.
+         *
+         * We only redirect when the LandingPage row is confirmed to exist
+         * AND is currently active. This prevents customer-facing 404s in
+         * the (unlikely but possible) scenario where the two tables drift
+         * out of sync — e.g., someone manually toggled is_active in the DB,
+         * or a transaction partially failed.
+         *
+         * If the guard fails we fall through silently to the standard
+         * product view — the customer sees a page, not an error.
          */
         if ($product->is_landing_enabled && $product->landing_slug) {
-            return redirect()->route('landing.page', [
-                'slug' => $product->landing_slug
-            ]);
+            $landingExists = LandingPage::where('slug', $product->landing_slug)
+                ->where('is_active', true)
+                ->exists();
+
+            if ($landingExists) {
+                return redirect()->route('landing.page', [
+                    'slug' => $product->landing_slug,
+                ]);
+            }
         }
 
         /** @var Collection<int, Product> $relatedProducts */

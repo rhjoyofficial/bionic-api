@@ -545,10 +545,21 @@
                 });
 
                 buyNowBtn?.addEventListener('click', async () => {
-                    const variantId = addToCartBtn.dataset.variant;
+                    const v = activeVariant();
                     const qty = Math.max(1, Number(qtyDisplay.textContent.trim() || 1));
-                    await window.Cart?.add(variantId, qty, buyNowBtn);
-                    window.location.href = '/checkout';
+
+                    // Store a buy-now payload in sessionStorage so the checkout
+                    // page renders ONLY this specific item, ignoring the full cart.
+                    sessionStorage.setItem('bionic_buy_now', JSON.stringify({
+                        variant_id: v.id,
+                        quantity: qty,
+                        product_name_snapshot: '{{ $product->name }}',
+                        variant_title_snapshot: v.title,
+                        unit_price: v.final_price,
+                        image_url: document.getElementById('productMainImage')?.src ?? '',
+                    }));
+
+                    window.location.href = '/checkout?buyNow=1';
                 });
 
                 // Initialize

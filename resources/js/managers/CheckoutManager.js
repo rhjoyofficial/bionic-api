@@ -7,6 +7,13 @@ export default class CheckoutManager {
         this.submitting = false;
         this.previewData = null; // server pricing response
 
+        // ── Buy-Now mode ───────────────────────────────────────
+        // When the user clicks "Buy Now" on a product page, a single-item
+        // payload is stored in sessionStorage under 'bionic_buy_now'.
+        // We consume it here (immediately clearing it) so a subsequent
+        // normal visit to /checkout uses the real cart instead.
+        this.buyNowItem = this._consumeBuyNowItem();
+
         // ── DOM: Form fields ───────────────────────────────────
         this.form = document.getElementById("checkoutForm");
         this.nameInput = document.getElementById("co_name");
@@ -45,7 +52,9 @@ export default class CheckoutManager {
     async init() {
         await this.waitForCart();
 
-        if (!window.Cart?.state?.items?.length) {
+        // In buy-now mode we bypass the full cart entirely, so skip the
+        // empty-cart redirect even when window.Cart has no items yet.
+        if (!this.buyNowItem && !window.Cart?.state?.items?.length) {
             window.location.href = "/cart";
             return;
         }
@@ -69,8 +78,43 @@ export default class CheckoutManager {
         });
     }
 
+    // ── Buy-Now helpers ─────────────────────────────────────────
+
+    /**
+     * Read + clear the buy-now sessionStorage entry.
+     * Returns the parsed item object, or null when not in buy-now mode.
+     */
+    _consumeBuyNowItem() {
+        const isBuyNow = new URLSearchParams(window.location.search).has('buyNow');
+        if (!isBuyNow) return null;
+
+        try {
+            const raw = sessionStorage.getItem('bionic_buy_now');
+            if (!raw) return null;
+            sessionStorage.removeItem('bionic_buy_now');
+            return JSON.parse(raw);
+        } catch {
+            sessionStorage.removeItem('bionic_buy_now');
+            return null;
+        }
+    }
+
+    /**
+     * Returns the item array to use for checkout.
+     * In buy-now mode → single item from sessionStorage.
+     * Normal mode     → full cart state.
+     */
+    _checkoutItems() {
+        if (this.buyNowItem) {
+            return [this.buyNowItem];
+        }
+        return window.Cart?.state?.items ?? [];
+    }
+
+    // ── Render ──────────────────────────────────────────────────
+
     renderItems() {
-        const items = window.Cart.state.items;
+        const items = this._checkoutItems();
 
         if (this.itemCountEl) {
             this.itemCountEl.textContent = `${items.length} item${items.length !== 1 ? "s" : ""}`;
@@ -152,7 +196,7 @@ export default class CheckoutManager {
      * Called on init, zone change, and coupon change.
      */
     async fetchPreview() {
-        const items = (window.Cart?.state?.items ?? []).map((i) => ({
+        const items = this._checkoutItems().map((i) => ({
             ...(i.combo_id ? { combo_id: i.combo_id } : {}),
             ...(i.variant_id ? { variant_id: i.variant_id } : {}),
             quantity: i.quantity,
@@ -281,7 +325,7 @@ export default class CheckoutManager {
         this._setCouponFeedback("", "");
 
         // Use preview endpoint to validate coupon in context of actual cart
-        const items = (window.Cart?.state?.items ?? []).map((i) => ({
+        const items = this._checkoutItems().map((i) => ({
             ...(i.combo_id ? { combo_id: i.combo_id } : {}),
             ...(i.variant_id ? { variant_id: i.variant_id } : {}),
             quantity: i.quantity,
@@ -408,7 +452,7 @@ export default class CheckoutManager {
         this.submitting = true;
         this._setSubmitting(true);
 
-        const items = window.Cart.state.items.map((i) => ({
+        const items = this._checkoutItems().map((i) => ({
             ...(i.combo_id ? { combo_id: i.combo_id } : {}),
             ...(i.variant_id ? { variant_id: i.variant_id } : {}),
             quantity: i.quantity,
@@ -503,7 +547,7 @@ export default class CheckoutManager {
             };
         }
 
-        if (!window.Cart?.state?.items?.length) {
+        if (!this._checkoutItems().length) {
             return {
                 valid: false,
                 message: "Your cart is empty.",

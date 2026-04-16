@@ -33,9 +33,14 @@ class LandingPageController extends Controller
      */
     private function buildProductData(LandingPage $landing): array
     {
+        // Do NOT filter by is_landing_enabled here — that flag lives on the
+        // Product table and belongs to the product-index sync flow. The landing
+        // page's own is_active flag is the authoritative gatekeeper (checked at
+        // the top of show()). Filtering here would break landing pages that are
+        // managed independently or accessed via their direct /product-page/ URL.
         $product = Product::with(['variants.tierPrices', 'category'])
             ->where('id', $landing->product_id)
-            ->where('is_landing_enabled', true)
+            ->where('is_active', true)
             ->firstOrFail();
 
         return ['product' => $product];

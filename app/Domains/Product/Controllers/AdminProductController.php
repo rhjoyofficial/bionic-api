@@ -138,11 +138,25 @@ class AdminProductController extends Controller
         }
     }
 
-    public function toggleLanding(Product $product)
+    public function toggleLanding(Product $product, Request $request)
     {
         try {
             $this->authorize('product.update');
-            $updated = $this->service->toggleLandingStatus($product);
+
+            $enabling = !$product->is_landing_enabled;
+
+            // When enabling, a slug is required.
+            if ($enabling) {
+                $request->validate([
+                    'landing_slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9\-]+$/'],
+                ]);
+            }
+
+            $updated = $this->service->toggleLandingStatus(
+                $product,
+                $enabling ? $request->input('landing_slug') : null
+            );
+
             return ApiResponse::success(
                 new ProductResource($updated),
                 'Landing status updated successfully'

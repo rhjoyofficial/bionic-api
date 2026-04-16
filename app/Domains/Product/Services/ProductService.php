@@ -2,6 +2,7 @@
 
 namespace App\Domains\Product\Services;
 
+use App\Domains\Landing\Models\LandingPage;
 use App\Domains\Product\Models\Product;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -103,13 +104,70 @@ class ProductService
         return $product->fresh();
     }
 
-    public function toggleLandingStatus(Product $product): Product
+    /**
+     * Toggle the landing-page flag and keep the LandingPage table in sync.
+     *
+     * ENABLE:
+     *   1. updateOrCreate a LandingPage row keyed on the slug, reusing any
+     *      existing content the admin already filled in (is_active → true).
+     *   2. Persist the slug on the Product and flip is_landing_enabled = true.
+     *
+     * DISABLE:
+     *   1. Find the matching LandingPage by slug and set is_active = false.
+     *   2. Flip is_landing_enabled = false. Slug is intentionally kept in both
+     *      tables so re-enabling is instant with all content intact.
+     *
+     * The whole operation is wrapped in a single transaction — both records
+     * either succeed together or neither changes.
+     */
+    public function toggleLandingStatus(Product $product, ?string $landingSlug = null): Product
     {
-        $product->update([
-            'is_landing_enabled' => !$product->is_landing_enabled,
-        ]);
+        $enabling = !$product->is_landing_enabled;
 
-        return $product->fresh();
+        return DB::transaction(function () use ($product, $enabling, $landingSlug): Product {
+
+            if ($enabling) {
+                // Slug is required when enabling (validated at controller layer).
+                $slug = $landingSlug;
+
+                // Reuse an existing LandingPage row (preserving any content
+                // the admin already edited: title, hero_image, blade_template, …)
+                // or scaffold a clean default row if none exists yet.
+                $landing = LandingPage::firstOrNew(['slug' => $slug]);
+
+                if (! $landing->exists) {
+                    // Brand-new row — apply all scaffold defaults.
+                    $landing->type           = LandingPage::TYPE_PRODUCT;
+                    $landing->product_id     = $product->id;
+                    $landing->title          = $product->name;
+                    $landing->blade_template = 'product-default';
+                }
+
+                // Always sync these two fields regardless of whether the row is new or existing.
+                $landing->product_id = $product->id; // keep foreign key correct if slug was ever reused
+                $landing->is_active  = true;
+                $landing->save();
+
+                $product->update([
+                    'landing_slug'       => $slug,
+                    'is_landing_enabled' => true,
+                ]);
+
+            } else {
+                // Deactivate the matching LandingPage (if it exists).
+                // We match on the stored slug so the landing page can't be
+                // reached via redirect or direct URL while the product flag is off.
+                if ($product->landing_slug) {
+                    LandingPage::where('slug', $product->landing_slug)
+                        ->update(['is_active' => false]);
+                }
+
+                $product->update(['is_landing_enabled' => false]);
+                // landing_slug is intentionally left intact.
+            }
+
+            return $product->fresh();
+        });
     }
 
     private function uploadGallery(array $files, array $existing): array
