@@ -19,6 +19,7 @@ class CategorySeeder extends Seeder
             ['name' => 'Ghee', 'description' => 'Pure desi ghee and clarified butter', 'image' => 'categories/ghee.gif'],
             ['name' => 'Dry Fruits', 'description' => 'Premium quality dry fruits', 'image' => 'categories/dry_fruits.gif'],
             ['name' => 'Spices', 'description' => 'Organic and pure spices', 'image' => 'categories/spices.gif'],
+            ['name' => 'Salts', 'description' => 'Natural and mineral-rich salts', 'image' => 'categories/salts.gif'],
             ['name' => 'Sweeteners', 'description' => 'Natural traditional sweeteners', 'image' => 'categories/sweeteners.gif'],
         ];
 

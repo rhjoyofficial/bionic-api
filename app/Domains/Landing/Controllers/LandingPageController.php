@@ -2,38 +2,26 @@
 
 namespace App\Domains\Landing\Controllers;
 
-use App\Domains\Marketing\Models\LandingPage;
+use App\Domains\Landing\Models\LandingPage;
 use App\Domains\Product\Models\Product;
 use App\Domains\Product\Models\Combo;
 use App\Domains\Shipping\Models\ShippingZone;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 
-/**
- * LandingPageController — Web controller
- *
- * Resolves the landing page by slug, loads all data needed for
- * the Blade template (product/combo/items), and renders the view.
- */
 class LandingPageController extends Controller
 {
     public function show(string $slug)
     {
-        $landing = LandingPage::where('slug', $slug)
-            ->where('is_active', true)
-            ->firstOrFail();
+        $landing = LandingPage::where('slug', $slug)->where('is_active', true)->firstOrFail();
 
-        $zones = ShippingZone::where('is_active', true)
-            ->orderBy('sort_order')
+        $zones = ShippingZone::where('is_active', true)->orderBy('sort_order')
             ->get(['id', 'name', 'base_charge', 'free_shipping_threshold']);
-
         $data = match ($landing->type) {
             LandingPage::TYPE_PRODUCT => $this->buildProductData($landing),
             LandingPage::TYPE_COMBO   => $this->buildComboData($landing),
             LandingPage::TYPE_SALES   => $this->buildSalesData($landing),
             default                   => [],
         };
-
         return view($landing->resolveView(), array_merge($data, [
             'landing' => $landing,
             'zones'   => $zones,
@@ -45,9 +33,14 @@ class LandingPageController extends Controller
      */
     private function buildProductData(LandingPage $landing): array
     {
+        // Do NOT filter by is_landing_enabled here — that flag lives on the
+        // Product table and belongs to the product-index sync flow. The landing
+        // page's own is_active flag is the authoritative gatekeeper (checked at
+        // the top of show()). Filtering here would break landing pages that are
+        // managed independently or accessed via their direct /product-page/ URL.
         $product = Product::with(['variants.tierPrices', 'category'])
             ->where('id', $landing->product_id)
-            ->where('is_landing_enabled', true)
+            ->where('is_active', true)
             ->firstOrFail();
 
         return ['product' => $product];

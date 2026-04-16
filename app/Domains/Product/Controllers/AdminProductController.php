@@ -124,6 +124,48 @@ class AdminProductController extends Controller
         }
     }
 
+    public function toggleActive(Product $product)
+    {
+        try {
+            $this->authorize('product.update');
+            $updated = $this->service->toggleActiveStatus($product);
+            return ApiResponse::success(
+                new ProductResource($updated),
+                'Product status updated successfully'
+            );
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Product update failed');
+        }
+    }
+
+    public function toggleLanding(Product $product, Request $request)
+    {
+        try {
+            $this->authorize('product.update');
+
+            $enabling = !$product->is_landing_enabled;
+
+            // When enabling, a slug is required.
+            if ($enabling) {
+                $request->validate([
+                    'landing_slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9\-]+$/'],
+                ]);
+            }
+
+            $updated = $this->service->toggleLandingStatus(
+                $product,
+                $enabling ? $request->input('landing_slug') : null
+            );
+
+            return ApiResponse::success(
+                new ProductResource($updated),
+                'Landing status updated successfully'
+            );
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Product update failed');
+        }
+    }
+
     /**
      * Updated to use standard ApiResponse
      */

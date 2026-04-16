@@ -9,7 +9,8 @@
             {{-- Logo & Header --}}
             <div class="text-center">
                 <a href="{{ url('/') }}" class="inline-block">
-                    <img class="mx-auto h-16 w-auto" src="{{ asset('assets/images/bionic-logo.png') }}" alt="Bionic Garden Logo">
+                    <img class="mx-auto h-16 w-auto" src="{{ asset('assets/images/bionic-logo.png') }}"
+                        alt="Bionic Garden Logo">
                 </a>
                 <h2 class="mt-6 text-3xl font-bold tracking-tight text-gray-900 font-['Plus_Jakarta_Sans']">
                     Welcome back
@@ -46,8 +47,7 @@
                             <input id="password" name="password" type="password" autocomplete="current-password" required
                                 placeholder="আপনার পাসওয়ার্ড লিখুন"
                                 class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm transition-colors font-['Noto_Sans_Bengali'] placeholder:font-['Noto_Sans_Bengali']">
-                            <button type="button"
-                                data-password-toggle="password"
+                            <button type="button" data-password-toggle="password"
                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-green-600 transition-colors">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
@@ -59,7 +59,7 @@
                     <div class="flex items-center">
                         <input id="remember-me" name="remember" type="checkbox"
                             class="h-4 w-4 text-green-600 focus:ring-green-600 border-gray-300 rounded">
-                        <label for="remember-me" class="ml-2 block text-sm text-gray-900">Remember me</label>
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-900 cursor-pointer">Remember me</label>
                     </div>
                     <div class="text-sm">
                         <a href="{{ route('password.request') }}"
@@ -71,7 +71,7 @@
 
                 <div>
                     <button type="submit" id="submitBtn"
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 transition-all transform active:scale-95 disabled:opacity-70">
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-green-600 cursor-pointer hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 transition-all transform active:scale-95 disabled:opacity-70">
                         Sign in
                     </button>
                 </div>
@@ -81,7 +81,8 @@
             <div class="mt-6 text-center text-sm">
                 <p class="text-gray-600">
                     Don't have an account?
-                    <a href="{{ route('register') }}" class="font-bold text-green-600 hover:text-green-700 transition-colors">
+                    <a href="{{ route('register') }}"
+                        class="font-bold text-green-600 hover:text-green-700 transition-colors">
                         Sign up here
                     </a>
                 </p>

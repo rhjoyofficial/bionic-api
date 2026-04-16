@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('free_shipping_threshold', 10, 2)->nullable();
             $table->integer('estimated_days')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->unsignedSmallInteger('sort_order')->default(99);
             $table->timestamps();
         });
     }

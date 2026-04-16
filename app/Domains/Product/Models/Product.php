@@ -3,6 +3,7 @@
 namespace App\Domains\Product\Models;
 
 use App\Domains\Category\Models\Category;
+use App\Domains\Certification\Models\Certification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,6 +22,7 @@ class Product extends Model
         'is_active',
         'is_featured',
         'is_trending',
+        'nutritional_info',
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -32,7 +34,8 @@ class Product extends Model
         'gallery' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
-        'is_trending' => 'boolean'
+        'is_trending' => 'boolean',
+        'nutritional_info' => 'array',
     ];
 
     public function category()
@@ -72,6 +75,11 @@ class Product extends Model
             'product_id',
             'related_product_id'
         )->wherePivot('relation_type', 'cross_sell');
+    }
+
+    public function certifications()
+    {
+        return $this->belongsToMany(Certification::class)->withTimestamps();
     }
 
     public function scopeActive(Builder $query): Builder

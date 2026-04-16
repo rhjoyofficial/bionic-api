@@ -29,6 +29,7 @@ class AdminRoleController extends Controller
         'coupon'       => ['coupon.view', 'coupon.create', 'coupon.update', 'coupon.delete'],
         'shipping'     => ['shipping.view', 'shipping.create', 'shipping.update', 'shipping.delete'],
         'customer'     => ['customer.view', 'customer.update', 'customer.deactivate'],
+        'landing'     =>  ['landing-pages.view', 'landing-pages.create', 'landing-pages.update', 'landing-pages.delete'],
         'notification' => ['notification.view', 'notification.send', 'notification.manage'],
         'system'       => ['system.settings', 'system.webhooks', 'system.activity_log'],
         'analytics'    => ['analytics.view'],
@@ -261,7 +262,8 @@ class AdminRoleController extends Controller
                 ->select('id', 'name', 'email', 'phone', 'is_active', 'last_login_at', 'created_at');
 
             if ($q = $request->input('q')) {
-                $query->where(fn($sub) =>
+                $query->where(
+                    fn($sub) =>
                     $sub->where('name', 'like', "%{$q}%")
                         ->orWhere('email', 'like', "%{$q}%")
                 );

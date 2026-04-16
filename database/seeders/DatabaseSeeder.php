@@ -19,11 +19,12 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
+            CertificationSeeder::class,
             HeroBannerSeeder::class,
             ComboSeeder::class,
             ShippingZoneSeeder::class,
             CouponSeeder::class,
-            LandingPageSeeder::class,
+            // LandingPageSeeder::class,
             WebhookSeeder::class,
         ]);
     }

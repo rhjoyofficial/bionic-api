@@ -40,7 +40,7 @@
                         <input type="text" x-model="form.name"
                             class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600"
                             :class="errors.name ? 'border-red-400' : 'border-gray-200'"
-                            placeholder="e.g. Whey Protein Isolate">
+                            placeholder="e.g. Mangrove Gold Honey (ম্যানগ্রোভ গোল্ড হানি) 500gm">
                         <p x-show="errors.name" class="mt-1 text-xs text-red-600" x-text="errors.name?.[0]"></p>
                     </div>
 
@@ -91,7 +91,7 @@
                                         <input type="text" x-model="variant.title"
                                             class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600"
                                             :class="errors['variants.' + index + '.title'] ? 'border-red-400' : 'border-gray-200'"
-                                            placeholder="e.g. 1kg Chocolate">
+                                            placeholder="e.g. 1kg Jar">
                                         <p x-show="errors['variants.' + index + '.title']" class="mt-1 text-xs text-red-600"
                                             x-text="errors['variants.' + index + '.title']?.[0]"></p>
                                     </div>
@@ -100,7 +100,7 @@
                                         <input type="text" x-model="variant.sku"
                                             class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600 font-mono"
                                             :class="errors['variants.' + index + '.sku'] ? 'border-red-400' : 'border-gray-200'"
-                                            placeholder="WPI-1KG-CHO">
+                                            placeholder="MGH-1KG-JAR">
                                         <p x-show="errors['variants.' + index + '.sku']" class="mt-1 text-xs text-red-600"
                                             x-text="errors['variants.' + index + '.sku']?.[0]"></p>
                                     </div>
@@ -207,7 +207,7 @@
                     <div x-show="form.is_landing_enabled">
                         <label class="block text-xs font-medium text-gray-600 mb-1">Landing Slug</label>
                         <div class="flex items-center gap-2">
-                            <span class="text-sm text-gray-400">/landing/</span>
+                            <span class="text-sm text-gray-400">/product-page/</span>
                             <input type="text" x-model="form.landing_slug"
                                 class="flex-1 border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600"
                                 :class="errors.landing_slug ? 'border-red-400' : 'border-gray-200'"

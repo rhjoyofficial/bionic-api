@@ -105,7 +105,7 @@
                         'label' => 'Landing Pages',
                         'route' => 'admin.landing-pages',
                         'icon' => 'fa-link',
-                        'permission' => 'landing-pages.edit',
+                        'permission' => 'landing-pages.view',
                     ],
                     [
                         'label' => 'Notifications',
