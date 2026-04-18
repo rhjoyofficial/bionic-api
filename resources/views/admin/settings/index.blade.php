@@ -302,13 +302,17 @@ function settingsApp() {
         groupLabels: {
             general:   'General',
             contact:   'Contact',
+            social:    'Social Media',
             business:  'Business',
+            hero_section: 'Hero Section',
             mail_info: 'Mail / SMTP (read-only)',
         },
         groupIcons: {
             general:   'fa-house',
             contact:   'fa-address-book',
+            social:    'fa-share-nodes',
             business:  'fa-briefcase',
+            hero_section: 'fa-star',
             mail_info: 'fa-envelope',
         },
 
@@ -331,7 +335,7 @@ function settingsApp() {
         async loadSettings() {
             this.loadingSettings = true;
             try {
-                const res = await fetch('/admin/api/settings', {
+                const res = await fetch('/api/v1/admin/settings', {
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() }
                 });
                 const json = await res.json();
@@ -353,7 +357,7 @@ function settingsApp() {
             this.saving = true;
             try {
                 const payload = this.buildPayload(groupKey);
-                const res = await fetch('/admin/api/settings', {
+                const res = await fetch('/api/v1/admin/settings', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -379,7 +383,7 @@ function settingsApp() {
             this.saving = true;
             const payload = Object.keys(this.groups).flatMap(k => this.buildPayload(k));
             try {
-                const res = await fetch('/admin/api/settings', {
+                const res = await fetch('/api/v1/admin/settings', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -405,7 +409,7 @@ function settingsApp() {
         async loadHealth() {
             this.loadingHealth = true;
             try {
-                const res = await fetch('/admin/api/settings/health', {
+                const res = await fetch('/api/v1/admin/settings/health', {
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() }
                 });
                 const json = await res.json();
@@ -423,7 +427,7 @@ function settingsApp() {
         async clearCache() {
             this.actionLoading = 'cache';
             try {
-                const res = await fetch('/admin/api/settings/clear-cache', {
+                const res = await fetch('/api/v1/admin/settings/clear-cache', {
                     method: 'POST',
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() }
                 });
@@ -443,7 +447,7 @@ function settingsApp() {
         async optimizeApp() {
             this.actionLoading = 'optimize';
             try {
-                const res = await fetch('/admin/api/settings/optimize', {
+                const res = await fetch('/api/v1/admin/settings/optimize', {
                     method: 'POST',
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() }
                 });
@@ -460,20 +464,67 @@ function settingsApp() {
         },
 
         async toggleMaintenance() {
+            const isCurrentlyMaintenance = this.health?.checks?.app?.maintenance;
+
+            // Confirm before enabling — prevent accidental lockouts
+            if (!isCurrentlyMaintenance) {
+                if (!confirm('Enable maintenance mode?\n\nThe admin panel will remain accessible, but all storefront visitors will see a 503 page.\n\nClick OK to proceed.')) {
+                    return;
+                }
+            }
+
             this.actionLoading = 'maintenance';
             try {
-                const res = await fetch('/admin/api/settings/toggle-maintenance', {
+                const res = await fetch('/api/v1/admin/settings/toggle-maintenance', {
                     method: 'POST',
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() }
                 });
-                const json = await res.json();
-                this.$dispatch('flash', {
-                    type: json.success ? 'success' : 'error',
-                    message: json.message || (json.success ? 'Maintenance mode updated.' : 'Failed.')
-                });
-                if (json.success) this.loadHealth();
+
+                // Handle case where response might not be JSON (e.g. unexpected 503)
+                let json;
+                try {
+                    json = await res.json();
+                } catch (_) {
+                    // Couldn't parse — the request may have been intercepted
+                    // Fall back: poll the status endpoint to get real state
+                    const statusRes = await fetch('/api/v1/admin/settings/maintenance-status', {
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() }
+                    });
+                    const statusJson = await statusRes.json();
+                    if (this.health && this.health.checks && this.health.checks.app) {
+                        this.health.checks.app.maintenance = statusJson.data?.maintenance ?? false;
+                    }
+                    this.$dispatch('flash', { type: 'warning', message: 'Maintenance state updated (response was intercepted).' });
+                    return;
+                }
+
+                if (json.success) {
+                    // Update the local health state directly — avoid expensive full reload
+                    if (this.health && this.health.checks && this.health.checks.app) {
+                        this.health.checks.app.maintenance = json.data?.maintenance ?? false;
+                    }
+                    // Also update the overall banner status
+                    if (this.health) {
+                        this.health.overall_status = json.data?.maintenance ? 'warning' : 'ok';
+                    }
+                    this.$dispatch('flash', { type: 'success', message: json.message });
+                } else {
+                    this.$dispatch('flash', { type: 'error', message: json.message || 'Failed to toggle maintenance mode.' });
+                }
             } catch (e) {
-                this.$dispatch('flash', { type: 'error', message: 'Network error.' });
+                // Network-level error — poll the status to show accurate current state
+                try {
+                    const statusRes = await fetch('/api/v1/admin/settings/maintenance-status', {
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() }
+                    });
+                    const statusJson = await statusRes.json();
+                    if (this.health && this.health.checks && this.health.checks.app) {
+                        this.health.checks.app.maintenance = statusJson.data?.maintenance ?? false;
+                    }
+                    this.$dispatch('flash', { type: 'warning', message: 'Maintenance state refreshed from server.' });
+                } catch (_) {
+                    this.$dispatch('flash', { type: 'error', message: 'Network error — please refresh the page to see current state.' });
+                }
             } finally {
                 this.actionLoading = null;
             }

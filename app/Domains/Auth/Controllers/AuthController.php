@@ -9,6 +9,7 @@ use App\Domains\Auth\Services\AuthService;
 use App\Domains\Cart\Services\CartMergeService;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendWelcomeMailJob;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +47,9 @@ class AuthController extends Controller
             DB::commit();
             Auth::login($user);
             $request->session()->regenerate();
+
+            // Dispatch the welcome email on the queue.
+            SendWelcomeMailJob::dispatch($user);
 
             return ApiResponse::success([
                 'user' => new UserResource($user),

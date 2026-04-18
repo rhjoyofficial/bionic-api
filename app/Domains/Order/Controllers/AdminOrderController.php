@@ -69,6 +69,186 @@ class AdminOrderController extends Controller
     }
 
     // ──────────────────────────────────────────────────────────────
+    // BULK IMPORT / EXPORT
+    // ──────────────────────────────────────────────────────────────
+
+    public function exportBulk(Request $request)
+    {
+        $ids = [];
+        if ($request->has('ids')) {
+            $idsParam = $request->get('ids');
+            $ids = is_string($idsParam) ? explode(',', $idsParam) : (array)$idsParam;
+        }
+
+        $orders = collect();
+        if (!empty($ids)) {
+            $orders = Order::with(['items', 'zone', 'user', 'shipments', 'shippingAddress'])->whereIn('id', $ids)->latest('id')->get();
+        }
+
+        $headers = [
+            'Content-type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=orders_export_' . date('Y-m-d_H-i-s') . '.csv',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
+        ];
+
+        $columns = ['Order Number', 'Date', 'Customer Name', 'Customer Phone', 'Address', 'Zone', 'Grand Total', 'Status', 'Payment Method', 'Payment Status', 'Courier', 'Items'];
+
+        $callback = function () use ($orders, $columns) {
+            $file = fopen('php://output', 'w');
+            // Adding BOM for excel UTF-8 compatibility
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, $columns);
+            foreach ($orders as $order) {
+                $itemsStr = $order->items->map(function ($i) {
+                    return $i->sku_snapshot . ' x' . $i->quantity;
+                })->implode(' | ');
+
+                $courier = $order->shipments->first() ? $order->shipments->first()->courier_label : '';
+
+                fputcsv($file, [
+                    $order->order_number,
+                    $order->placed_at ? $order->placed_at->format('Y-m-d H:i:s') : '',
+                    $order->customer_name,
+                    $order->customer_phone,
+                    $order->shippingAddress ? $order->shippingAddress->address_line : '',
+                    $order->zone ? $order->zone->name : '',
+                    $order->grand_total,
+                    $order->order_status,
+                    $order->payment_method,
+                    $order->payment_status,
+                    $courier,
+                    $itemsStr
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function importTemplate()
+    {
+        $headers = [
+            'Content-type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=orders_import_template.csv',
+            'Pragma'              => 'no-cache',
+        ];
+
+        $columns = ['customer_name', 'customer_phone', 'customer_email', 'address_line', 'area', 'city', 'postal_code', 'zone_id', 'payment_method', 'product_sku', 'quantity', 'notes', 'coupon_code'];
+
+        $callback = function () use ($columns) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, $columns);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Import multiple CSV rows dynamically into grouped multi-item Orders.
+     */
+    public function importBulk(Request $request, \App\Domains\Order\Services\AdminOrderCreationService $creationService)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt'],
+        ]);
+
+        $file = $request->file('file');
+        $handle = fopen($file->getRealPath(), 'r');
+        
+        // Handle BOM parsing safely
+        $bom = fread($handle, 3);
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($handle);
+        }
+        
+        $header = fgetcsv($handle);
+        if (!$header) {
+            return ApiResponse::error('Invalid or empty CSV file.', null, 400);
+        }
+
+        $header = array_map('trim', $header);
+        $header = array_map('strtolower', $header);
+
+        $groups = [];
+        while (($row = fgetcsv($handle)) !== false) {
+            if (count($row) !== count($header)) continue;
+            
+            $data = array_combine($header, $row);
+            $phone = trim($data['customer_phone'] ?? '');
+            if (empty($phone)) continue;
+
+            if (!isset($groups[$phone])) {
+                $groups[$phone] = [
+                    'customer_name'  => trim($data['customer_name'] ?? ''),
+                    'customer_phone' => $phone,
+                    'customer_email' => trim($data['customer_email'] ?? ''),
+                    'address_line'   => trim($data['address_line'] ?? ''),
+                    'area'           => trim($data['area'] ?? ''),
+                    'city'           => trim($data['city'] ?? ''),
+                    'postal_code'    => trim($data['postal_code'] ?? ''),
+                    'zone_id'        => (int) ($data['zone_id'] ?? 0),
+                    'payment_method' => strtolower(trim($data['payment_method'] ?? 'cod')),
+                    'notes'          => trim($data['notes'] ?? ''),
+                    'coupon_code'    => trim($data['coupon_code'] ?? ''),
+                    'items'          => []
+                ];
+            }
+
+            // Extract variant by exact SKU
+            $sku = trim($data['product_sku'] ?? '');
+            $qty = (int) ($data['quantity'] ?? 1);
+            if ($sku && $qty > 0) {
+                // Deep fetch the variant matching SKU tightly
+                $variant = \App\Domains\Product\Models\ProductVariant::where('sku', $sku)->first();
+                if ($variant) {
+                    $groups[$phone]['items'][] = [
+                        'variant_id' => $variant->id,
+                        'quantity'   => $qty
+                    ];
+                }
+            }
+        }
+        fclose($handle);
+
+        $createdCount = 0;
+        $failedCount = 0;
+        $errors = [];
+
+        foreach ($groups as $phone => $group) {
+            if (empty($group['items'])) {
+                $failedCount++;
+                $errors[] = "Order for {$phone} skipped (No valid/matching SKUs found).";
+                continue;
+            }
+
+            try {
+                // Drop empty optional keys dynamically so internal validation triggers fallback defaults
+                foreach (['customer_email', 'area', 'city', 'postal_code', 'coupon_code', 'notes'] as $opt) {
+                    if ($group[$opt] === '') unset($group[$opt]);
+                }
+
+                \Illuminate\Support\Facades\DB::transaction(function () use ($creationService, $group) {
+                    $creationService->create($group, Auth::id(), null);
+                });
+                $createdCount++;
+            } catch (\Exception $e) {
+                $failedCount++;
+                $errors[] = "Order for {$phone} failed: " . $e->getMessage();
+            }
+        }
+
+        return ApiResponse::success(
+            ['created' => $createdCount, 'failed' => $failedCount, 'errors' => $errors],
+            "Import processed: {$createdCount} succeeded, {$failedCount} failed."
+        );
+    }
+
+    // ──────────────────────────────────────────────────────────────
     // ADMIN CREATE ORDER
     // ──────────────────────────────────────────────────────────────
 
@@ -87,7 +267,7 @@ class AdminOrderController extends Controller
             'city'             => 'nullable|string|max:100',
             'postal_code'      => 'nullable|string|max:20',
             'zone_id'          => 'required|integer|exists:shipping_zones,id',
-            'payment_method'   => 'required|string|in:cod,online',
+            'payment_method'   => 'required|string|in:cod',
             'coupon_code'      => 'nullable|string|max:50',
             'notes'            => 'nullable|string|max:2000',
             'linked_user_id'   => 'nullable|integer|exists:users,id',

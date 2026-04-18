@@ -26,6 +26,16 @@ class Certification extends Model
         'is_active' => 'boolean'
     ];
 
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order', 'asc');
+    }
+
     public function products()
     {
         return $this->belongsToMany(Product::class)->withTimestamps();

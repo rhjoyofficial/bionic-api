@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OrderStatusChanged;
+use App\Mail\OrderStatusMail;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
@@ -23,30 +24,38 @@ class SendOrderStatusEmail implements ShouldQueue
     {
         $order = $event->order;
 
-        if ($order->customer_email) {
-            try {
-                Mail::raw(
-                    "Your order #{$order->order_number} status changed from {$event->oldStatus} to {$event->newStatus}.",
-                    function ($message) use ($order) {
-                        $message->to($order->customer_email)
-                            ->subject('Order Status Update');
-                    }
-                );
-            } catch (Throwable $e) {
-                Log::error('SendOrderStatusEmail failed', [
-                    'order_id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'customer_email' => $order->customer_email,
-                    'old_status' => $event->oldStatus,
-                    'new_status' => $event->newStatus,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        } else {
+        if (!$order->customer_email) {
             Log::info('SendOrderStatusEmail skipped: missing customer email', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'new_status' => $event->newStatus,
+            ]);
+            return;
+        }
+
+        // We do not email when status is 'pending' because OrderConfirmationMail covers it
+        if ($event->newStatus === 'pending') {
+            return;
+        }
+
+        try {
+            $fromAddress = env('NOREPLY_MAIL_FROM_ADDRESS', 'no-reply@bionic.garden');
+            $fromName    = env('NOREPLY_MAIL_FROM_NAME', config('app.name') . ' Orders');
+
+            Mail::mailer('noreply')
+                ->to($order->customer_email)
+                ->send(
+                    (new OrderStatusMail($order, $event->oldStatus, $event->newStatus))
+                        ->from($fromAddress, $fromName)
+                );
+        } catch (Throwable $e) {
+            Log::error('SendOrderStatusEmail failed', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'customer_email' => $order->customer_email,
+                'old_status' => $event->oldStatus,
+                'new_status' => $event->newStatus,
+                'error' => $e->getMessage(),
             ]);
         }
     }

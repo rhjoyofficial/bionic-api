@@ -436,7 +436,7 @@
                             </div>
 
                             {{-- Assign Courier Form --}}
-                            <div class="p-5 border-b border-gray-100">
+                            <div class="p-5 border-b border-gray-100" x-show="!['pending', 'cancelled', 'delivered'].includes(order?.order_status)" x-cloak>
                                 <div class="flex items-end gap-3">
                                     <div class="flex-1">
                                         <label class="block text-xs font-medium text-gray-600 mb-1">Courier Service</label>
@@ -449,7 +449,7 @@
                                         </select>
                                     </div>
                                     <button @click="assignCourier()" :disabled="!selectedCourier || assigningCourier"
-                                        class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition whitespace-nowrap">
+                                        class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition whitespace-nowrap cursor-pointer">
                                         <i class="fas"
                                             :class="assigningCourier ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
                                         <span x-text="assigningCourier ? 'Creating…' : 'Create Shipment'"></span>
@@ -475,12 +475,12 @@
                                             <div class="flex items-center gap-2">
                                                 <button @click="syncShipmentStatus(shipment.id)"
                                                     :disabled="shipment.is_terminal"
-                                                    class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 transition"
+                                                    class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 transition cursor-pointer"
                                                     title="Refresh status from courier">
                                                     <i class="fas fa-arrows-rotate"></i>
                                                 </button>
                                                 <button x-show="shipment.is_cancellable" @click="cancelShipment(shipment.id)"
-                                                    class="text-xs px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-600 transition"
+                                                    class="text-xs px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-600 transition cursor-pointer"
                                                     title="Cancel shipment">
                                                     <i class="fas fa-ban"></i>
                                                 </button>
@@ -815,7 +815,7 @@
 
                 async loadZones() {
                     try {
-                        const r = await fetch('/api/v1/admin/orders/shipping-zones', {
+                        const r = await fetch('/api/v1/admin/shipping-zones', {
                             headers: {
                                 'Accept': 'application/json'
                             }

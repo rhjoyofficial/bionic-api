@@ -38,8 +38,15 @@ class SendOrderConfirmationEmail implements ShouldQueue
             // Ensure relationships are loaded so the template renders without N+1 queries.
             $order->loadMissing(['items', 'shippingAddress']);
 
-            Mail::to($order->customer_email)
-                ->send(new OrderConfirmationMail($order));
+            $fromAddress = env('NOREPLY_MAIL_FROM_ADDRESS', 'no-reply@bionic.garden');
+            $fromName    = env('NOREPLY_MAIL_FROM_NAME', config('app.name') . ' Orders');
+
+            Mail::mailer('noreply')
+                ->to($order->customer_email)
+                ->send(
+                    (new OrderConfirmationMail($order))
+                        ->from($fromAddress, $fromName)
+                );
         } catch (Throwable $e) {
             Log::error('SendOrderConfirmationEmail failed', [
                 'order_id' => $order->id,

@@ -26,6 +26,8 @@ class PathaoCourier implements CourierInterface
         try {
             $token = $this->getAccessToken();
 
+            $location = $this->resolveLocationIds($token, $payload['recipient_city'] ?? '', $payload['recipient_area'] ?? '');
+
             $response = Http::withToken($token)
                 ->timeout(30)
                 ->post("{$this->baseUrl}/aladdin/api/v1/orders", [
@@ -34,14 +36,14 @@ class PathaoCourier implements CourierInterface
                     'recipient_name'      => $payload['recipient_name'],
                     'recipient_phone'     => $payload['recipient_phone'],
                     'recipient_address'   => $payload['recipient_address'],
-                    'recipient_city'      => $payload['recipient_city'] ?? null,
-                    'recipient_zone'      => $payload['recipient_area'] ?? null,
+                    'recipient_city'      => $location['city_id'],
+                    'recipient_zone'      => $location['zone_id'],
                     'delivery_type'       => 48,  // Normal delivery
                     'item_type'           => 2,   // Parcel
                     'item_quantity'       => 1,
                     'item_weight'         => $payload['item_weight'] ?? 0.5,
                     'item_description'    => $payload['item_description'] ?? 'E-commerce order',
-                    'amount_to_collect'   => $payload['amount_to_collect'] ?? 0,
+                    'amount_to_collect'   => (int) round($payload['amount_to_collect'] ?? 0),
                     'special_instruction' => $payload['special_instruction'] ?? '',
                 ]);
 
@@ -162,5 +164,46 @@ class PathaoCourier implements CourierInterface
 
             return $response->json('access_token');
         });
+    }
+
+    /**
+     * Dynamically map text city/zone to Pathao IDs, falling back to defaults if not found.
+     */
+    private function resolveLocationIds(string $token, string $cityStr, string $zoneStr): array
+    {
+        $defaultCityId = 1; // Dhaka
+        $defaultZoneId = 1167; // Mirpur Default
+
+        if (empty(trim($cityStr))) {
+            return ['city_id' => $defaultCityId, 'zone_id' => $defaultZoneId];
+        }
+
+        $cityId = $defaultCityId;
+
+        $cities = Cache::remember('pathao_cities', 86400, function () use ($token) {
+            $res = Http::withToken($token)->timeout(10)->get("{$this->baseUrl}/aladdin/api/v1/countries/1/city-list");
+            return $res->json('data.data') ?? [];
+        });
+
+        $cityMatch = collect($cities)->first(fn($c) => stripos($c['city_name'], trim($cityStr)) !== false);
+        if ($cityMatch) {
+            $cityId = $cityMatch['city_id'];
+        }
+
+        $zones = Cache::remember("pathao_zones_{$cityId}", 86400, function () use ($token, $cityId) {
+            $res = Http::withToken($token)->timeout(10)->get("{$this->baseUrl}/aladdin/api/v1/cities/{$cityId}/zone-list");
+            return $res->json('data.data') ?? [];
+        });
+
+        $zoneId = $zones[0]['zone_id'] ?? $defaultZoneId;
+
+        if (!empty(trim($zoneStr))) {
+            $zoneMatch = collect($zones)->first(fn($z) => stripos($z['zone_name'], trim($zoneStr)) !== false);
+            if ($zoneMatch) {
+                $zoneId = $zoneMatch['zone_id'];
+            }
+        }
+
+        return ['city_id' => $cityId, 'zone_id' => $zoneId];
     }
 }

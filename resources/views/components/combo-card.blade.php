@@ -11,7 +11,7 @@
         <div class="flex-1 p-3 flex flex-col min-w-0">
             <div class="grow">
                 <div class="flex items-start justify-between gap-2 mb-1 relative">
-                    <a href="#"
+                    <a href="#" title="{{ $combo->items->map(fn($item) => $item->variant->product->name)->implode(' • ') }}"
                         class="font-bengali text-left text-gray-800 font-medium leading-snug line-clamp-2 min-h-8 group-hover/card:text-primary transition-colors truncate-2 hover:underline">
                         {{ $combo->title }}
                     </a>
@@ -23,8 +23,10 @@
                     @endif
                 </div>
 
-                <p class="text-xs text-gray-400 mb-2 truncate ">
-                    {{ $combo->items->map(fn($item) => $item->variant->product->name)->implode(' • ') }}</p>
+                <p class="text-xs text-gray-400 mb-2 truncate "
+                    title="{{ $combo->items->map(fn($item) => $item->variant->product->name)->implode(' • ') }}">
+                    {{ $combo->items->map(fn($item) => $item->variant->product->name)->implode(' • ') }}
+                    </p>
 
                 <div class="flex items-baseline gap-1.5 mb-3 font-bengali">
                     <span class="text-base font-bold text-primary">{{ number_format($combo->final_price) }}৳</span>

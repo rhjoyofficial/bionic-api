@@ -52,7 +52,7 @@ class ProductSeeder extends Seeder
                 'price' => 190,
                 'stock' => 1000,
                 'weight_grams' => 140,
-                'is_active' => true
+                'is_active' => true,
             ],
             [
                 'title' => '1KG',
@@ -60,11 +60,11 @@ class ProductSeeder extends Seeder
                 'price' => 870,
                 'stock' => 1000,
                 'weight_grams' => 1000,
-                'is_active' => true
+                'is_active' => true,
             ],
         ]);
 
-        $variants->first()->tierPrices()->create([
+        $variants[1]->tierPrices()->create([
             'min_quantity' => 2,
             'discount_type' => 'fixed',
             'discount_value' => 60,
@@ -101,7 +101,6 @@ class ProductSeeder extends Seeder
             'weight_grams' => 200,
             'is_active' => true,
         ]);
-
 
         // ==================== HONEY ====================
 
@@ -177,7 +176,6 @@ class ProductSeeder extends Seeder
             'is_active' => true,
         ]);
 
-
         // ==================== GHEE ====================
 
         $premiumGhee = Product::create([
@@ -219,7 +217,6 @@ class ProductSeeder extends Seeder
             'discount_type' => 'fixed',
             'discount_value' => 60,
         ]);
-
 
         // ==================== DATES ====================
 
@@ -379,7 +376,6 @@ class ProductSeeder extends Seeder
             ['title' => '3KG', 'sku' => 'SUK-3KG', 'price' => 3900, 'stock' => 1000, 'weight_grams' => 3000, 'is_active' => true],
         ]);
 
-
         // ==================== MIXES & NUTS ====================
 
         Product::create([
@@ -445,7 +441,6 @@ class ProductSeeder extends Seeder
             'is_active' => true,
         ]);
 
-
         // ==================== SEEDS ====================
 
         Product::create([
@@ -509,7 +504,6 @@ class ProductSeeder extends Seeder
             'weight_grams' => 240,
             'is_active' => true,
         ]);
-
 
         // ==================== OILS ====================
 
@@ -601,7 +595,6 @@ class ProductSeeder extends Seeder
             ['title' => '5L', 'sku' => 'MUS-5L', 'price' => 1750, 'stock' => 1000, 'weight_grams' => 5000, 'is_active' => true],
             ['title' => '8L', 'sku' => 'MUS-8L', 'price' => 2800, 'discount_type' => 'fixed', 'discount_value' => 150, 'stock' => 1000, 'weight_grams' => 8000, 'is_active' => true],
         ]);
-
 
         // ==================== SWEETENERS ====================
 

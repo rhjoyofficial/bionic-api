@@ -15,6 +15,10 @@
         <div class="flex items-center gap-3">
             <span class="text-sm text-gray-500" x-show="meta.total !== undefined" x-text="meta.total + ' orders'"></span>
             @can('order.create')
+            <button @click="showImportModal = true"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition cursor-pointer">
+                <i class="fas fa-file-import text-xs"></i> Import
+            </button>
             <a href="{{ route('admin.orders.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
                 <i class="fas fa-plus text-xs"></i> Create Order
@@ -88,6 +92,10 @@
             </button>
         </div>
         <div class="flex items-center gap-2">
+            <button @click="exportSelected()"
+                    class="mr-2 inline-flex items-center gap-1.5 px-4 py-1.5 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition cursor-pointer">
+                <i class="fas fa-file-export text-xs"></i> Export Data
+            </button>
             <select x-model="bulkCourier"
                     class="border border-blue-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Select courier…</option>
@@ -96,7 +104,7 @@
                 <option value="carrybee">CarryBee</option>
             </select>
             <button @click="bulkAssignCourier()" :disabled="!bulkCourier || bulkAssigning"
-                    class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
+                    class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition cursor-pointer">
                 <i class="fas" :class="bulkAssigning ? 'fa-spinner fa-spin' : 'fa-truck-fast'"></i>
                 <span x-text="bulkAssigning ? 'Assigning…' : 'Assign Courier'"></span>
             </button>
@@ -250,6 +258,35 @@
         </div>
     </div>
 
+    {{-- Import Modal --}}
+    <div x-show="showImportModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+        <div @click.away="if(!importing) showImportModal = false" class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-bold text-gray-800">Import Orders</h3>
+                <button @click="if(!importing) showImportModal = false" class="text-gray-400 hover:text-gray-600 cursor-pointer">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Upload a CSV file containing order data. Ensure you match the required column formats.</p>
+                    <a href="/api/v1/admin/orders/import-template" class="text-xs font-semibold text-blue-600 hover:text-blue-800 underline">
+                        <i class="fas fa-download mr-1"></i> Download CSV Template
+                    </a>
+                </div>
+                
+                <div class="mb-5">
+                    <input type="file" x-ref="importFileInput" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
+                </div>
+
+                <div x-show="importResult" class="mb-4 text-xs p-3 rounded-lg bg-gray-50 border border-gray-200" x-html="importResult"></div>
+
+                <button @click="importOrders" :disabled="importing" class="w-full py-2.5 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 transition disabled:opacity-50 flex justify-center items-center gap-2 cursor-pointer">
+                    <i class="fas bg-transparent" :class="importing ? 'fa-spinner fa-spin' : 'fa-upload'"></i>
+                    <span x-text="importing ? 'Importing...' : 'Upload & Import'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @endsection
@@ -275,6 +312,11 @@ function orderList() {
         bulkAssigning: false,
         bulkResult: null,
         canUpdate: @can('order.update') true @else false @endcan,
+
+        // Import State
+        showImportModal: false,
+        importing: false,
+        importResult: null,
 
         get hasFilters() {
             return this.search || this.filterStatus || this.filterPayment || this.filterPaymentStatus || this.dateFrom || this.dateTo;
@@ -330,6 +372,56 @@ function orderList() {
                 this.selectedOrders = this.orders.map(o => o.id);
             } else {
                 this.selectedOrders = [];
+            }
+        },
+
+        exportSelected() {
+            if (this.selectedOrders.length === 0) return;
+            const ids = this.selectedOrders.join(',');
+            window.location.href = `/api/v1/admin/orders/export-bulk?ids=${ids}`;
+        },
+
+        async importOrders() {
+            const fileInput = this.$refs.importFileInput;
+            if (!fileInput.files || fileInput.files.length === 0) {
+                this.importResult = '<span class="text-red-500">Please select a file to upload.</span>';
+                return;
+            }
+
+            this.importing = true;
+            this.importResult = 'Uploading and processing, please wait...';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const r = await fetch('/api/v1/admin/orders/import-bulk', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                });
+                
+                const data = await r.json();
+                if (r.ok) {
+                    let resHtml = `<p class="text-green-600 font-bold mb-1">${data.message}</p>`;
+                    if (data.data?.errors?.length > 0) {
+                        resHtml += `<ul class="text-red-500 list-disc list-inside mt-2 max-h-32 overflow-y-auto">`;
+                        data.data.errors.forEach(e => resHtml += `<li>${e}</li>`);
+                        resHtml += `</ul>`;
+                    }
+                    this.importResult = resHtml;
+                    this.loadOrders(1);
+                    fileInput.value = ''; // clear input
+                } else {
+                    this.importResult = `<span class="text-red-500">${data.message || 'Import failed'}</span>`;
+                }
+            } catch (e) {
+                this.importResult = '<span class="text-red-500">Network error during upload.</span>';
+            } finally {
+                this.importing = false;
             }
         },
 

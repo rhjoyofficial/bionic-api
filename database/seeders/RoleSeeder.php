@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
@@ -25,10 +25,18 @@ class RoleSeeder extends Seeder
             'product.create',
             'product.update',
             'product.delete',
+
+            // Landing Pages
             'landing-pages.view',
             'landing-pages.create',
             'landing-pages.update',
             'landing-pages.delete',
+
+            // Hero Banners
+            'hero.view',
+            'hero.create',
+            'hero.update',
+            'hero.delete',
 
             // Order
             'order.create',
@@ -36,13 +44,13 @@ class RoleSeeder extends Seeder
             'order.update',
             'order.export',
 
-            // Coupon (granular — replaces old coupon.manage)
+            // Coupon
             'coupon.view',
             'coupon.create',
             'coupon.update',
             'coupon.delete',
 
-            // Shipping (granular — replaces old shipping.manage)
+            // Shipping
             'shipping.view',
             'shipping.create',
             'shipping.update',
@@ -56,7 +64,7 @@ class RoleSeeder extends Seeder
             // Notifications
             'notification.view',
             'notification.send',
-            'notification.manage',  // retry/delete failed jobs
+            'notification.manage',
 
             // System / Settings
             'system.settings',
@@ -90,6 +98,7 @@ class RoleSeeder extends Seeder
             'order.view',
             'order.update',
             'order.export',
+            'order.create',
             'shipping.view',
             'customer.view',
             'notification.view',
@@ -105,15 +114,24 @@ class RoleSeeder extends Seeder
             'product.update',
             'product.delete',
             'category.view',
+            'category.create',
+            'category.update',
         ]);
 
-        // Marketing — coupons, analytics, notifications
+        // Marketing — coupons, hero banners, landing pages, analytics, notifications
         $marketing = Role::firstOrCreate(['name' => 'Marketing']);
         $marketing->syncPermissions([
             'coupon.view',
             'coupon.create',
             'coupon.update',
             'coupon.delete',
+            'hero.view',
+            'hero.create',
+            'hero.update',
+            'hero.delete',
+            'landing-pages.view',
+            'landing-pages.create',
+            'landing-pages.update',
             'analytics.view',
             'notification.view',
             'notification.send',
@@ -125,11 +143,13 @@ class RoleSeeder extends Seeder
             'order.view',
             'customer.view',
             'customer.update',
+            'customer.deactivate',
             'notification.view',
             'notification.send',
+            'analytics.view',
         ]);
 
-        // Customer (storefront) — minimal
+        // Customer (storefront) — minimal read access
         $customer = Role::firstOrCreate(['name' => 'Customer']);
         $customer->syncPermissions([
             'product.view',
@@ -137,6 +157,6 @@ class RoleSeeder extends Seeder
 
         // ── Remove legacy permissions that were replaced ─────────────────────
         Permission::whereIn('name', ['coupon.manage', 'shipping.manage', 'user.manage'])
-            ->each(fn($p) => $p->delete());
+            ->each(fn ($p) => $p->delete());
     }
 }

@@ -37,6 +37,8 @@ class ProductTierPriceController extends Controller
                 'Tier price added successfully',
                 201
             );
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to add tier price');
         }
