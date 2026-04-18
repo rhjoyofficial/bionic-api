@@ -12,30 +12,37 @@
                 <div>
                     <h4 class="font-bold mb-4">Follow Us</h4>
                     <div class="flex gap-3">
-                        @foreach (['facebook', 'pinterest', 'youtube', 'tiktok'] as $social)
-                            <a href="#"
+                        @php
+                            $socials = [
+                                'facebook'  => 'https://www.facebook.com/BionicGardenOfficial', 
+                                'pinterest' => 'https://www.pinterest.com/bionicgardenofficial/', 
+                                'youtube'   => 'https://www.youtube.com/@BionicGardenOfficial', 
+                                'whatsapp'  => 'https://wa.me/8801334943785'
+                            ];
+                        @endphp
+                        @foreach ($socials as $key => $social)
+                            <a href="{{ $social }}"
                                 class="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors group">
                                 <span class="sr-only">{{ $social }}</span>
-
-                                @if ($social == 'facebook')
+                                @if ($key == 'facebook')
                                     <svg class="w-5 h-5 fill-current text-white/80 group-hover:text-white"
                                         viewBox="0 0 320 512">
                                         <path
                                             d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z" />
                                     </svg>
-                                @elseif($social == 'pinterest')
+                                @elseif($key == 'pinterest')
                                     <svg class="w-5 h-5 fill-current text-white/80 group-hover:text-white"
                                         viewBox="0 0 496 512">
                                         <path
                                             d="M496 256c0 137-111 248-248 248-25.6 0-50.2-3.9-73.4-11.1 10.1-16.5 25.2-43.5 30.8-65 3-11.6 15.4-59 15.4-59 8.1 15.4 31.7 28.5 56.8 28.5 74.8 0 128.7-68.8 128.7-154.3 0-81.9-66.9-143.2-152.9-143.2-107 0-163.9 71.8-163.9 150.1 0 36.4 19.4 81.7 50.3 96.1 4.7 2.2 7.2 1.2 8.3-3.3.8-3.4 5-20.3 6.9-28.1.6-2.5.3-4.7-1.7-7.1-10.1-12.5-18.3-35.3-18.3-56.6 0-54.7 41.4-107.6 112-107.6 60.9 0 103.6 41.5 103.6 100.9 0 67.1-33.9 113.6-78 113.6-24.3 0-42.6-20.1-36.7-44.8 7-29.5 20.5-61.3 20.5-82.6 0-19-10.2-34.9-31.4-34.9-24.9 0-44.9 25.7-44.9 60.2 0 22 7.4 36.8 7.4 36.8s-24.5 103.8-29 123.2c-5 21.4-3 51.6-.9 71.2C65.4 450.9 0 361.1 0 256 0 119 111 8 248 8s248 111 248 248z" />
                                     </svg>
-                                @elseif($social == 'youtube')
+                                @elseif($key == 'youtube')
                                     <svg class="w-5 h-5 fill-current text-white/80 group-hover:text-white"
                                         viewBox="0 0 576 512">
                                         <path
                                             d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z" />
                                     </svg>
-                                @elseif($social == 'tiktok')
+                                @elseif($key == 'whatsapp')
                                     <svg class="w-5 h-5 fill-current text-white/80 group-hover:text-white"
                                         viewBox="0 0 448 512">
                                         <path

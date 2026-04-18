@@ -16,7 +16,6 @@ class CreateCourierShipmentListener
         if ($event->newStatus !== 'confirmed') {
             return;
         }
-
-        $this->shipmentService->create($event->order);
+        return;
     }
 }

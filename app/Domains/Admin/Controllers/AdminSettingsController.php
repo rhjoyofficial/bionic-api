@@ -221,7 +221,8 @@ class AdminSettingsController extends Controller
         try {
             Artisan::call('cache:clear');
             Artisan::call('view:clear');
-            Artisan::call('route:clear');
+            // NOTE: route:clear is intentionally omitted — clearing routes during
+            // runtime can break follow-up requests in the same session.
             Setting::bustCache();
 
             return ApiResponse::success(null, 'Application cache cleared successfully');
@@ -230,15 +231,31 @@ class AdminSettingsController extends Controller
         }
     }
 
+    /**
+     * Lightweight maintenance state check — used by the frontend to poll
+     * current status without fetching the full health report.
+     */
+    public function maintenanceStatus(): JsonResponse
+    {
+        return ApiResponse::success([
+            'maintenance' => app()->isDownForMaintenance(),
+        ]);
+    }
+
     public function toggleMaintenance(Request $request): JsonResponse
     {
         try {
-            if (app()->isDownForMaintenance()) {
+            $isCurrentlyDown = app()->isDownForMaintenance();
+
+            if ($isCurrentlyDown) {
                 Artisan::call('up');
-                return ApiResponse::success(['maintenance' => false], 'Site is now live');
+                return ApiResponse::success(
+                    ['maintenance' => false],
+                    'Site is now live and accepting requests.'
+                );
             }
 
-            // Build down options
+            // Build artisan down options
             $options = ['--refresh' => 15];
             $secret  = Setting::get('maintenance_secret') ?: $request->input('secret');
             if ($secret) {
@@ -247,7 +264,10 @@ class AdminSettingsController extends Controller
 
             Artisan::call('down', $options);
 
-            return ApiResponse::success(['maintenance' => true], 'Maintenance mode enabled');
+            return ApiResponse::success(
+                ['maintenance' => true],
+                'Maintenance mode enabled. Admin panel remains accessible.'
+            );
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to toggle maintenance mode');
         }

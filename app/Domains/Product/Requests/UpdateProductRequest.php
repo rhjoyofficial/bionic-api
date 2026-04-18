@@ -14,7 +14,10 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $product = $this->route('product');
+        $productId = $product instanceof \App\Domains\Product\Models\Product ? $product->id : $product;
+
+        $rules = [
             'name'               => 'sometimes|string|max:255',
             'short_description'  => 'nullable|string',
             'description'        => 'nullable|string',
@@ -30,9 +33,7 @@ class UpdateProductRequest extends FormRequest
             'is_trending'        => 'boolean',
 
             'variants'                       => 'sometimes|array|min:1',
-            'variants.*.id'                  => 'nullable|integer|exists:product_variants,id',
             'variants.*.title'               => 'required_with:variants|string',
-            'variants.*.sku'                 => 'required_with:variants|string',
             'variants.*.price'               => 'required_with:variants|numeric|min:0',
             'variants.*.stock'               => 'nullable|integer|min:0',
             'variants.*.weight_grams'        => 'nullable|integer|min:0',
@@ -44,12 +45,33 @@ class UpdateProductRequest extends FormRequest
             'landing_slug' => [
                 'nullable',
                 'string',
-                Rule::unique('products', 'landing_slug')->ignore($this->route('product')),
+                Rule::unique('products', 'landing_slug')->ignore($productId),
             ],
             'is_landing_enabled'  => 'boolean',
             'meta_title'          => 'nullable|string|max:255',
             'meta_description'    => 'nullable|string',
             'meta_keywords'       => 'nullable|string',
         ];
+
+        // Dynamically add SKU uniqueness and per-product ownership validation
+        if ($this->has('variants')) {
+            foreach ($this->input('variants') as $index => $variant) {
+                $id = $variant['id'] ?? null;
+
+                $rules["variants.{$index}.id"] = [
+                    'nullable',
+                    'integer',
+                    Rule::exists('product_variants', 'id')->where('product_id', $productId),
+                ];
+
+                $rules["variants.{$index}.sku"] = [
+                    'required_with:variants',
+                    'string',
+                    $id ? Rule::unique('product_variants', 'sku')->ignore($id) : Rule::unique('product_variants', 'sku'),
+                ];
+            }
+        }
+
+        return $rules;
     }
 }

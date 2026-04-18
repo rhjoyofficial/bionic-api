@@ -50,6 +50,19 @@ return [
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
+        'noreply' => [
+            'transport' => 'smtp',
+            'scheme' => env('NOREPLY_MAIL_SCHEME', env('MAIL_ENCRYPTION')),
+            'encryption' => env('MAIL_ENCRYPTION'),
+            'url' => env('MAIL_URL'),
+            'host' => env('NOREPLY_MAIL_HOST', '127.0.0.1'),
+            'port' => env('NOREPLY_MAIL_PORT', 2525),
+            'username' => env('NOREPLY_MAIL_USERNAME'),
+            'password' => env('NOREPLY_MAIL_PASSWORD'),
+            'timeout' => null,
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ],
+
         'ses' => [
             'transport' => 'ses',
         ],

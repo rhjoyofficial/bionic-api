@@ -26,8 +26,8 @@ class DashboardStatsService
         $startOfMonth = Carbon::now()->startOfMonth();
 
         return [
-            'revenue_today'    => Order::whereDate('placed_at', $today)->sum('grand_total'),
-            'revenue_month'    => Order::where('placed_at', '>=', $startOfMonth)->sum('grand_total'),
+            'revenue_today'    => Order::whereDate('placed_at', $today)->whereNotIn('order_status', ['cancelled', 'returned'])->sum('grand_total'),
+            'revenue_month'    => Order::where('placed_at', '>=', $startOfMonth)->whereNotIn('order_status', ['cancelled', 'returned'])->sum('grand_total'),
             'orders_today'     => Order::whereDate('placed_at', $today)->count(),
             'orders_month'     => Order::where('placed_at', '>=', $startOfMonth)->count(),
             'customers_total'  => User::where('is_guest', false)->count(),

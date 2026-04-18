@@ -240,7 +240,6 @@
                             <select x-model="form.payment_method"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="cod">Cash on Delivery</option>
-                                <option value="online">Online Payment</option>
                             </select>
                         </div>
                         <div>
@@ -370,7 +369,7 @@ function createOrder() {
 
         async loadZones() {
             try {
-                const r = await fetch('/api/v1/admin/orders/shipping-zones', {
+                const r = await fetch('/api/v1/admin/shipping-zones', {
                     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }
                 });
                 const j = await r.json();

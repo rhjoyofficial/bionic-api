@@ -88,7 +88,7 @@ class ProductService
                     }
                 }
 
-                $product->allVariants()->whereNotIn('id', $existingIds)->delete();
+                // Variant deletion is intentionally handled via a separate explicit bulk action or endpoint if ever needed.
             }
 
             return $product->load('variants');

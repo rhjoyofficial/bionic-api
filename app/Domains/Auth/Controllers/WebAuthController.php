@@ -9,6 +9,7 @@ use App\Domains\Auth\Services\AuthService;
 use App\Domains\Cart\Services\CartMergeService;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendWelcomeMailJob;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -114,6 +115,13 @@ class WebAuthController extends Controller
                     ]);
                 }
             }
+
+            // Dispatch the welcome email on the queue.
+            // Running via queue means:
+            //   1. This HTTP response is returned instantly regardless of SMTP speed.
+            //   2. A transient mail-server failure retries automatically (3× / 60s backoff).
+            //   3. A mail failure CANNOT roll back or affect the registration.
+            SendWelcomeMailJob::dispatch($user);
 
             return ApiResponse::success([
                 'user'  => new UserResource($user),

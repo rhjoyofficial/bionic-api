@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Admin\Controllers\AdminSettingsController;
+use App\Domains\Store\Controllers\AdminHeroBannerController;
 use App\Domains\Auth\Controllers\AdminRoleController;
 use App\Domains\Category\Controllers\AdminCategoryController;
 use App\Domains\Courier\Controllers\AdminCourierController;
@@ -98,6 +99,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     // Static routes BEFORE wildcard {order} to avoid route conflicts
     Route::get('orders/search-products', [AdminOrderController::class, 'searchProducts'])
         ->middleware('permission:order.update');
+        
+    Route::get('orders/export-bulk', [AdminOrderController::class, 'exportBulk'])
+        ->middleware('permission:order.view');
+    Route::get('orders/import-template', [AdminOrderController::class, 'importTemplate'])
+        ->middleware('permission:order.create');
+    Route::post('orders/import-bulk', [AdminOrderController::class, 'importBulk'])
+        ->middleware('permission:order.create');
+
     Route::get('/shipping-zones', [AdminOrderController::class, 'shippingZones'])
         ->middleware('permission:order.view');
 
@@ -214,11 +223,23 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         Route::delete('/{landingPage}', [AdminLandingPageController::class, 'destroy'])->middleware('permission:landing-pages.delete');
     });
 
+    // --- Hero Banners ---
+    Route::middleware('permission:hero.view')->group(function () {
+        Route::get('hero-banners', [AdminHeroBannerController::class, 'index']);
+        Route::get('hero-banners/{heroBanner}', [AdminHeroBannerController::class, 'show']);
+    });
+    Route::post('hero-banners', [AdminHeroBannerController::class, 'store'])->middleware('permission:hero.create');
+    Route::post('hero-banners/{heroBanner}', [AdminHeroBannerController::class, 'update'])->middleware('permission:hero.update');
+    Route::put('hero-banners/{heroBanner}', [AdminHeroBannerController::class, 'update'])->middleware('permission:hero.update');
+    Route::patch('hero-banners/{heroBanner}/toggle-active', [AdminHeroBannerController::class, 'toggleActive'])->middleware('permission:hero.update');
+    Route::delete('hero-banners/{heroBanner}', [AdminHeroBannerController::class, 'destroy'])->middleware('permission:hero.delete');
+
     // --- Settings & System Health ---
     Route::group(['prefix' => 'settings', 'middleware' => 'permission:system.settings'], function () {
-        Route::get('/',         [AdminSettingsController::class, 'index']);
-        Route::put('/',         [AdminSettingsController::class, 'update']);
-        Route::get('/health',   [AdminSettingsController::class, 'health']);
+        Route::get('/',                      [AdminSettingsController::class, 'index']);
+        Route::put('/',                      [AdminSettingsController::class, 'update']);
+        Route::get('/health',                [AdminSettingsController::class, 'health']);
+        Route::get('/maintenance-status',    [AdminSettingsController::class, 'maintenanceStatus']);
         Route::post('/clear-cache',          [AdminSettingsController::class, 'clearCache']);
         Route::post('/toggle-maintenance',   [AdminSettingsController::class, 'toggleMaintenance']);
         Route::post('/optimize',             [AdminSettingsController::class, 'optimizeApp']);

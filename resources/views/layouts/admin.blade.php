@@ -108,6 +108,12 @@
                         'permission' => 'landing-pages.view',
                     ],
                     [
+                        'label' => 'Hero Banners',
+                        'route' => 'admin.hero-banners',
+                        'icon' => 'fa-photo-film',
+                        'permission' => 'hero.view',
+                    ],
+                    [
                         'label' => 'Notifications',
                         'route' => 'admin.notifications',
                         'icon' => 'fa-bell',

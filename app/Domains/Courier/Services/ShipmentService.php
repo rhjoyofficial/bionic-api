@@ -47,7 +47,7 @@ class ShipmentService
 
         $result = $driver->createShipment($payload);
 
-        return CourierShipment::create([
+        $shipment = CourierShipment::create([
             'order_id'               => $order->id,
             'courier'                => $courierName,
             'tracking_code'          => $result['tracking_code'],
@@ -59,6 +59,20 @@ class ShipmentService
             'courier_response'       => $result['raw'] ?? null,
             'created_by'             => $createdBy,
         ]);
+
+        if ($result['success'] && in_array($order->order_status, ['confirmed', 'processing'])) {
+            try {
+                if ($order->order_status === 'confirmed') {
+                    $this->orderStatusService->changeStatus($order, OrderStatus::Processing);
+                    $order->refresh();
+                }
+                $this->orderStatusService->changeStatus($order, OrderStatus::Shipped);
+            } catch (\Exception $e) {
+                Log::warning("ShipmentService: could not auto-ship order #{$order->id}: {$e->getMessage()}");
+            }
+        }
+
+        return $shipment;
     }
 
     /**
@@ -79,6 +93,15 @@ class ShipmentService
                 $existing = CourierShipment::where('order_id', $orderId)
                     ->whereNotIn('status', ['cancelled', 'returned'])
                     ->first();
+
+                if (in_array($order->order_status, ['shipped', 'delivered', 'cancelled', 'returned'])) {
+                    $errors[] = [
+                        'order_id' => $orderId,
+                        'order_number' => $order->order_number,
+                        'message' => 'Cannot assign courier to order with status: ' . $order->order_status,
+                    ];
+                    continue;
+                }
 
                 if ($existing) {
                     $errors[] = [

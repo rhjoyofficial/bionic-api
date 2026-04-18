@@ -34,7 +34,7 @@
                                         </div>
 
                                         <div class="flex flex-col flex-wrap justify-start items-start gap-6">
-                                            <a href="{{ $banner->effective_button_url ?? '#' }}"
+                                            <a href="{{ $banner->button_url ?? route('products.index') }}"
                                                 class="bg-primary hover:opacity-90 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-green-900/20">
                                                 {{ $banner->button_text ?? 'Shop All Products' }}
                                                 <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>

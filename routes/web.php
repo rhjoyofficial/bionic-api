@@ -241,6 +241,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         return view('admin.landing-pages.edit', ['landingPageId' => $landingPage->id]);
     })->name('admin.landing-pages.edit')->middleware('permission:landing-pages.update');
 
+    // Hero Banners
+    Route::get('/hero-banners', fn() => view('admin.hero-banners.index'))->name('admin.hero-banners')
+        ->middleware('permission:hero.view');
+
     // Activity Log
     Route::get('/activity-log', AdminActivityLogController::class)->name('admin.activity-log')
         ->middleware('permission:system.activity_log');
