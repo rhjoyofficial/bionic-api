@@ -19,6 +19,7 @@ return new class extends Migration
 
             $table->string('customer_name');
             $table->string('customer_phone');
+            $table->string('alternative_phone', 20)->nullable();
             $table->string('customer_email')->nullable();
 
             $table->string('address_line');

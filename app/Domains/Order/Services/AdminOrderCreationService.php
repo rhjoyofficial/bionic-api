@@ -64,7 +64,7 @@ class AdminOrderCreationService
                 'customer_email'       => $data['customer_email'] ?? null,
                 'zone_id'              => $data['zone_id'],
                 'payment_method'       => $data['payment_method'],
-                'payment_status'       => 'unpaid',
+                'payment_status'       => $data['payment_status'] ?? 'unpaid',
                 'order_status'         => 'pending',
                 'notes'                => $data['notes'] ?? null,
                 'subtotal'             => $pricing->subtotal,

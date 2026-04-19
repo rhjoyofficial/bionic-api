@@ -267,12 +267,15 @@ class AdminOrderController extends Controller
             'city'             => 'nullable|string|max:100',
             'postal_code'      => 'nullable|string|max:20',
             'zone_id'          => 'required|integer|exists:shipping_zones,id',
-            'payment_method'   => 'required|string|in:cod',
+            'payment_method'   => 'required|string|in:cod,bank_transfer,others,online_transfer,sslcommerz',
+            'payment_status'   => 'nullable|string|in:paid,unpaid',
             'coupon_code'      => 'nullable|string|max:50',
             'notes'            => 'nullable|string|max:2000',
             'linked_user_id'   => 'nullable|integer|exists:users,id',
-            'items'            => 'required|array|min:1',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items'              => 'required|array|min:1',
+            'items.*.variant_id' => 'nullable|integer|exists:product_variants,id',
+            'items.*.combo_id'   => 'nullable|integer|exists:combos,id',
+            'items.*.quantity'   => 'required|integer|min:1',
         ]);
 
         // Each item needs variant_id or combo_id
@@ -321,6 +324,27 @@ class AdminOrderController extends Controller
         } catch (Exception $e) {
             $code = str_contains($e->getMessage(), 'Invalid status transition') ? 422 : 500;
             return $this->handleError($e, $e->getMessage(), $code);
+        }
+    }
+
+    /**
+     * Mark an order as paid / unpaid (admin manual override).
+     */
+    public function updatePaymentStatus(Request $request, Order $order)
+    {
+        $request->validate([
+            'payment_status' => 'required|in:paid,unpaid,failed',
+        ]);
+
+        try {
+            $order->update(['payment_status' => $request->payment_status]);
+
+            return ApiResponse::success(
+                ['payment_status' => $order->payment_status],
+                'Payment status updated to ' . $request->payment_status,
+            );
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Failed to update payment status');
         }
     }
 

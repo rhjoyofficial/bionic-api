@@ -434,9 +434,12 @@ function shippingManager() {
                 const method = this.editingId ? 'PUT' : 'POST';
 
                 const payload = { ...this.form };
-                ['free_shipping_threshold', 'estimated_days', 'sort_order'].forEach(k => {
+                // free_shipping_threshold and estimated_days are truly nullable in DB
+                ['free_shipping_threshold', 'estimated_days'].forEach(k => {
                     if (payload[k] === '') payload[k] = null;
                 });
+                // sort_order is NOT NULL — keep blank as null and let server fill it
+                if (payload.sort_order === '') payload.sort_order = null;
 
                 const r = await fetch(url, {
                     method,
@@ -462,20 +465,31 @@ function shippingManager() {
 
         // ── Toggle active ──────────────────────────────────────────────────
         async toggleActive(zone) {
+            const previous = zone.is_active;
+            zone.is_active = !zone.is_active;  // optimistic update
+            zone._toggling = true;
             try {
                 const r = await fetch(`/api/v1/admin/shipping-zones/${zone.id}`, {
-                    method: 'PUT',
+                    method: 'PATCH',
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
-                    body: JSON.stringify({ is_active: !zone.is_active }),
+                    body: JSON.stringify({ is_active: zone.is_active }),
                 });
                 const data = await r.json();
-                if (r.ok) zone.is_active = data.data?.is_active ?? !zone.is_active;
+                if (!r.ok) {
+                    zone.is_active = previous;  // revert on failure
+                    alert(data.message ?? 'Failed to update status');
+                } else {
+                    zone.is_active = data.data?.is_active ?? zone.is_active;
+                }
             } catch (e) {
-                console.error('Failed to toggle zone', e);
+                zone.is_active = previous;
+                alert('Network error. Please try again.');
+            } finally {
+                zone._toggling = false;
             }
         },
 
