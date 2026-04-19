@@ -16,8 +16,11 @@ class OrderStatusNotificationListener implements ShouldQueue
     {
         $user = $event->order->user;
 
-        // Guest orders have no user — skip push notification
         if (!$user) return;
+
+        // Skip if FCM is not configured (placeholder key or missing)
+        $key = config('firebase.server_key');
+        if (empty($key) || $key === 'your_firebase_server_key') return;
 
         Notification::send(
             $user,
