@@ -23,44 +23,44 @@
 
                     <!-- repeat cards -->
                     <div class="cert-card" data-img="/assets/certificates/bsti.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/bsti.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/bsti.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/gmp.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/gmp.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/gmp.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/iso.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/iso.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/iso.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/halal.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/halal.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/halal.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/haccp.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/haccp.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/haccp.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <!-- duplicate -->
                     <div class="cert-card" data-img="/assets/certificates/bsti.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/bsti.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/bsti.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/gmp.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/gmp.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/gmp.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/iso.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/iso.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/iso.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/halal.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/halal.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/halal.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/haccp.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/haccp.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/haccp.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                 </div>
@@ -97,44 +97,44 @@
 
                     <!-- cards -->
                     <div class="cert-card" data-img="/assets/certificates/pure.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/pure.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/pure.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/msg.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/msg.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/msg.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/gmo.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/gmo.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/gmo.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/premium.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/premium.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/premium.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/halal-food.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/halal-food.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/halal-food.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <!-- duplicate -->
                     <div class="cert-card" data-img="/assets/certificates/pure.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/pure.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/pure.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/msg.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/msg.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/msg.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/gmo.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/gmo.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/gmo.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/premium.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/premium.png" class="cert-img"></div>
+                        <div class="cert-canvas"><img src="/assets/certificates/premium.png" loading="lazy" class="cert-img"></div>
                     </div>
 
                     <div class="cert-card" data-img="/assets/certificates/halal-food.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/halal-food.png" class="cert-img">
+                        <div class="cert-canvas"><img src="/assets/certificates/halal-food.png" loading="lazy" class="cert-img">
                         </div>
                     </div>
 

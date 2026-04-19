@@ -5,6 +5,7 @@
     <div class="flex flex-row items-stretch h-full">
         <div class="w-2/5 sm:w-32 md:w-5/12 aspect-square shrink-0 overflow-hidden">
             <img src="{{ $combo->image_url }}" alt="{{ $combo->title }}"
+                loading="lazy"
                 class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
         </div>
 

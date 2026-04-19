@@ -12,6 +12,7 @@
     {{-- IMAGE --}}
     <div class="relative aspect-square overflow-hidden rounded-xl bg-gray-50 mb-4">
         <img src="{{ $product->image_url }}" alt="{{ $product->name }}"
+            loading="lazy"
             class="aspect-square object-cover w-full h-full group-hover/card:scale-105 transition-transform duration-500">
 
         {{-- DISCOUNT BADGE --}}

@@ -160,6 +160,7 @@
                                 class="thumbBtn aspect-square rounded-xl overflow-hidden border-2 border-primary p-1 bg-white shadow-sm"
                                 data-src="{{ $mainImage }}">
                                 <img src="{{ $mainImage }}" alt="thumbnail"
+                                    loading="lazy"
                                     class="w-full h-full object-cover rounded-lg">
                             </button>
                             @foreach ($gallery as $image)
@@ -167,6 +168,7 @@
                                     class="thumbBtn aspect-square rounded-xl overflow-hidden border border-gray-200 p-1 bg-white hover:border-primary transition"
                                     data-src="{{ asset('storage/' . $image) }}">
                                     <img src="{{ asset('storage/' . $image) }}" alt="thumbnail"
+                                        loading="lazy"
                                         class="w-full h-full object-cover rounded-lg">
                                 </button>
                             @endforeach

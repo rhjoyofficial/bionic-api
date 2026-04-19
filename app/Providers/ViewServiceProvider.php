@@ -11,13 +11,19 @@ class ViewServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        View::composer('*', function ($view) {
-
-            $globalCategories = Cache::remember('global_categories', now()->addHours(6), function () {
-                return Category::query()->active()->ordered()->get();
-            });
-
-            $view->with('globalCategories', $globalCategories);
-        });
+        // Bind global categories only to store-facing and shared layout views.
+        // Using '*' would fire on every admin view, sub-partial, and email —
+        // causing unnecessary cache lookups on requests where the data is unused.
+        View::composer(
+            ['store.*', 'layouts.*', 'components.*', 'auth.*', 'customer.*', 'pages.*'],
+            function ($view) {
+                // Shared cache key — also invalidated by CategoryObserver.
+                $view->with('globalCategories', Cache::remember(
+                    'categories:active',
+                    now()->addHours(24),
+                    fn () => Category::query()->active()->ordered()->get()
+                ));
+            }
+        );
     }
 }

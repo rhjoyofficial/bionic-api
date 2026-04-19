@@ -4,9 +4,10 @@ namespace App\Domains\Category\Controllers;
 
 use App\Domains\Category\Models\Category;
 use App\Domains\Category\Resources\CategoryResource;
-use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class PublicCategoryController extends Controller
@@ -17,9 +18,9 @@ class PublicCategoryController extends Controller
     public function index()
     {
         try {
-            $categories = Category::where('is_active', true)
-                ->orderBy('sort_order', 'asc')
-                ->get();
+            $categories = Cache::remember('api:categories:active', now()->addHours(24), fn () =>
+                Category::where('is_active', true)->orderBy('sort_order', 'asc')->get()
+            );
 
             return ApiResponse::success(
                 CategoryResource::collection($categories),
