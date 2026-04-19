@@ -5,6 +5,7 @@
 
             <div id="thumbnail" class="absolute inset-0 w-full h-full transition-all duration-700 z-10">
                 <img src="{{ asset('assets/video/video-thumbnail.png') }}" alt="Bionic Showcase"
+                    loading="lazy"
                     class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80 filter brightness-90 grayscale-[20%] group-hover:grayscale-0">
 
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>

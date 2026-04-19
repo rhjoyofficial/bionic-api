@@ -9,14 +9,15 @@ class OrderAddress extends Model
 {
     protected $fillable = [
         'order_id',
-        'type', // 'shipping' or 'billing'
+        'type',
         'customer_name',
         'customer_phone',
+        'alternative_phone',
         'address_line',
         'area',
         'city',
         'postal_code',
-        'latitude',  // Useful for courier API integrations
+        'latitude',
         'longitude',
     ];
 

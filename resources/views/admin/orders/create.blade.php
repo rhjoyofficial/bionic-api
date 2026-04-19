@@ -113,7 +113,7 @@
                                    placeholder="Mirpur, Uttara…">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1.5">City</label>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5">City <span class="text-red-500">*</span></label>
                             <input type="text" x-model="form.city"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                    placeholder="Dhaka">
@@ -239,7 +239,17 @@
                             <label class="block text-xs font-semibold text-gray-600 mb-1.5">Payment Method <span class="text-red-500">*</span></label>
                             <select x-model="form.payment_method"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="cod">Cash on Delivery</option>
+                                <option value="cod">Cash on Delivery (COD)</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="others">Others</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5">Payment Status</label>
+                            <select x-model="form.payment_status"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="unpaid">Unpaid</option>
+                                <option value="paid">Paid</option>
                             </select>
                         </div>
                         <div>
@@ -547,7 +557,7 @@ function createOrder() {
             this.form = {
                 customer_name: '', customer_phone: '', customer_email: '',
                 address_line: '', area: '', city: '', postal_code: '',
-                zone_id: '', payment_method: 'cod', coupon_code: '', notes: '',
+                zone_id: '', payment_method: 'cod', payment_status: 'unpaid', coupon_code: '', notes: '',
                 linked_user_id: null,
             };
         },

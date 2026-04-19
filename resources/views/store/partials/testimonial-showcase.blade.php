@@ -75,6 +75,7 @@
                                         data-image="{{ asset('assets/review/review-3.jpeg') }}">
 
                                         <img src="{{ asset('assets/review/review-3.jpeg') }}"
+                                            loading="lazy"
                                             class="w-full h-full object-contain" alt="Customer chat review">
 
                                     </div>

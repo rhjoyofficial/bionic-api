@@ -116,7 +116,7 @@ class OrderStatusService
     private function isValidTransition(string $current, string $next): bool
     {
         $allowed = [
-            'pending'    => ['confirmed', 'cancelled'],
+            'pending'    => ['confirmed', 'processing', 'cancelled'],
             'confirmed'  => ['processing', 'cancelled'],
             'processing' => ['shipped', 'cancelled'],
             'shipped'    => ['delivered', 'returned'],

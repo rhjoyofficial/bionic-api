@@ -3,25 +3,37 @@
 namespace App\Domains\Landing\Controllers;
 
 use App\Domains\Landing\Models\LandingPage;
-use App\Domains\Product\Models\Product;
 use App\Domains\Product\Models\Combo;
+use App\Domains\Product\Models\Product;
 use App\Domains\Shipping\Models\ShippingZone;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 
 class LandingPageController extends Controller
 {
     public function show(string $slug)
     {
-        $landing = LandingPage::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $landing = Cache::remember("landing:meta:{$slug}", now()->addMinutes(30), fn () =>
+            LandingPage::where('slug', $slug)->where('is_active', true)->first()
+        );
 
-        $zones = ShippingZone::where('is_active', true)->orderBy('sort_order')
-            ->get(['id', 'name', 'base_charge', 'free_shipping_threshold']);
-        $data = match ($landing->type) {
+        if (! $landing) {
+            abort(404);
+        }
+
+        $zones = Cache::remember('shipping:zones:active', now()->addHours(24), fn () =>
+            ShippingZone::where('is_active', true)->orderBy('sort_order')
+                ->get(['id', 'name', 'base_charge', 'free_shipping_threshold'])
+        );
+
+        $cacheKey = "landing:data:{$slug}:{$landing->type}";
+        $data = Cache::remember($cacheKey, now()->addHours(2), fn () => match ($landing->type) {
             LandingPage::TYPE_PRODUCT => $this->buildProductData($landing),
             LandingPage::TYPE_COMBO   => $this->buildComboData($landing),
             LandingPage::TYPE_SALES   => $this->buildSalesData($landing),
             default                   => [],
-        };
+        });
+
         return view($landing->resolveView(), array_merge($data, [
             'landing' => $landing,
             'zones'   => $zones,

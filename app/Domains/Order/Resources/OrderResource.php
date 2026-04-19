@@ -51,10 +51,12 @@ class OrderResource extends JsonResource
             ] : null),
 
             'shipping_address' => $this->whenLoaded('shippingAddress', fn() => $this->shippingAddress ? [
-                'address_line' => $this->shippingAddress->address_line,
-                'area'         => $this->shippingAddress->area,
-                'city'         => $this->shippingAddress->city,
-                'postal_code'  => $this->shippingAddress->postal_code,
+                'address_line'      => $this->shippingAddress->address_line,
+                'area'              => $this->shippingAddress->area,
+                'city'              => $this->shippingAddress->city,
+                'postal_code'       => $this->shippingAddress->postal_code,
+                'customer_phone'    => $this->shippingAddress->customer_phone,
+                'alternative_phone' => $this->shippingAddress->alternative_phone,
             ] : null),
 
             'items' => $this->whenLoaded('items', fn() => $this->items->map(fn($i) => [
@@ -83,6 +85,7 @@ class OrderResource extends JsonResource
                 'courier_label'          => match ($s->courier) {
                     'pathao'    => 'Pathao',
                     'steadfast' => 'Steadfast',
+                    'redx'      => 'RedX',
                     'carrybee'  => 'CarryBee',
                     default     => ucfirst($s->courier),
                 },

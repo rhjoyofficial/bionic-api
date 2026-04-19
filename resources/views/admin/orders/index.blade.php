@@ -96,37 +96,13 @@
                     class="mr-2 inline-flex items-center gap-1.5 px-4 py-1.5 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition cursor-pointer">
                 <i class="fas fa-file-export text-xs"></i> Export Data
             </button>
-            <select x-model="bulkCourier"
-                    class="border border-blue-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select courier…</option>
-                <option value="pathao">Pathao</option>
-                <option value="steadfast">Steadfast</option>
-                <option value="carrybee">CarryBee</option>
-            </select>
-            <button @click="bulkAssignCourier()" :disabled="!bulkCourier || bulkAssigning"
-                    class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition cursor-pointer">
-                <i class="fas" :class="bulkAssigning ? 'fa-spinner fa-spin' : 'fa-truck-fast'"></i>
-                <span x-text="bulkAssigning ? 'Assigning…' : 'Assign Courier'"></span>
+            <button @click="openBulkPathaoModal()"
+                    class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition cursor-pointer">
+                <i class="fas fa-paper-plane text-xs"></i> Send to Pathao
             </button>
         </div>
     </div>
 
-    {{-- Bulk Result --}}
-    <div x-show="bulkResult" x-cloak
-         class="mb-4 rounded-xl border px-5 py-3 text-sm"
-         :class="bulkResult?.errors?.length > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-green-50 border-green-200 text-green-800'">
-        <div class="flex items-center justify-between">
-            <span x-text="bulkResult?.message || ''"></span>
-            <button @click="bulkResult = null" class="text-xs opacity-60 hover:opacity-100">&times;</button>
-        </div>
-        <template x-if="bulkResult?.errors?.length > 0">
-            <ul class="mt-2 space-y-0.5 text-xs">
-                <template x-for="err in bulkResult.errors" :key="err.order_id">
-                    <li><span class="font-mono" x-text="err.order_number"></span>: <span x-text="err.message"></span></li>
-                </template>
-            </ul>
-        </template>
-    </div>
     @endcan
 
     {{-- Table --}}
@@ -287,6 +263,133 @@
         </div>
     </div>
 
+    {{-- ── Bulk Pathao Modal (one-by-one) ── --}}
+    <div x-show="showBulkPathaoModal" x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        @keydown.escape.window="showBulkPathaoModal = false">
+        <div class="absolute inset-0 bg-black/50" @click="showBulkPathaoModal = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto" @click.stop>
+
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-gray-800"><i class="fas fa-paper-plane text-green-600 mr-2"></i>Send to Pathao</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        Order <span class="font-semibold text-gray-600" x-text="bulkQueue[bulkQueueIdx]?.order_number ?? ''"></span>
+                        — <span x-text="(bulkQueueIdx + 1) + ' of ' + bulkQueue.length"></span>
+                    </p>
+                </div>
+                <button @click="showBulkPathaoModal = false" class="text-gray-400 hover:text-gray-600 cursor-pointer"><i class="fas fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                {{-- City --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">City <span class="text-red-500">*</span></label>
+                    <select x-model="bulkPathao.city_id" @change="loadBulkZones()" :disabled="bulkPathao.loadingCities"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="">-- Select City --</option>
+                        <template x-for="c in bulkPathao.cities" :key="c.city_id">
+                            <option :value="c.city_id" x-text="c.city_name"></option>
+                        </template>
+                    </select>
+                </div>
+
+                {{-- Zone --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Zone <span class="text-red-500">*</span></label>
+                    <select x-model="bulkPathao.zone_id" @change="loadBulkAreas()" :disabled="!bulkPathao.city_id || bulkPathao.loadingZones"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="">-- Select Zone --</option>
+                        <template x-for="z in bulkPathao.zones" :key="z.zone_id">
+                            <option :value="z.zone_id" x-text="z.zone_name"></option>
+                        </template>
+                    </select>
+                </div>
+
+                {{-- Area --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Area</label>
+                    <select x-model="bulkPathao.area_id" :disabled="!bulkPathao.zone_id || bulkPathao.loadingAreas"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="">-- Select Area (optional) --</option>
+                        <template x-for="a in bulkPathao.areas" :key="a.area_id">
+                            <option :value="a.area_id" x-text="a.area_name"></option>
+                        </template>
+                    </select>
+                </div>
+
+                {{-- Address + Phone --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Address <span class="text-red-500">*</span></label>
+                    <input type="text" x-model="bulkPathao.shipping_address"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Mobile <span class="text-red-500">*</span></label>
+                        <input type="text" x-model="bulkPathao.shipping_phone"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Alternative Mobile</label>
+                        <input type="text" x-model="bulkPathao.alternative_phone"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="optional">
+                    </div>
+                </div>
+
+                {{-- Weight --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Weight (kg) <span class="text-red-500">*</span></label>
+                    <select x-model="bulkPathao.item_weight"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="0.5">0.5 kg</option>
+                        <option value="1">1 kg</option>
+                        <option value="1.5">1.5 kg</option>
+                        <option value="2">2 kg</option>
+                        <option value="3">3 kg</option>
+                        <option value="5">5 kg</option>
+                        <option value="10">10 kg</option>
+                    </select>
+                </div>
+
+                {{-- Note --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Note</label>
+                    <textarea x-model="bulkPathao.shipping_note" rows="2"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none resize-none"></textarea>
+                </div>
+
+                {{-- Progress --}}
+                <div x-show="bulkResults.length > 0" class="text-xs space-y-1 max-h-28 overflow-y-auto border border-gray-100 rounded-lg p-2 bg-gray-50">
+                    <template x-for="(r, i) in bulkResults" :key="i">
+                        <div :class="r.ok ? 'text-green-700' : 'text-red-600'" x-text="r.msg"></div>
+                    </template>
+                </div>
+
+                <div x-show="bulkPathao.error" x-cloak class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" x-text="bulkPathao.error"></div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-100 flex justify-between gap-3">
+                <button @click="skipBulkOrder()"
+                    class="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition cursor-pointer">
+                    Skip this order
+                </button>
+                <div class="flex gap-2">
+                    <button @click="showBulkPathaoModal = false"
+                        class="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition cursor-pointer">
+                        Close
+                    </button>
+                    <button @click="submitBulkPathaoOrder()" :disabled="bulkPathao.submitting || !bulkPathao.city_id || !bulkPathao.zone_id"
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition cursor-pointer">
+                        <i class="fas" :class="bulkPathao.submitting ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+                        <span x-text="bulkPathao.submitting ? 'Sending…' : (bulkQueueIdx < bulkQueue.length - 1 ? 'Submit & Next' : 'Submit & Finish')" ></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @endsection
@@ -306,12 +409,23 @@ function orderList() {
         dateTo: '',
         customerId: null,
 
-        // Bulk courier
+        // Bulk selection
         selectedOrders: [],
-        bulkCourier: '',
-        bulkAssigning: false,
-        bulkResult: null,
         canUpdate: @can('order.update') true @else false @endcan,
+
+        // Bulk Pathao (one-by-one)
+        showBulkPathaoModal: false,
+        bulkQueue: [],
+        bulkQueueIdx: 0,
+        bulkResults: [],
+        bulkPathao: {
+            city_id: '', zone_id: '', area_id: '',
+            shipping_address: '', shipping_phone: '', alternative_phone: '',
+            item_weight: '0.5', shipping_note: '',
+            cities: [], zones: [], areas: [],
+            loadingCities: false, loadingZones: false, loadingAreas: false,
+            submitting: false, error: null,
+        },
 
         // Import State
         showImportModal: false,
@@ -425,12 +539,81 @@ function orderList() {
             }
         },
 
-        async bulkAssignCourier() {
-            if (!this.bulkCourier || this.selectedOrders.length === 0) return;
-            this.bulkAssigning = true;
-            this.bulkResult = null;
+        openBulkPathaoModal() {
+            if (this.selectedOrders.length === 0) return;
+            this.bulkQueue = this.orders.filter(o => this.selectedOrders.includes(o.id));
+            this.bulkQueueIdx = 0;
+            this.bulkResults = [];
+            const first = this.bulkQueue[0];
+            this.bulkPathao.city_id = '';
+            this.bulkPathao.zone_id = '';
+            this.bulkPathao.area_id = '';
+            this.bulkPathao.shipping_address = first?.shipping_address ?? '';
+            this.bulkPathao.shipping_phone = first?.customer_phone ?? '';
+            this.bulkPathao.alternative_phone = '';
+            this.bulkPathao.item_weight = '0.5';
+            this.bulkPathao.shipping_note = '';
+            this.bulkPathao.zones = [];
+            this.bulkPathao.areas = [];
+            this.bulkPathao.error = null;
+            this.showBulkPathaoModal = true;
+            if (this.bulkPathao.cities.length === 0) this.loadBulkCities();
+        },
+
+        async loadBulkCities() {
+            this.bulkPathao.loadingCities = true;
             try {
-                const r = await fetch('/api/v1/admin/courier/bulk-assign', {
+                const r = await fetch('/api/v1/admin/courier/pathao/cities', { headers: { 'Accept': 'application/json' } });
+                const data = await r.json();
+                this.bulkPathao.cities = data.data ?? [];
+            } catch (e) {
+                this.bulkPathao.error = 'Failed to load cities.';
+            } finally {
+                this.bulkPathao.loadingCities = false;
+            }
+        },
+
+        async loadBulkZones() {
+            if (!this.bulkPathao.city_id) return;
+            this.bulkPathao.zone_id = '';
+            this.bulkPathao.area_id = '';
+            this.bulkPathao.zones = [];
+            this.bulkPathao.areas = [];
+            this.bulkPathao.loadingZones = true;
+            try {
+                const r = await fetch(`/api/v1/admin/courier/pathao/zones/${this.bulkPathao.city_id}`, { headers: { 'Accept': 'application/json' } });
+                const data = await r.json();
+                this.bulkPathao.zones = data.data ?? [];
+            } catch (e) {
+                this.bulkPathao.error = 'Failed to load zones.';
+            } finally {
+                this.bulkPathao.loadingZones = false;
+            }
+        },
+
+        async loadBulkAreas() {
+            if (!this.bulkPathao.zone_id) return;
+            this.bulkPathao.area_id = '';
+            this.bulkPathao.areas = [];
+            this.bulkPathao.loadingAreas = true;
+            try {
+                const r = await fetch(`/api/v1/admin/courier/pathao/areas/${this.bulkPathao.zone_id}`, { headers: { 'Accept': 'application/json' } });
+                const data = await r.json();
+                this.bulkPathao.areas = data.data ?? [];
+            } catch (e) {
+                this.bulkPathao.error = 'Failed to load areas.';
+            } finally {
+                this.bulkPathao.loadingAreas = false;
+            }
+        },
+
+        async submitBulkPathaoOrder() {
+            const order = this.bulkQueue[this.bulkQueueIdx];
+            if (!order) return;
+            this.bulkPathao.submitting = true;
+            this.bulkPathao.error = null;
+            try {
+                const r = await fetch('/api/v1/admin/courier/assign', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
@@ -438,22 +621,53 @@ function orderList() {
                         'Accept': 'application/json',
                     },
                     body: JSON.stringify({
-                        order_ids: this.selectedOrders,
-                        courier: this.bulkCourier,
+                        order_id: order.id,
+                        courier: 'pathao',
+                        pathao_city_id: this.bulkPathao.city_id,
+                        pathao_zone_id: this.bulkPathao.zone_id,
+                        pathao_area_id: this.bulkPathao.area_id || null,
+                        shipping_address: this.bulkPathao.shipping_address,
+                        shipping_phone: this.bulkPathao.shipping_phone,
+                        alternative_phone: this.bulkPathao.alternative_phone || null,
+                        item_weight: parseFloat(this.bulkPathao.item_weight),
+                        shipping_note: this.bulkPathao.shipping_note || null,
                     }),
                 });
                 const data = await r.json();
-                this.bulkResult = {
-                    message: data.message,
-                    errors: data.data?.errors ?? [],
-                };
-                this.selectedOrders = [];
-                this.bulkCourier = '';
-                await this.loadOrders(this.meta.current_page || 1);
+                if (r.ok) {
+                    this.bulkResults.push({ ok: true, msg: `✓ ${order.order_number}: ${data.message ?? 'Assigned'}` });
+                    window.triggerFlash?.(data.message ?? 'Shipment created', 'success');
+                    this.advanceBulkQueue();
+                } else {
+                    this.bulkPathao.error = data.message ?? 'Failed to assign';
+                    this.bulkResults.push({ ok: false, msg: `✗ ${order.order_number}: ${data.message ?? 'Failed'}` });
+                }
             } catch (e) {
-                this.bulkResult = { message: 'Network error.', errors: [] };
+                this.bulkPathao.error = 'Network error.';
+                this.bulkResults.push({ ok: false, msg: `✗ ${order.order_number}: Network error` });
             } finally {
-                this.bulkAssigning = false;
+                this.bulkPathao.submitting = false;
+            }
+        },
+
+        skipBulkOrder() {
+            const order = this.bulkQueue[this.bulkQueueIdx];
+            if (order) this.bulkResults.push({ ok: false, msg: `— ${order.order_number}: Skipped` });
+            this.advanceBulkQueue();
+        },
+
+        advanceBulkQueue() {
+            if (this.bulkQueueIdx < this.bulkQueue.length - 1) {
+                this.bulkQueueIdx++;
+                const next = this.bulkQueue[this.bulkQueueIdx];
+                this.bulkPathao.shipping_address = next?.shipping_address ?? '';
+                this.bulkPathao.shipping_phone = next?.customer_phone ?? '';
+                this.bulkPathao.alternative_phone = '';
+                this.bulkPathao.error = null;
+            } else {
+                this.showBulkPathaoModal = false;
+                this.selectedOrders = [];
+                this.loadOrders(this.meta.current_page || 1);
             }
         },
 

@@ -6,22 +6,25 @@ use App\Domains\Landing\Models\LandingPage;
 use App\Domains\Product\Models\Product;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class ProductPageController extends Controller
 {
     public function show(string $slug)
     {
-        $product = Product::query()
-            ->with([
-                'category',
-                'variants.tierPrices',
-                'certifications',
-                'upsells' => fn($query) => $query->active()->with(['variants.tierPrices', 'category']),
-                'crossSells' => fn($query) => $query->active()->with(['variants.tierPrices', 'category']),
-            ])
-            ->active()
-            ->where('slug', $slug)
-            ->firstOrFail();
+        $product = Cache::remember("product:page:{$slug}", now()->addHours(2), fn () =>
+            Product::query()
+                ->with([
+                    'category',
+                    'variants.tierPrices',
+                    'certifications',
+                    'upsells' => fn ($query) => $query->active()->with(['variants.tierPrices', 'category']),
+                    'crossSells' => fn ($query) => $query->active()->with(['variants.tierPrices', 'category']),
+                ])
+                ->active()
+                ->where('slug', $slug)
+                ->firstOrFail()
+        );
 
         /**
          * Safe landing-page redirect.

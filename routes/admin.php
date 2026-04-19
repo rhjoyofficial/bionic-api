@@ -78,6 +78,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         Route::post('/', [AdminShippingZoneController::class, 'store'])->middleware('permission:shipping.create');
         Route::patch('/reorder', [AdminShippingZoneController::class, 'reorder'])->middleware('permission:shipping.update');
         Route::put('/{shipping_zone}', [AdminShippingZoneController::class, 'update'])->middleware('permission:shipping.update');
+        Route::patch('/{shipping_zone}', [AdminShippingZoneController::class, 'update'])->middleware('permission:shipping.update');
         Route::delete('/{shipping_zone}', [AdminShippingZoneController::class, 'destroy'])->middleware('permission:shipping.delete');
     });
 
@@ -120,6 +121,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         ->middleware('permission:order.create');
 
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:order.update');
+    Route::patch('orders/{order}/payment-status', [AdminOrderController::class, 'updatePaymentStatus'])->middleware('permission:order.update');
     Route::post('orders/{order}/notes', [AdminOrderController::class, 'addNote'])->middleware('permission:order.update');
 
     // --- Order Editing (items + customer + address + zone) ---
@@ -138,6 +140,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         Route::get('/shipments/{order}', [AdminCourierController::class, 'orderShipments']);
         Route::post('/shipments/{shipment}/sync', [AdminCourierController::class, 'syncStatus']);
         Route::post('/shipments/{shipment}/cancel', [AdminCourierController::class, 'cancel']);
+        // Pathao location cascades
+        Route::get('/pathao/cities', [AdminCourierController::class, 'pathaoCities']);
+        Route::get('/pathao/zones/{cityId}', [AdminCourierController::class, 'pathaoZones']);
+        Route::get('/pathao/areas/{zoneId}', [AdminCourierController::class, 'pathaoAreas']);
     });
 
     // --- Transactions & Payment Reconciliation ---

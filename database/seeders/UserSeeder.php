@@ -63,7 +63,7 @@ class UserSeeder extends Seeder
                 'name'      => $name,
                 // Using a dummy phone logic; starts with 017 and pads with index
                 'phone'     => '017333' . str_pad($index . rand(100, 999), 5, '0', STR_PAD_LEFT),
-                'password'  => Hash::make('password'), 
+                'password'  => Hash::make('MyBionicPassword'), 
                 'is_active' => true,
             ]
         );

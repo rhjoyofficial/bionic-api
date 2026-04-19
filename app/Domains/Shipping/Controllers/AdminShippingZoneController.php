@@ -50,7 +50,7 @@ class AdminShippingZoneController extends Controller
         try {
             // Default sort_order to max + 1 if not provided
             $data = $request->validated();
-            if (! isset($data['sort_order'])) {
+            if (empty($data['sort_order'])) {
                 $data['sort_order'] = (ShippingZone::max('sort_order') ?? 0) + 1;
             }
 
@@ -66,10 +66,17 @@ class AdminShippingZoneController extends Controller
     public function update(UpdateShippingZoneRequest $request, ShippingZone $shippingZone): JsonResponse
     {
         try {
-            $shippingZone->update($request->validated());
+            $data = $request->validated();
+
+            // sort_order is NOT NULL in DB — if omitted or cleared, keep the existing value
+            if (array_key_exists('sort_order', $data) && is_null($data['sort_order'])) {
+                $data['sort_order'] = $shippingZone->sort_order;
+            }
+
+            $shippingZone->update($data);
             $this->bustCache();
 
-            return ApiResponse::success(new ShippingZoneResource($shippingZone), 'Shipping zone updated');
+            return ApiResponse::success(new ShippingZoneResource($shippingZone->fresh()), 'Shipping zone updated');
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to update shipping zone');
         }

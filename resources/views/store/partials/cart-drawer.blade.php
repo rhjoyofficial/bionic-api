@@ -73,7 +73,7 @@
             </a>
 
             <button onclick="Cart.checkout()"
-                class="flex-1 bg-primary text-white font-semibold text-sm py-3 rounded-full hover:opacity-90 transition active:scale-[.97]">
+                class="cursor-pointer flex-1 bg-primary text-white font-semibold text-sm py-3 rounded-full hover:opacity-90 transition active:scale-[.97]">
                 Buy Now
             </button>
 

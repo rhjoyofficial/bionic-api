@@ -329,6 +329,26 @@
                             </div>
                         </div>
 
+                        {{-- Update Status (in edit mode) --}}
+                        <div class="bg-white border border-gray-200 rounded-xl p-4" x-show="nextStatuses.length > 0">
+                            <h4 class="text-xs font-semibold text-gray-600 uppercase mb-3"><i class="fas fa-arrows-rotate mr-1 text-gray-400"></i>Update Order Status</h4>
+                            <div class="flex gap-2">
+                                <select x-model="newStatus"
+                                    class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600 cursor-pointer">
+                                    <option value="">No status change</option>
+                                    <template x-for="s in nextStatuses" :key="s">
+                                        <option :value="s" x-text="s.charAt(0).toUpperCase() + s.slice(1)"></option>
+                                    </template>
+                                </select>
+                                <button x-show="newStatus" @click="updateStatus()" :disabled="changingStatus"
+                                    class="px-4 py-2 bg-green-700 hover:bg-green-800 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition cursor-pointer">
+                                    <i x-show="changingStatus" class="fa-solid fa-spinner fa-spin text-xs mr-1"></i>
+                                    Apply
+                                </button>
+                            </div>
+                            <div x-show="statusError" class="mt-2 text-xs text-red-600 bg-red-50 rounded px-2 py-1" x-text="statusError"></div>
+                        </div>
+
                         {{-- Preview & Apply --}}
                         <div class="flex items-center gap-3">
                             <button @click="previewEdit()" :disabled="editItems.length === 0 || previewing"
@@ -435,29 +455,209 @@
                                     x-text="(order?.shipments?.length ?? 0) + ' shipment(s)'"></span>
                             </div>
 
-                            {{-- Assign Courier Form --}}
-                            <div class="p-5 border-b border-gray-100" x-show="!['pending', 'cancelled', 'delivered'].includes(order?.order_status)" x-cloak>
-                                <div class="flex items-end gap-3">
-                                    <div class="flex-1">
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">Courier Service</label>
-                                        <select x-model="selectedCourier"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
-                                            <option value="">Select courier…</option>
-                                            <option value="pathao">Pathao Courier</option>
-                                            <option value="steadfast">Steadfast Delivery</option>
-                                            <option value="carrybee">CarryBee Logistics</option>
-                                        </select>
-                                    </div>
-                                    <button @click="assignCourier()" :disabled="!selectedCourier || assigningCourier"
-                                        class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition whitespace-nowrap cursor-pointer">
-                                        <i class="fas"
-                                            :class="assigningCourier ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
-                                        <span x-text="assigningCourier ? 'Creating…' : 'Create Shipment'"></span>
+                            {{-- Assign Courier Buttons (only when confirmed or processing) --}}
+                            <div class="p-5 border-b border-gray-100"
+                                 x-show="['confirmed', 'processing'].includes(order?.order_status)" x-cloak>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Assign Courier</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button @click="openPathaoModal()"
+                                        class="inline-flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition cursor-pointer">
+                                        <i class="fas fa-paper-plane text-xs"></i> Pathao
+                                    </button>
+                                    <button @click="openSimpleCourierModal('steadfast')"
+                                        class="inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition cursor-pointer">
+                                        <i class="fas fa-truck text-xs"></i> Steadfast
+                                    </button>
+                                    <button @click="openSimpleCourierModal('redx')"
+                                        class="inline-flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition cursor-pointer">
+                                        <i class="fas fa-box text-xs"></i> RedX
+                                    </button>
+                                    <button @click="openSimpleCourierModal('carrybee')"
+                                        class="inline-flex items-center justify-center gap-2 px-3 py-2 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition cursor-pointer">
+                                        <i class="fas fa-motorcycle text-xs"></i> CarryBee
                                     </button>
                                 </div>
-                                <div x-show="courierError" x-cloak
-                                    class="mt-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
-                                    x-text="courierError"></div>
+                            </div>
+
+                            {{-- ── Pathao Assignment Modal ── --}}
+                            <div x-show="showPathaoModal" x-cloak
+                                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                                @keydown.escape.window="showPathaoModal = false">
+                                <div class="absolute inset-0 bg-black/50" @click="showPathaoModal = false"></div>
+                                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" @click.stop>
+                                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                                        <h2 class="text-base font-bold text-gray-800"><i class="fas fa-paper-plane text-green-600 mr-2"></i>Send to Pathao</h2>
+                                        <button @click="showPathaoModal = false" class="text-gray-400 hover:text-gray-600 cursor-pointer"><i class="fas fa-xmark text-lg"></i></button>
+                                    </div>
+
+                                    <div class="p-6 space-y-4">
+                                        {{-- City --}}
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">City <span class="text-red-500">*</span></label>
+                                            <select x-model="pathao.city_id" @change="loadPathaoZones()" :disabled="pathao.loadingCities"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                                                <option value="">-- Select City --</option>
+                                                <template x-for="c in pathao.cities" :key="c.city_id">
+                                                    <option :value="c.city_id" x-text="c.city_name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                        {{-- Zone --}}
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">Zone <span class="text-red-500">*</span></label>
+                                            <select x-model="pathao.zone_id" @change="loadPathaoAreas()" :disabled="!pathao.city_id || pathao.loadingZones"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                                                <option value="">-- Select Zone --</option>
+                                                <template x-for="z in pathao.zones" :key="z.zone_id">
+                                                    <option :value="z.zone_id" x-text="z.zone_name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                        {{-- Area --}}
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">Area</label>
+                                            <select x-model="pathao.area_id" :disabled="!pathao.zone_id || pathao.loadingAreas"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                                                <option value="">-- Select Area (optional) --</option>
+                                                <template x-for="a in pathao.areas" :key="a.area_id">
+                                                    <option :value="a.area_id" x-text="a.area_name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                        {{-- Shipping Address --}}
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Address <span class="text-red-500">*</span></label>
+                                            <input type="text" x-model="pathao.shipping_address"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                                placeholder="Full delivery address">
+                                        </div>
+
+                                        {{-- Mobile --}}
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Mobile <span class="text-red-500">*</span></label>
+                                                <input type="text" x-model="pathao.shipping_phone"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                                    placeholder="01XXXXXXXXX">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold text-gray-600 mb-1">Alternative Mobile</label>
+                                                <input type="text" x-model="pathao.alternative_phone"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                                    placeholder="01XXXXXXXXX (optional)">
+                                            </div>
+                                        </div>
+
+                                        {{-- Weight --}}
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">Weight (kg) <span class="text-red-500">*</span></label>
+                                            <select x-model="pathao.item_weight"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                                                <option value="0.5">0.5 kg</option>
+                                                <option value="1">1 kg</option>
+                                                <option value="1.5">1.5 kg</option>
+                                                <option value="2">2 kg</option>
+                                                <option value="3">3 kg</option>
+                                                <option value="5">5 kg</option>
+                                                <option value="10">10 kg</option>
+                                            </select>
+                                        </div>
+
+                                        {{-- Note --}}
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Note</label>
+                                            <textarea x-model="pathao.shipping_note" rows="2"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none resize-none"
+                                                placeholder="Special instructions for courier…"></textarea>
+                                        </div>
+
+                                        {{-- Error --}}
+                                        <div x-show="pathao.error" x-cloak class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" x-text="pathao.error"></div>
+                                    </div>
+
+                                    <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                                        <button @click="showPathaoModal = false"
+                                            class="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition cursor-pointer">
+                                            Cancel
+                                        </button>
+                                        <button @click="submitPathaoAssign()" :disabled="pathao.submitting || !pathao.city_id || !pathao.zone_id"
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition cursor-pointer">
+                                            <i class="fas" :class="pathao.submitting ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+                                            <span x-text="pathao.submitting ? 'Sending…' : 'Submit'"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- ── Simple Courier Modal (Steadfast / RedX / CarryBee) ── --}}
+                            <div x-show="showSimpleCourierModal" x-cloak
+                                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                                @keydown.escape.window="showSimpleCourierModal = false">
+                                <div class="absolute inset-0 bg-black/50" @click="showSimpleCourierModal = false"></div>
+                                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md" @click.stop>
+                                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                                        <h2 class="text-base font-bold text-gray-800 capitalize">
+                                            <i class="fas fa-truck text-blue-600 mr-2"></i>
+                                            Assign to <span x-text="simpleCourier.label"></span>
+                                        </h2>
+                                        <button @click="showSimpleCourierModal = false" class="text-gray-400 hover:text-gray-600 cursor-pointer"><i class="fas fa-xmark text-lg"></i></button>
+                                    </div>
+                                    <div class="p-6 space-y-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Address <span class="text-red-500">*</span></label>
+                                            <input type="text" x-model="simpleCourier.shipping_address"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Mobile <span class="text-red-500">*</span></label>
+                                                <input type="text" x-model="simpleCourier.shipping_phone"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    placeholder="01XXXXXXXXX">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold text-gray-600 mb-1">Alternative Mobile</label>
+                                                <input type="text" x-model="simpleCourier.alternative_phone"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    placeholder="optional">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">Weight (kg) <span class="text-red-500">*</span></label>
+                                            <select x-model="simpleCourier.item_weight"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                                <option value="0.5">0.5 kg</option>
+                                                <option value="1">1 kg</option>
+                                                <option value="1.5">1.5 kg</option>
+                                                <option value="2">2 kg</option>
+                                                <option value="3">3 kg</option>
+                                                <option value="5">5 kg</option>
+                                                <option value="10">10 kg</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Note</label>
+                                            <textarea x-model="simpleCourier.shipping_note" rows="2"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+                                                placeholder="Special instructions…"></textarea>
+                                        </div>
+                                        <div x-show="simpleCourier.error" x-cloak class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" x-text="simpleCourier.error"></div>
+                                    </div>
+                                    <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                                        <button @click="showSimpleCourierModal = false"
+                                            class="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition cursor-pointer">
+                                            Cancel
+                                        </button>
+                                        <button @click="submitSimpleCourierAssign()" :disabled="simpleCourier.submitting"
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition cursor-pointer">
+                                            <i class="fas" :class="simpleCourier.submitting ? 'fa-spinner fa-spin' : 'fa-truck'"></i>
+                                            <span x-text="simpleCourier.submitting ? 'Assigning…' : 'Assign'"></span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             {{-- Shipment Cards --}}
@@ -685,7 +885,17 @@
 
                     {{-- Payment --}}
                     <div class="bg-white border border-gray-200 rounded-xl p-5">
-                        <h3 class="text-sm font-bold text-gray-700 mb-3">Payment</h3>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-gray-700">Payment</h3>
+                            @can('order.update')
+                            <button x-show="order?.payment_status !== 'paid'" @click="markAsPaid()"
+                                :disabled="markingPaid"
+                                class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 hover:bg-green-200 rounded-lg transition disabled:opacity-50 cursor-pointer">
+                                <i class="fas" :class="markingPaid ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                                Mark as Paid
+                            </button>
+                            @endcan
+                        </div>
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-500">Method</span>
@@ -786,19 +996,37 @@
                 // Zones list (for edit + create forms)
                 zones: [],
 
-                // Courier state
-                selectedCourier: '',
-                assigningCourier: false,
-                courierError: null,
+                // Payment
+                markingPaid: false,
+
+                // Courier / Pathao modal state
+                showPathaoModal: false,
+
+                // Simple courier modal (Steadfast / RedX / CarryBee)
+                showSimpleCourierModal: false,
+                simpleCourier: {
+                    name: '', label: '',
+                    shipping_address: '', shipping_phone: '', alternative_phone: '',
+                    item_weight: '0.5', shipping_note: '',
+                    submitting: false, error: null,
+                },
+                pathao: {
+                    city_id: '', zone_id: '', area_id: '',
+                    shipping_address: '', shipping_phone: '', alternative_phone: '',
+                    item_weight: '0.5', shipping_note: '',
+                    cities: [], zones: [], areas: [],
+                    loadingCities: false, loadingZones: false, loadingAreas: false,
+                    submitting: false, error: null,
+                },
 
                 allowedTransitions: {
-                    pending: ['confirmed', 'cancelled'],
-                    confirmed: ['processing', 'cancelled'],
+                    pending:    ['confirmed', 'processing', 'cancelled'],
+                    confirmed:  ['processing', 'cancelled'],
                     processing: ['shipped', 'cancelled'],
-                    shipped: ['delivered', 'returned'],
-                    delivered: [],
-                    cancelled: [],
-                    returned: [],
+                    shipped:    ['delivered', 'returned'],
+                    delivered:  [],
+                    cancelled:  [],
+                    returned:   [],
                 },
 
                 get nextStatuses() {
@@ -871,6 +1099,32 @@
                         this.statusError = 'Network error.';
                     } finally {
                         this.changingStatus = false;
+                    }
+                },
+
+                async markAsPaid() {
+                    this.markingPaid = true;
+                    try {
+                        const r = await fetch(`/api/v1/admin/orders/${this.orderId}/payment-status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'X-CSRF-TOKEN': this.csrf(),
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ payment_status: 'paid' }),
+                        });
+                        const data = await r.json();
+                        if (r.ok) {
+                            window.triggerFlash?.('Order marked as paid.', 'success');
+                            await this.loadOrder();
+                        } else {
+                            window.triggerFlash?.(data.message ?? 'Failed to update payment status.', 'error');
+                        }
+                    } catch (e) {
+                        window.triggerFlash?.('Network error.', 'error');
+                    } finally {
+                        this.markingPaid = false;
                     }
                 },
 
@@ -1095,36 +1349,140 @@
                     }
                 },
 
-                // ── Courier Methods ────────────────────
+                // ── Pathao Modal Methods ────────────────────
 
-                async assignCourier() {
-                    if (!this.selectedCourier) return;
-                    this.assigningCourier = true;
-                    this.courierError = null;
+                async openPathaoModal() {
+                    const addr = this.order?.shipping_address;
+                    this.pathao.shipping_address = addr?.address_line ?? '';
+                    this.pathao.shipping_phone   = addr?.customer_phone ?? this.order?.customer_phone ?? '';
+                    this.pathao.alternative_phone = addr?.alternative_phone ?? '';
+                    this.pathao.zone_id  = '';
+                    this.pathao.area_id  = '';
+                    this.pathao.zones    = [];
+                    this.pathao.areas    = [];
+                    this.pathao.error    = null;
+                    this.showPathaoModal = true;
+                    if (this.pathao.cities.length === 0) await this.loadPathaoCities();
+                },
+
+                async loadPathaoCities() {
+                    this.pathao.loadingCities = true;
+                    try {
+                        const r = await fetch('/api/v1/admin/courier/pathao/cities', { headers: { 'Accept': 'application/json' } });
+                        const d = await r.json();
+                        this.pathao.cities = d.data ?? [];
+                    } catch(e) { this.pathao.error = 'Could not load cities.'; }
+                    finally { this.pathao.loadingCities = false; }
+                },
+
+                async loadPathaoZones() {
+                    this.pathao.zone_id = ''; this.pathao.area_id = '';
+                    this.pathao.zones = []; this.pathao.areas = [];
+                    if (!this.pathao.city_id) return;
+                    this.pathao.loadingZones = true;
+                    try {
+                        const r = await fetch(`/api/v1/admin/courier/pathao/zones/${this.pathao.city_id}`, { headers: { 'Accept': 'application/json' } });
+                        const d = await r.json();
+                        this.pathao.zones = d.data ?? [];
+                    } catch(e) { this.pathao.error = 'Could not load zones.'; }
+                    finally { this.pathao.loadingZones = false; }
+                },
+
+                async loadPathaoAreas() {
+                    this.pathao.area_id = ''; this.pathao.areas = [];
+                    if (!this.pathao.zone_id) return;
+                    this.pathao.loadingAreas = true;
+                    try {
+                        const r = await fetch(`/api/v1/admin/courier/pathao/areas/${this.pathao.zone_id}`, { headers: { 'Accept': 'application/json' } });
+                        const d = await r.json();
+                        this.pathao.areas = d.data ?? [];
+                    } catch(e) { this.pathao.error = 'Could not load areas.'; }
+                    finally { this.pathao.loadingAreas = false; }
+                },
+
+                async submitPathaoAssign() {
+                    if (!this.pathao.city_id || !this.pathao.zone_id) {
+                        this.pathao.error = 'City and Zone are required.'; return;
+                    }
+                    this.pathao.submitting = true;
+                    this.pathao.error = null;
                     try {
                         const r = await fetch('/api/v1/admin/courier/assign', {
                             method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': this.csrf(),
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                            },
+                            headers: { 'X-CSRF-TOKEN': this.csrf(), 'Content-Type': 'application/json', 'Accept': 'application/json' },
                             body: JSON.stringify({
-                                order_id: this.orderId,
-                                courier: this.selectedCourier,
+                                order_id:          this.orderId,
+                                courier:           'pathao',
+                                pathao_city_id:    this.pathao.city_id,
+                                pathao_zone_id:    this.pathao.zone_id,
+                                pathao_area_id:    this.pathao.area_id || null,
+                                shipping_address:  this.pathao.shipping_address,
+                                shipping_phone:    this.pathao.shipping_phone,
+                                alternative_phone: this.pathao.alternative_phone || null,
+                                item_weight:       parseFloat(this.pathao.item_weight),
+                                shipping_note:     this.pathao.shipping_note || null,
                             }),
                         });
                         const data = await r.json();
                         if (r.ok) {
-                            this.selectedCourier = '';
+                            this.showPathaoModal = false;
+                            window.triggerFlash?.(data.message || 'Shipment created successfully!', 'success');
                             await this.loadOrder();
                         } else {
-                            this.courierError = data.message || 'Failed to assign courier.';
+                            this.pathao.error = data.message || 'Failed to create shipment.';
                         }
-                    } catch (e) {
-                        this.courierError = 'Network error.';
+                    } catch(e) {
+                        this.pathao.error = 'Network error. Please try again.';
                     } finally {
-                        this.assigningCourier = false;
+                        this.pathao.submitting = false;
+                    }
+                },
+
+                openSimpleCourierModal(courierName) {
+                    const labels = { steadfast: 'Steadfast', redx: 'RedX', carrybee: 'CarryBee' };
+                    this.simpleCourier.name  = courierName;
+                    this.simpleCourier.label = labels[courierName] ?? courierName;
+                    this.simpleCourier.shipping_address   = this.order?.shipping_address?.address_line ?? '';
+                    this.simpleCourier.shipping_phone     = this.order?.customer_phone ?? '';
+                    this.simpleCourier.alternative_phone  = this.order?.shipping_address?.alternative_phone ?? '';
+                    this.simpleCourier.item_weight        = '0.5';
+                    this.simpleCourier.shipping_note      = '';
+                    this.simpleCourier.error              = null;
+                    this.showSimpleCourierModal           = true;
+                },
+
+                async submitSimpleCourierAssign() {
+                    if (!this.simpleCourier.shipping_address || !this.simpleCourier.shipping_phone) {
+                        this.simpleCourier.error = 'Shipping address and phone are required.'; return;
+                    }
+                    this.simpleCourier.submitting = true;
+                    this.simpleCourier.error = null;
+                    try {
+                        const r = await fetch('/api/v1/admin/courier/assign', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': this.csrf(), 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify({
+                                order_id:          this.orderId,
+                                courier:           this.simpleCourier.name,
+                                shipping_address:  this.simpleCourier.shipping_address,
+                                shipping_phone:    this.simpleCourier.shipping_phone,
+                                alternative_phone: this.simpleCourier.alternative_phone || null,
+                                item_weight:       parseFloat(this.simpleCourier.item_weight),
+                                shipping_note:     this.simpleCourier.shipping_note || null,
+                            }),
+                        });
+                        const data = await r.json();
+                        if (r.ok) {
+                            this.showSimpleCourierModal = false;
+                            window.triggerFlash?.(data.message || 'Shipment created successfully!', 'success');
+                            await this.loadOrder();
+                        } else {
+                            this.simpleCourier.error = data.message || 'Failed to create shipment.';
+                        }
+                    } catch(e) {
+                        this.simpleCourier.error = 'Network error. Please try again.';
+                    } finally {
+                        this.simpleCourier.submitting = false;
                     }
                 },
 
