@@ -42,8 +42,8 @@
                                         </div>
                                     </div>
                                     <div class="relative group">
-                                        <img src="{{ asset('assets/hero-products/honey-jar.png') }}" alt="Raw Honey"
-                                            class="w-full h-full lg:max-w-sm aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
+                                        <img src="{{ $banner->image_url }}" alt="Raw Honey"
+                                            class="w-full h-full lg:min-w-md lg:max-w-md aspect-square object-cover group-hover:scale-105 duration-300 transform-all">
                                     </div>
                                 </div>
                             </div>

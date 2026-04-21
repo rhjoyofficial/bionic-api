@@ -14,6 +14,7 @@ export default class CartManager {
 
         this.sidebar = document.getElementById("cartDrawer");
         this.badge = document.getElementById("cartCount");
+        this.cartBadge = document.getElementById("cartCountBadge");
 
         this.init();
     }
@@ -104,6 +105,10 @@ export default class CartManager {
             this.badge.innerText = this.state.totalQty;
         }
 
+        if (this.cartBadge) {
+            this.cartBadge.innerText = this.state.totalQty;
+        }
+
         window.dispatchEvent(new Event("cart:updated"));
     }
 
@@ -149,8 +154,8 @@ export default class CartManager {
             const res = await this.api(endpoint, data);
             this.setState(res.data);
             if (typeof flash === "function" && !res.data.prices_updated)
-                window.flash?.("Added to cart");
-            this.open();
+                window.flash?.("Item Added to cart", "success", 2000);
+            // this.open();
         } catch (e) {
             if (typeof flash === "function")
                 window.flash?.(e.message || "Action failed", "error");

@@ -60,7 +60,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     @endunless
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 
@@ -109,6 +109,7 @@
         @unless (Route::is('login', 'register', 'password.*'))
             @include('store.partials.header')
             @include('store.partials.cart-drawer')
+            @include('store.partials.cart-badge')
         @endunless
 
         <x-flash-container />

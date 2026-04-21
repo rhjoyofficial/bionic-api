@@ -25,3 +25,12 @@ Schedule::command(ExpireCoupons::class)
 Schedule::command(AbandonExpiredCarts::class)
     ->hourly()
     ->description('Release reserved stock from expired guest carts');
+
+// Process queued jobs (emails, SMS, WhatsApp, webhooks, referral commissions).
+// --stop-when-empty exits after draining the queue — safe for shared hosting
+// withoutOverlapping prevents multiple workers stacking up if jobs are slow
+Schedule::command('queue:work --stop-when-empty --tries=3 --timeout=60')
+    ->everyMinute()
+    ->withoutOverlapping(5)
+    ->runInBackground()
+    ->description('Process queued jobs (emails, SMS, notifications)');

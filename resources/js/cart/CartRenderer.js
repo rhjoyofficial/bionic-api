@@ -156,10 +156,18 @@ export default class CartRenderer {
                 window.Cart.update(itemId, parseInt(item.quantity) + 1);
             };
 
+            // row.querySelector(".minus").onclick = () => {
+            //     const item = this.getItem(itemId);
+            //     if (item.quantity <= 1) {
+            //         window.Cart.remove(itemId);
+            //         return;
+            //     }
+            //     window.Cart.update(itemId, parseInt(item.quantity) - 1);
+            // };
+
             row.querySelector(".minus").onclick = () => {
                 const item = this.getItem(itemId);
                 if (item.quantity <= 1) {
-                    window.Cart.remove(itemId);
                     return;
                 }
                 window.Cart.update(itemId, parseInt(item.quantity) - 1);

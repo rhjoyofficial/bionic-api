@@ -200,14 +200,23 @@ export default class CartPageRenderer {
                     window.Cart.update(itemId, parseInt(item.quantity) + 1);
             };
 
+            // row.querySelector(".pageMinus").onclick = () => {
+            //     const item = this._getItem(itemId);
+            //     if (!item) return;
+            //     if (item.quantity <= 1) {
+            //         window.Cart.remove(itemId);
+            //     } else {
+            //         window.Cart.update(itemId, parseInt(item.quantity) - 1);
+            //     }
+            // };
+
             row.querySelector(".pageMinus").onclick = () => {
                 const item = this._getItem(itemId);
                 if (!item) return;
                 if (item.quantity <= 1) {
-                    window.Cart.remove(itemId);
-                } else {
-                    window.Cart.update(itemId, parseInt(item.quantity) - 1);
+                    return;
                 }
+                window.Cart.update(itemId, parseInt(item.quantity) - 1);
             };
 
             row.querySelector(".pageRemoveBtn").onclick = () => {
