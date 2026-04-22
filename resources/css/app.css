@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "./flash.css";
 
+[x-cloak] { display: none !important; }
+
 /* ---------------------------
    Theme
 --------------------------- */
