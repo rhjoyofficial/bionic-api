@@ -37,6 +37,7 @@
                         ? ($item->variant->product->thumbnail ?? null)
                         : ($item->combo->image ?? null);
                     $itemKey = $isVariant ? 'v_' . $item->product_variant_id : 'c_' . $item->combo_id;
+                    $tierPrices = $isVariant ? ($item->variant->tierPrices ?? collect()) : collect();
                 @endphp
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md"
@@ -53,9 +54,22 @@
                     <div class="p-5">
                         {{-- Title & Price --}}
                         <h3 class="font-bold text-gray-800 mb-1">{{ $label }}</h3>
-                        <p class="text-lg font-bold text-green-800 font-bengali mb-4">
+                        <p class="text-lg font-bold text-green-800 font-bengali mb-1">
                             &#2547;{{ number_format($price, 0) }}
                         </p>
+
+                        {{-- Tier price hints --}}
+                        @if($tierPrices->isNotEmpty())
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                @foreach($tierPrices->sortBy('min_qty') as $tier)
+                                    <span class="text-[10px] bg-green-50 text-green-700 border border-green-200 rounded-full px-2 py-0.5 font-semibold">
+                                        {{ $tier->min_qty }}+&nbsp;&rarr;&nbsp;&#2547;{{ number_format($tier->price, 0) }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="mb-3"></div>
+                        @endif
 
                         {{-- Selection + Quantity --}}
                         <div class="flex items-center justify-between">

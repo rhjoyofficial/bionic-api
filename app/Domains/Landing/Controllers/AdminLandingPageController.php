@@ -71,7 +71,7 @@ class AdminLandingPageController extends Controller
     {
         $validated = $request->validate([
             'slug'              => 'required|string|max:100|unique:landing_pages,slug',
-            'type'              => 'required|in:product,combo,sales',
+            'type'              => 'required|in:product,combo,sales,listing',
             'product_id'        => 'nullable|required_if:type,product|integer|exists:products,id',
             'combo_id'          => 'nullable|required_if:type,combo|integer|exists:combos,id',
             'title'             => 'required|string|max:200',
@@ -81,11 +81,13 @@ class AdminLandingPageController extends Controller
             'meta_title'        => 'nullable|string|max:200',
             'meta_description'  => 'nullable|string|max:500',
             'pixel_event_name'  => 'nullable|string|max:100',
-            'config'            => 'nullable|array',
-            'config.free_delivery_amount' => 'nullable|numeric|min:0',
-            'config.free_delivery_qty'    => 'nullable|integer|min:1',
+            'config'                          => 'nullable|array',
+            'config.free_delivery_amount'     => 'nullable|numeric|min:0',
+            'config.free_delivery_qty'        => 'nullable|integer|min:1',
+            'config.discount_percent'         => 'nullable|numeric|min:0|max:100',
+            'config.discount_amount'          => 'nullable|numeric|min:0',
             'is_active'         => 'boolean',
-            // Sales items (only for type=sales)
+            // Items (sales + listing types)
             'items'                      => 'nullable|array',
             'items.*.product_variant_id' => 'nullable|integer|exists:product_variants,id',
             'items.*.combo_id'           => 'nullable|integer|exists:combos,id',
@@ -111,8 +113,8 @@ class AdminLandingPageController extends Controller
                     'is_active'        => $validated['is_active'] ?? false,
                 ]);
 
-                // Create sales items if type is sales
-                if ($validated['type'] === 'sales' && !empty($validated['items'])) {
+                // Create items for sales and listing types
+                if (in_array($validated['type'], ['sales', 'listing']) && !empty($validated['items'])) {
                     foreach ($validated['items'] as $i => $item) {
                         $landing->items()->create([
                             'product_variant_id' => $item['product_variant_id'] ?? null,
@@ -140,7 +142,7 @@ class AdminLandingPageController extends Controller
     {
         $validated = $request->validate([
             'slug'              => ['sometimes', 'string', 'max:100', Rule::unique('landing_pages', 'slug')->ignore($landingPage->id)],
-            'type'              => 'sometimes|in:product,combo,sales',
+            'type'              => 'sometimes|in:product,combo,sales,listing',
             'product_id'        => 'nullable|integer|exists:products,id',
             'combo_id'          => 'nullable|integer|exists:combos,id',
             'title'             => 'sometimes|string|max:200',
@@ -150,11 +152,13 @@ class AdminLandingPageController extends Controller
             'meta_title'        => 'nullable|string|max:200',
             'meta_description'  => 'nullable|string|max:500',
             'pixel_event_name'  => 'nullable|string|max:100',
-            'config'            => 'nullable|array',
-            'config.free_delivery_amount' => 'nullable|numeric|min:0',
-            'config.free_delivery_qty'    => 'nullable|integer|min:1',
+            'config'                          => 'nullable|array',
+            'config.free_delivery_amount'     => 'nullable|numeric|min:0',
+            'config.free_delivery_qty'        => 'nullable|integer|min:1',
+            'config.discount_percent'         => 'nullable|numeric|min:0|max:100',
+            'config.discount_amount'          => 'nullable|numeric|min:0',
             'is_active'         => 'boolean',
-            // Sales items
+            // Items (sales + listing types)
             'items'                      => 'nullable|array',
             'items.*.product_variant_id' => 'nullable|integer|exists:product_variants,id',
             'items.*.combo_id'           => 'nullable|integer|exists:combos,id',
@@ -163,12 +167,15 @@ class AdminLandingPageController extends Controller
         ]);
 
         try {
-            return DB::transaction(function () use ($request, $validated, $landingPage) {
+            return DB::transaction(function () use ($validated, $landingPage) {
 
                 $landingData = collect($validated)->except('items')->toArray();
                 $landingPage->update($landingData);
 
-                if (!empty($validated['items'])) {
+                // Sync items: always replace the full set so edits are idempotent.
+                // "items" key must be present in the payload to trigger a sync.
+                if (array_key_exists('items', $validated)) {
+                    $landingPage->items()->delete();
                     foreach ($validated['items'] as $i => $item) {
                         $landingPage->items()->create([
                             'product_variant_id' => $item['product_variant_id'] ?? null,

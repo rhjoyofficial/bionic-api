@@ -14,10 +14,10 @@
                     <div class="flex gap-3">
                         @php
                             $socials = [
-                                'facebook'  => 'https://www.facebook.com/BionicGardenOfficial', 
-                                'pinterest' => 'https://www.pinterest.com/bionicgardenofficial/', 
-                                'youtube'   => 'https://www.youtube.com/@BionicGardenOfficial', 
-                                'whatsapp'  => 'https://wa.me/8801334943785'
+                                'facebook' => 'https://www.facebook.com/BionicGardenOfficial',
+                                'pinterest' => 'https://www.pinterest.com/bionicgardenofficial/',
+                                'youtube' => 'https://www.youtube.com/@BionicGardenOfficial',
+                                'whatsapp' => 'https://wa.me/8801334943785',
                             ];
                         @endphp
                         @foreach ($socials as $key => $social)
@@ -198,19 +198,15 @@
                 2026 Bionic. All rights reserved
             </p>
 
-            <div class="flex items-center gap-8 text-sm font-medium">
+            <div class="flex items-center justify-center gap-8 text-sm font-medium">
                 <a href="#" class="hover:text-yellow-500 transition-colors">Terms</a>
                 <a href="#" class="hover:text-yellow-500 transition-colors">Privacy Policy</a>
                 <a href="#" class="hover:text-yellow-500 transition-colors">Legal Disclaimer</a>
             </div>
 
-            <div class="flex gap-4">
-                @foreach (['fb', 'ig', 'tw', 'yt'] as $bottomSocial)
-                    <a href="#"
-                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-primary hover:bg-yellow-500 transition-colors">
-                        <div class="w-4 h-4 bg-primary rounded-full"></div>
-                    </a>
-                @endforeach
+            <div class="w-full md:max-w-72 xl:max-w-96">
+                <img src="{{ asset('assets/images/footer-bank.png') }}" alt="Payment Methods"
+                    class="w-full h-full object-contain">
             </div>
         </div>
     </div>

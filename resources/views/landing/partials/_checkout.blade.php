@@ -142,6 +142,11 @@
             <span class="font-semibold text-green-600 font-bengali"
                 x-text="'-&#2547;' + pricing.tier_discount.toFixed(0)"></span>
         </div>
+        <div x-show="pricing.landing_discount > 0" class="flex justify-between text-sm">
+            <span class="text-gray-500">Special Discount</span>
+            <span class="font-semibold text-green-600 font-bengali"
+                x-text="'-&#2547;' + pricing.landing_discount.toFixed(0)"></span>
+        </div>
         <div x-show="pricing.coupon_discount > 0" class="flex justify-between text-sm">
             <span class="text-gray-500">Coupon (<span x-text="pricing.coupon_code"></span>)</span>
             <span class="font-semibold text-green-600 font-bengali"
@@ -220,6 +225,7 @@
             pricing: {
                 subtotal: 0,
                 tier_discount: 0,
+                landing_discount: 0,
                 coupon_discount: 0,
                 coupon_code: null,
                 shipping_cost: 0,
@@ -259,7 +265,7 @@
                 if (!this.form.zone_id || this.form.items.length === 0) return;
 
                 try {
-                    const res = await fetch(`/api/landing/${this.slug}/preview`, {
+                    const res = await fetch(`/api/v1/landing/${this.slug}/preview`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -317,7 +323,7 @@
                 this.errorMessage = '';
 
                 try {
-                    const res = await fetch(`/api/landing/${this.slug}/checkout`, {
+                    const res = await fetch(`/api/v1/landing/${this.slug}/checkout`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

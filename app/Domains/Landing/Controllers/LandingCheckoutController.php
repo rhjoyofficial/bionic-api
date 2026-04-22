@@ -35,6 +35,10 @@ class LandingCheckoutController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
+        if (! $landing->hasEmbeddedCheckout()) {
+            return ApiResponse::error('This page type does not support direct checkout.', null, 422);
+        }
+
         $validated = $request->validate([
             'items'              => 'required|array|min:1',
             'items.*.variant_id' => 'nullable|integer|exists:product_variants,id',
@@ -71,6 +75,10 @@ class LandingCheckoutController extends Controller
         $landing = LandingPage::where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
+
+        if (! $landing->hasEmbeddedCheckout()) {
+            return ApiResponse::error('This page type does not support direct checkout.', null, 422);
+        }
 
         $validated = $request->validate([
             'customer_name'      => 'required|string|max:100',

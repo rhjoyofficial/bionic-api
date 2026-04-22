@@ -5,7 +5,6 @@ namespace App\Domains\Landing\Services;
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Models\CouponUsage;
 use App\Domains\Landing\Models\LandingPage;
-use App\Domains\Order\DTOs\CheckoutPricingResult;
 use App\Domains\Order\Models\Order;
 use App\Domains\Order\Services\CheckoutPricingService;
 use App\Domains\Product\Models\Combo;
@@ -55,17 +54,25 @@ class LandingCheckoutService
             withLock: false,
         );
 
-        // Apply landing-page-specific free delivery rules
-        $shippingCost = $pricing->shippingCost;
-        $shippingCost = $this->applyLandingShippingRules($landing, $pricing, $items, $shippingCost);
+        // Discounted subtotal after tier pricing
+        $discountedSubtotal = $pricing->subtotal - $pricing->tierDiscountTotal;
+
+        // Landing-specific flat/percent discount (isolated from coupon system)
+        $landingDiscount = $this->calcLandingDiscount($landing, $discountedSubtotal);
+
+        // Apply landing free-delivery rules on the post-discount subtotal
+        $shippingCost = $this->applyLandingShippingRules(
+            $landing, $items, $pricing->shippingCost, $discountedSubtotal - $landingDiscount
+        );
         $freeDeliveryApplied = $shippingCost < $pricing->shippingCost;
 
-        $grandTotal = max(0, $pricing->subtotal - $pricing->tierDiscountTotal - $pricing->couponDiscount) + $shippingCost;
+        $grandTotal = max(0, $discountedSubtotal - $landingDiscount - $pricing->couponDiscount) + $shippingCost;
 
         return [
             'line_items'             => $pricing->lineItems,
             'subtotal'               => round($pricing->subtotal, 2),
             'tier_discount'          => round($pricing->tierDiscountTotal, 2),
+            'landing_discount'       => round($landingDiscount, 2),
             'coupon_discount'        => round($pricing->couponDiscount, 2),
             'coupon_code'            => $pricing->coupon?->code,
             'shipping_cost'          => round($shippingCost, 2),
@@ -100,11 +107,14 @@ class LandingCheckoutService
                 withLock: true,
             );
 
-            // 2. Apply landing-page free-delivery rules
-            $shippingCost = $this->applyLandingShippingRules(
-                $landing, $pricing, $data['items'], $pricing->shippingCost
+            // 2. Landing discount + free-delivery rules
+            $discountedSubtotal = $pricing->subtotal - $pricing->tierDiscountTotal;
+            $landingDiscount    = $this->calcLandingDiscount($landing, $discountedSubtotal);
+            $shippingCost       = $this->applyLandingShippingRules(
+                $landing, $data['items'], $pricing->shippingCost,
+                $discountedSubtotal - $landingDiscount
             );
-            $grandTotal = max(0, $pricing->subtotal - $pricing->tierDiscountTotal - $pricing->couponDiscount) + $shippingCost;
+            $grandTotal = max(0, $discountedSubtotal - $landingDiscount - $pricing->couponDiscount) + $shippingCost;
 
             // 3. Create Order
             $order = Order::create([
@@ -121,7 +131,7 @@ class LandingCheckoutService
                 'source'               => 'landing',
                 'landing_page_id'      => $landing->id,
                 'subtotal'             => $pricing->subtotal,
-                'discount_total'       => $pricing->tierDiscountTotal + $pricing->couponDiscount,
+                'discount_total'       => $pricing->tierDiscountTotal + $landingDiscount + $pricing->couponDiscount,
                 'shipping_cost'        => $shippingCost,
                 'grand_total'          => $grandTotal,
                 'coupon_id'            => $pricing->coupon?->id,
@@ -175,29 +185,48 @@ class LandingCheckoutService
     }
 
     /**
+     * Calculate the landing-page-specific discount amount.
+     *
+     * discount_amount takes precedence over discount_percent if both are set.
+     */
+    private function calcLandingDiscount(LandingPage $landing, float $discountedSubtotal): float
+    {
+        $flat = $landing->discountAmount();
+        if ($flat !== null) {
+            return min($flat, $discountedSubtotal);
+        }
+
+        $percent = $landing->discountPercent();
+        if ($percent !== null) {
+            return round($discountedSubtotal * ($percent / 100), 2);
+        }
+
+        return 0;
+    }
+
+    /**
      * Apply landing-page-specific free delivery rules.
      *
-     * Rules (checked in order):
-     * 1. free_delivery_amount — if discounted subtotal >= amount → free delivery
-     * 2. free_delivery_qty   — if total quantity >= qty → free delivery
+     * Rules (checked in order — first match wins):
+     * 1. free_delivery_amount — if post-discount subtotal >= amount → free
+     * 2. free_delivery_qty   — if total units across all items >= qty → free
+     *
+     * @param float $effectiveSubtotal  Subtotal after tier + landing discounts
      */
     private function applyLandingShippingRules(
         LandingPage $landing,
-        CheckoutPricingResult $pricing,
         array $items,
         float $currentShipping,
+        float $effectiveSubtotal,
     ): float {
-        // Rule 1: Free delivery by amount
+        // Rule 1: Free delivery by subtotal threshold
         $freeAmount = $landing->freeDeliveryAmount();
-        if ($freeAmount !== null) {
-            $discountedSubtotal = $pricing->subtotal - $pricing->tierDiscountTotal;
-            if ($discountedSubtotal >= $freeAmount) {
-                return 0;
-            }
+        if ($freeAmount !== null && $effectiveSubtotal >= $freeAmount) {
+            return 0;
         }
 
-        // Rule 2: Free delivery by total quantity
-        $freeQty = $landing->freeDeliveryQty();
+        // Rule 2: Free delivery by total units
+        $freeQty  = $landing->freeDeliveryQty();
         if ($freeQty !== null) {
             $totalQty = array_sum(array_column($items, 'quantity'));
             if ($totalQty >= $freeQty) {

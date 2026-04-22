@@ -10,7 +10,7 @@
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h2 class="text-lg font-bold text-gray-800">Landing Pages</h2>
-                <p class="text-sm text-gray-500 mt-0.5">Manage product, combo, and sales landing pages</p>
+                <p class="text-sm text-gray-500 mt-0.5">Manage product, combo, sales, and listing landing pages</p>
             </div>
             @can('product.create')
                 <a href="{{ route('admin.landing-pages.create') }}"
@@ -32,6 +32,7 @@
                     <option value="product">Product</option>
                     <option value="combo">Combo</option>
                     <option value="sales">Sales</option>
+                    <option value="listing">Listing</option>
                 </select>
                 <select x-model="filters.is_active" @change="fetchPages()"
                     class="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
@@ -78,15 +79,16 @@
                                     <p class="font-semibold text-gray-800" x-text="page.title"></p>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <a :href="'/landing/' + page.slug" target="_blank"
+                                    <a :href="pageUrl(page)" target="_blank"
                                         class="text-green-700 hover:underline text-xs font-mono" x-text="page.slug"></a>
                                 </td>
                                 <td class="px-4 py-3">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
                                         :class="{
-                                            'bg-blue-100 text-blue-700': page.type === 'product',
+                                            'bg-blue-100 text-blue-700':   page.type === 'product',
                                             'bg-purple-100 text-purple-700': page.type === 'combo',
                                             'bg-amber-100 text-amber-700': page.type === 'sales',
+                                            'bg-teal-100 text-teal-700':  page.type === 'listing',
                                         }"
                                         x-text="page.type.charAt(0).toUpperCase() + page.type.slice(1)"></span>
                                 </td>
@@ -97,7 +99,7 @@
                                     <template x-if="page.combo">
                                         <span x-text="page.combo.name"></span>
                                     </template>
-                                    <template x-if="page.type === 'sales'">
+                                    <template x-if="page.type === 'sales' || page.type === 'listing'">
                                         <span class="text-gray-400">Multiple items</span>
                                     </template>
                                 </td>
@@ -280,6 +282,13 @@
                     confirmDelete(page) {
                         this.deleteTarget = page;
                         this.showDeleteModal = true;
+                    },
+
+                    pageUrl(page) {
+                        if (page.type === 'product' || page.type === 'combo') {
+                            return '/product-page/' + page.slug;
+                        }
+                        return '/p/' + page.slug;
                     },
 
                     async deletePage() {
