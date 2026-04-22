@@ -1,5 +1,5 @@
-<button onclick="toggleCart()"
-    class="fixed right-5 top-1/2 -translate-y-1/2 z-30 flex items-center justify-center p-3 bg-white rounded-full shadow-xl cursor-pointer hover:scale-105 transition-transform border border-gray-100">
+<button id="floatingCartButton" onclick="toggleCart()"
+    class="fixed right-5 top-1/2 -translate-y-1/2 z-30 hidden md:flex items-center justify-center p-3 bg-white rounded-full shadow-xl cursor-pointer hover:scale-105 transition-transform border border-gray-100">
 
     <div class="relative">
         <svg viewBox="0 0 73 73" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-700" fill="currentColor"
