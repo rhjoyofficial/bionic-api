@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Domains\Certification\Models\Certification;
 use App\Domains\Product\Models\Product;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class CertificationSeeder extends Seeder
 {
@@ -13,10 +12,10 @@ class CertificationSeeder extends Seeder
     {
         $globalCompliance = [
             ['name' => 'BSTI Certification', 'img' => 'bsti.png', 'logo_path' => 'bsti.png'],
-            ['name' => 'GMP Certified', 'img' => 'gmp.png', 'logo_path' => 'gmp.png'],
-            ['name' => 'ISO Standard', 'img' => 'iso.jpeg', 'logo_path' => 'iso.png'],
-            ['name' => 'Halal Certified', 'img' => 'halal.jpeg', 'logo_path' => 'halal.png'],
-            ['name' => 'HACCP Compliance', 'img' => 'haccp.png', 'logo_path' => 'haccp.png'],
+            ['name' => 'GMP Certified', 'img' => 'gmp.jpg', 'logo_path' => 'gmp.png'],
+            ['name' => 'ISO Standard', 'img' => 'iso.jpg', 'logo_path' => 'iso.png'],
+            ['name' => 'Halal Certified', 'img' => 'halal.jpg', 'logo_path' => 'halal.png'],
+            ['name' => 'HACCP Compliance', 'img' => 'haccp.jpg', 'logo_path' => 'haccp.png'],
         ];
 
         $qualityStandards = [

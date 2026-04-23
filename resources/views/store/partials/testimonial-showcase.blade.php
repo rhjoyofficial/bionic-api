@@ -41,32 +41,17 @@
                             {{-- MEDIA AREA --}}
                             <div class="media-container mb-6">
 
-                                {{-- VIDEO --}}
+                                {{-- VIDEO — managed by VideoManager (resources/js/managers/video-manager.js)
+                                     VideoInstance rebuilds the inner DOM; keep this div empty.
+                                     Swap data-video-src for the real file path when ready. --}}
                                 @if ($i == 2)
-                                    <div class="relative media-frame group" data-video>
-
-                                        <video class="w-full h-full object-cover rounded-xl" preload="metadata">
-                                            <source src="{{ asset('assets/video/video-file.mp4') }}" type="video/mp4">
-                                        </video>
-
-                                        <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition cursor-pointer"
-                                            data-video-toggle>
-
-                                            <div
-                                                class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 shadow-lg group-hover:scale-110 transition">
-
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-                                                    viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d="m7 3 14 9-14 9z" />
-                                                </svg>
-
-                                            </div>
-
-                                        </div>
-
-                                        <input type="range" data-video-progress value="0" step="0.1"
-                                            class="absolute bottom-0 left-0 w-full h-1 bg-white/20 accent-primary cursor-pointer opacity-0 group-hover:opacity-100 transition">
-
+                                    <div
+                                        class="media-frame"
+                                        data-video
+                                        data-video-type="html5"
+                                        data-video-src="{{ asset('assets/video/video-file.mp4') }}"
+                                        data-video-lazy="true"
+                                        style="aspect-ratio:4/3;border-radius:0.75rem;overflow:hidden;">
                                     </div>
 
                                     {{-- IMAGE --}}
@@ -137,7 +122,7 @@
 
             slidesPerView: 1.2,
             spaceBetween: 20,
-            loop: true,
+            loop: false, // loop:true clones DOM nodes — cloned <video> breaks VideoManager init
 
             navigation: {
                 nextEl: '.testi-next',
