@@ -270,10 +270,9 @@
 
                 <div class="swiper certificationsSwiper">
                     <div class="swiper-wrapper">
-                        @foreach (['bsti', 'gmo-free', 'haccp', 'iso-22000', 'no-msg', 'halal', 'bsti', 'gmo-free', 'haccp'] as $cert)
-                            <div class="swiper-slide">
-                                <img src="{{ asset('assets/images/certificates/' . $cert . '.png') }}"
-                                    alt="{{ $cert }}"
+                        @foreach ($heroCertifications as $cert)
+                            <div class="swiper-slide" title="{{ $cert->name }}">
+                                <img src="{{ $cert->logo_url }}" alt="{{ $cert->name }}" loading="lazy"
                                     class="w-14 h-14 lg:w-28 lg:h-28 aspect-square object-contain mx-auto hover:scale-110 transition-transform">
                             </div>
                         @endforeach

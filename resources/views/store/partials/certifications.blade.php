@@ -1,10 +1,7 @@
 <section class="py-16 px-4 md:px-8 bg-[#246E23]/10 overflow-hidden">
-
     <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12">
 
-        <!-- LEFT -->
         <div class="group">
-
             <div class="flex items-center gap-2 mb-8 relative z-10">
                 <svg class="w-8 h-8 text-primary">
                     <path d="M30 8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z" fill="#2d6a4f" />
@@ -18,67 +15,37 @@
             </div>
 
             <div class="relative overflow-hidden pt-2">
-
                 <div class="flex flex-nowrap min-w-max gap-6 marquee-left">
 
-                    <!-- repeat cards -->
-                    <div class="cert-card" data-img="/assets/certificates/bsti.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/bsti.png" loading="lazy" class="cert-img"></div>
-                    </div>
+                    @foreach ($certifications->get('Global Compliance', []) as $cert)
+                        <div class="cert-card" data-img="{{ $cert->image_url }}">
+                            <div class="cert-canvas">
+                                <img src="{{ $cert->logo_url }}" alt="{{ $cert->name }}" loading="lazy"
+                                    class="cert-img">
+                            </div>
+                        </div>
+                    @endforeach
 
-                    <div class="cert-card" data-img="/assets/certificates/gmp.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/gmp.png" loading="lazy" class="cert-img"></div>
-                    </div>
+                    @foreach ($certifications->get('Global Compliance', []) as $cert)
+                        <div class="cert-card" aria-hidden="true" data-img="{{ $cert->image_url }}">
+                            <div class="cert-canvas">
+                                <img src="{{ $cert->logo_url }}" alt="{{ $cert->name }}" loading="lazy"
+                                    class="cert-img">
+                            </div>
+                        </div>
+                    @endforeach
 
-                    <div class="cert-card" data-img="/assets/certificates/iso.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/iso.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/halal.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/halal.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/haccp.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/haccp.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <!-- duplicate -->
-                    <div class="cert-card" data-img="/assets/certificates/bsti.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/bsti.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/gmp.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/gmp.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/iso.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/iso.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/halal.jpeg">
-                        <div class="cert-canvas"><img src="/assets/certificates/halal.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/haccp.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/haccp.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                </div>
-
-                <div
-                    class="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#246E23]/20 to-transparent">
                 </div>
                 <div
-                    class="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#246E23]/20 to-transparent">
+                    class="pointer-events-none absolute inset-y-0 left-0 w-16 bg-linear-to-r from-[#246E23]/20 to-transparent">
                 </div>
-
+                <div
+                    class="pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-[#246E23]/20 to-transparent">
+                </div>
             </div>
-
         </div>
 
-        <!-- RIGHT -->
         <div class="group">
-
             <div class="flex items-center gap-2 mb-8 relative z-10">
                 <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-primary"
                     fill="currentColor" stroke="currentColor" stroke-width="2">
@@ -92,67 +59,43 @@
             </div>
 
             <div class="relative overflow-hidden pt-2">
-
                 <div class="flex flex-nowrap min-w-max gap-6 marquee-right">
 
-                    <!-- cards -->
-                    <div class="cert-card" data-img="/assets/certificates/pure.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/pure.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/msg.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/msg.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/gmo.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/gmo.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/premium.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/premium.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/halal-food.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/halal-food.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <!-- duplicate -->
-                    <div class="cert-card" data-img="/assets/certificates/pure.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/pure.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/msg.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/msg.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/gmo.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/gmo.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/premium.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/premium.png" loading="lazy" class="cert-img"></div>
-                    </div>
-
-                    <div class="cert-card" data-img="/assets/certificates/halal-food.png">
-                        <div class="cert-canvas"><img src="/assets/certificates/halal-food.png" loading="lazy" class="cert-img">
+                    @foreach ($certifications->get('Quality & Safety', []) as $cert)
+                        <div class="cert-card" data-img="{{ $cert->image_url }}">
+                            <div class="cert-canvas">
+                                <img src="{{ $cert->logo_url }}" alt="{{ $cert->name }}" loading="lazy"
+                                    class="cert-img">
+                            </div>
                         </div>
-                    </div>
+                    @endforeach
+
+                    @foreach ($certifications->get('Quality & Safety', []) as $cert)
+                        <div class="cert-card" aria-hidden="true" data-img="{{ $cert->image_url }}">
+                            <div class="cert-canvas">
+                                <img src="{{ $cert->logo_url }}" alt="{{ $cert->name }}" loading="lazy"
+                                    class="cert-img">
+                            </div>
+                        </div>
+                    @endforeach
 
                 </div>
-
                 <div
-                    class="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#246E23]/20 to-transparent">
+                    class="pointer-events-none absolute inset-y-0 left-0 w-16 bg-linear-to-r from-[#246E23]/20 to-transparent">
                 </div>
                 <div
-                    class="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#246E23]/20 to-transparent">
+                    class="pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-[#246E23]/20 to-transparent">
                 </div>
-
             </div>
-
         </div>
 
     </div>
 </section>
+
+<div id="certModal"
+    class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition">
+    <img id="certModalImg" class="max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl scale-95 transition">
+</div>
 
 <div id="certModal"
     class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition">
