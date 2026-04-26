@@ -2,6 +2,7 @@
 
 namespace App\Domains\Product\Controllers;
 
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Requests\StoreComboRequest;
 use App\Domains\Product\Requests\UpdateComboRequest;
@@ -84,6 +85,7 @@ class AdminComboController extends Controller
 
             if ($combo) {
                 $combo->load(['items.variant.product']);
+                AdminLogger::log('products', "Combo {$combo->title} created", $combo, [], 'created');
             }
 
             return ApiResponse::success(new ComboResource($combo), 'Combo created successfully', 201);
@@ -125,6 +127,8 @@ class AdminComboController extends Controller
 
             $combo->load(['items.variant.product']);
 
+            AdminLogger::log('products', "Combo {$combo->title} updated", $combo, [], 'updated');
+
             return ApiResponse::success(new ComboResource($combo), 'Combo updated successfully');
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to update combo');
@@ -138,7 +142,10 @@ class AdminComboController extends Controller
                 Storage::disk('public')->delete($combo->image);
             }
 
+            $title = $combo->title;
             $combo->delete(); // combo_items cascade
+
+            AdminLogger::log('products', "Combo {$title} deleted", null, ['title' => $title], 'deleted');
 
             return ApiResponse::success(null, 'Combo deleted successfully');
         } catch (Exception $e) {
@@ -150,6 +157,8 @@ class AdminComboController extends Controller
     {
         try {
             $combo->update(['is_active' => ! $combo->is_active]);
+
+            AdminLogger::log('products', "Combo {$combo->title} status changed to " . ($combo->is_active ? 'Active' : 'Inactive'), $combo, ['is_active' => $combo->is_active], 'status_changed');
 
             return ApiResponse::success([
                 'id'        => $combo->id,

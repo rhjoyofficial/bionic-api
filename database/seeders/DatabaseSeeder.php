@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             ComboSeeder::class,
             ShippingZoneSeeder::class,
             CouponSeeder::class,
-            // LandingPageSeeder::class,
+            LandingPageSeeder::class,
             WebhookSeeder::class,
         ]);
     }

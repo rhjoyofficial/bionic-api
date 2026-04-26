@@ -13,6 +13,7 @@ class LandingPage extends Model
     public const TYPE_PRODUCT = 'product';
     public const TYPE_COMBO   = 'combo';
     public const TYPE_SALES   = 'sales';
+    public const TYPE_LISTING = 'listing';
 
     protected $fillable = [
         'slug',
@@ -81,6 +82,32 @@ class LandingPage extends Model
     {
         $val = $this->cfg('free_delivery_qty');
         return $val !== null ? (int) $val : null;
+    }
+
+    /**
+     * Landing-specific flat discount amount (null = disabled).
+     */
+    public function discountAmount(): ?float
+    {
+        $val = $this->cfg('discount_amount');
+        return $val !== null ? (float) $val : null;
+    }
+
+    /**
+     * Landing-specific percentage discount (null = disabled).
+     */
+    public function discountPercent(): ?float
+    {
+        $val = $this->cfg('discount_percent');
+        return $val !== null ? (float) $val : null;
+    }
+
+    /**
+     * Returns true for types that use an embedded checkout (no cart).
+     */
+    public function hasEmbeddedCheckout(): bool
+    {
+        return in_array($this->type, [self::TYPE_PRODUCT, self::TYPE_COMBO, self::TYPE_SALES]);
     }
 
     // ── Blade Resolution ──────────────────────────────────────

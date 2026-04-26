@@ -2,6 +2,7 @@
 
 namespace App\Domains\Order\Controllers;
 
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Order\Enums\OrderStatus;
 use App\Domains\Order\Models\Order;
 use App\Domains\Order\Requests\UpdateOrderStatusRequest;
@@ -11,6 +12,7 @@ use App\Domains\Order\Services\OrderEditService;
 use App\Domains\Order\Services\OrderStatusService;
 use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Models\ProductVariant;
+use App\Events\OrderPaymentUpdated;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
 use App\Models\User;
@@ -337,7 +339,15 @@ class AdminOrderController extends Controller
         ]);
 
         try {
+            $oldStatus = $order->payment_status;
             $order->update(['payment_status' => $request->payment_status]);
+
+            event(new OrderPaymentUpdated($order, $oldStatus, $order->payment_status));
+
+            AdminLogger::log('order', "Order {$order->order_number} payment status updated to {$order->payment_status}", $order, [
+                'old_status' => $oldStatus,
+                'new_status' => $order->payment_status,
+            ], 'payment_status_updated');
 
             return ApiResponse::success(
                 ['payment_status' => $order->payment_status],
@@ -359,6 +369,8 @@ class AdminOrderController extends Controller
             ]);
 
             $note->load('admin');
+
+            AdminLogger::log('order', "Note added to Order {$order->order_number}", $order, ['note_id' => $note->id], 'note_added');
 
             return ApiResponse::success([
                 'id'         => $note->id,

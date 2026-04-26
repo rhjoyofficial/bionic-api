@@ -7,6 +7,7 @@ use App\Domains\Auth\Requests\RegisterRequest;
 use App\Domains\Auth\Resources\UserResource;
 use App\Domains\Auth\Services\AuthService;
 use App\Domains\Cart\Services\CartMergeService;
+use App\Events\CustomerRegistered;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendWelcomeMailJob;
@@ -50,6 +51,8 @@ class AuthController extends Controller
 
             // Dispatch the welcome email on the queue.
             SendWelcomeMailJob::dispatch($user);
+
+            CustomerRegistered::dispatch($user);
 
             return ApiResponse::success([
                 'user' => new UserResource($user),

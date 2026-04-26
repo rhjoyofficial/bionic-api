@@ -2,25 +2,35 @@
 
 namespace App\Jobs;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Infrastructure\Webhook\WebhookService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SendWebhookJob implements ShouldQueue
 {
-    public $event;
-    public $payload;
+    use Queueable, InteractsWithQueue;
 
-    public function __construct($event, $payload)
+    public int   $tries   = 3;
+    public array $backoff = [30, 120, 300];
+    public int   $timeout = 15;
+
+    public function __construct(
+        public readonly string $event,
+        public readonly mixed  $payload,
+    ) {}
+
+    public function handle(WebhookService $service): void
     {
-        $this->event = $event;
-        $this->payload = $payload;
+        $service->dispatch($this->event, $this->payload);
     }
 
-    public function handle(WebhookService $service)
+    public function failed(Throwable $e): void
     {
-        $service->dispatch(
-            $this->event,
-            $this->payload
-        );
+        Log::error("SendWebhookJob permanently failed for event [{$this->event}]", [
+            'error' => $e->getMessage(),
+        ]);
     }
 }

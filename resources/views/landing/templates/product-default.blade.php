@@ -41,7 +41,7 @@
                             <div class="flex flex-wrap gap-3">
                                 @foreach($product->variants as $variant)
                                     <button type="button"
-                                            @click="selectVariant({{ $variant->id }}, {{ $variant->price }})"
+                                            @click="selectVariant({{ $variant->id }}, {{ $variant->price }}, @json($variant->tierPrices->map(fn($t) => ['min_qty' => $t->min_qty, 'price' => $t->price])->values()))"
                                             :class="selectedVariantId === {{ $variant->id }}
                                                 ? 'bg-white text-green-800 ring-2 ring-white'
                                                 : 'bg-green-700/50 text-white hover:bg-green-600/50'"
@@ -53,6 +53,16 @@
                             </div>
                         </div>
                     @endif
+
+                    {{-- Tier price hints for selected variant --}}
+                    <template x-if="tierPrices.length > 0">
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            <template x-for="tier in tierPrices" :key="tier.min_qty">
+                                <span class="text-xs bg-white/20 text-white border border-white/30 rounded-full px-2.5 py-0.5 font-semibold"
+                                      x-text="tier.min_qty + '+ → ৳' + tier.price"></span>
+                            </template>
+                        </div>
+                    </template>
 
                     {{-- Quantity --}}
                     <div class="mb-6">
@@ -71,10 +81,14 @@
                     </div>
 
                     {{-- Price Display --}}
-                    <div class="flex items-baseline gap-3">
-                        <span class="text-3xl font-bold font-bengali" x-text="'&#2547;' + (unitPrice * quantity).toFixed(0)"></span>
+                    <div class="flex items-baseline gap-3 flex-wrap">
+                        <span class="text-3xl font-bold font-bengali"
+                              x-text="'৳' + (effectivePrice() * quantity).toFixed(0)"></span>
+                        <span x-show="effectivePrice() < unitPrice"
+                              class="text-green-300 text-base line-through font-bengali"
+                              x-text="'৳' + (unitPrice * quantity).toFixed(0)"></span>
                         <span class="text-green-200 text-sm" x-show="quantity > 1"
-                              x-text="'(' + quantity + ' x &#2547;' + unitPrice.toFixed(0) + ')'"></span>
+                              x-text="'(' + quantity + ' × ৳' + effectivePrice().toFixed(0) + ' each)'"></span>
                     </div>
 
                     {{-- Scroll to checkout CTA --}}
@@ -110,15 +124,26 @@ function productLanding() {
     return {
         selectedVariantId: {{ $product->variants->first()?->id ?? 'null' }},
         unitPrice: {{ $product->variants->first()?->price ?? 0 }},
+        tierPrices: @json(($product->variants->first()?->tierPrices ?? collect())->map(fn($t) => ['min_qty' => $t->min_qty, 'price' => $t->price])->sortBy('min_qty')->values()),
         quantity: 1,
 
         init() {
             this.syncItems();
         },
 
-        selectVariant(id, price) {
+        effectivePrice() {
+            if (!this.tierPrices.length) return this.unitPrice;
+            const sorted = [...this.tierPrices].sort((a, b) => b.min_qty - a.min_qty);
+            for (const tier of sorted) {
+                if (this.quantity >= tier.min_qty) return tier.price;
+            }
+            return this.unitPrice;
+        },
+
+        selectVariant(id, price, tierPrices) {
             this.selectedVariantId = id;
             this.unitPrice = price;
+            this.tierPrices = (tierPrices || []).slice().sort((a, b) => a.min_qty - b.min_qty);
             this.syncItems();
         },
 
@@ -130,9 +155,7 @@ function productLanding() {
         syncItems() {
             if (!this.selectedVariantId) return;
             const items = [{ variant_id: this.selectedVariantId, quantity: this.quantity }];
-            // Set initialItems for the checkout partial
             window.initialItems = items;
-            // If checkout component is already mounted, update it
             const checkout = document.getElementById('landingCheckout');
             if (checkout && checkout.__x) {
                 checkout.__x.$data.updateItems(items);
@@ -141,7 +164,6 @@ function productLanding() {
     };
 }
 
-// Set initial items before Alpine initializes the checkout component
 var initialItems = [{ variant_id: {{ $product->variants->first()?->id ?? 'null' }}, quantity: 1 }];
 </script>
 @endsection

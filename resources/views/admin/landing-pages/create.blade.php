@@ -49,9 +49,10 @@
                                         class="text-red-400">*</span></label>
                                 <select x-model="form.type" @change="onTypeChange()"
                                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
-                                    <option value="product">Product</option>
-                                    <option value="combo">Combo</option>
-                                    <option value="sales">Sales (Multiple Items)</option>
+                                    <option value="product">Product — direct checkout</option>
+                                    <option value="combo">Combo — direct checkout</option>
+                                    <option value="sales">Sales — multi-item direct checkout</option>
+                                    <option value="listing">Listing — browse & add to cart</option>
                                 </select>
                             </div>
                             <div>
@@ -128,10 +129,14 @@
                     </div>
                 </div>
 
-                {{-- Sales Items (only for type=sales) --}}
-                <div x-show="form.type === 'sales'" class="bg-white border border-gray-200 rounded-xl p-5">
+                {{-- Items (sales + listing types) --}}
+                <div x-show="form.type === 'sales' || form.type === 'listing'" class="bg-white border border-gray-200 rounded-xl p-5">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-gray-800">Sales Items</h3>
+                        <div>
+                            <h3 class="font-semibold text-gray-800" x-text="form.type === 'listing' ? 'Listing Items' : 'Sales Items'"></h3>
+                            <p class="text-xs text-gray-400 mt-0.5" x-show="form.type === 'listing'">Items shown to browse. Customers add to cart — no direct checkout.</p>
+                            <p class="text-xs text-gray-400 mt-0.5" x-show="form.type === 'sales'">Items available for selection. Customers order directly — no cart.</p>
+                        </div>
                         <button @click="addSalesItem()" type="button"
                             class="text-sm text-green-700 hover:text-green-800 font-semibold cursor-pointer">
                             <i class="fa-solid fa-plus mr-1"></i> Add Item
@@ -213,23 +218,45 @@
                     </div>
                 </div>
 
-                {{-- Free Delivery Config --}}
-                <div class="bg-white border border-gray-200 rounded-xl p-5">
+                {{-- Free Delivery Config (not applicable to listing type) --}}
+                <div x-show="form.type !== 'listing'" class="bg-white border border-gray-200 rounded-xl p-5">
                     <h3 class="font-semibold text-gray-800 mb-4">Free Delivery Rules</h3>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Free delivery above
-                                amount</label>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Free above amount
+                                <span class="font-bengali">&#2547;</span></label>
                             <input x-model.number="form.config.free_delivery_amount" type="number" min="0"
                                 step="1" placeholder="e.g. 1500"
                                 class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
                             <p class="text-xs text-gray-400 mt-1">Leave empty to use zone default</p>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Free delivery above
-                                quantity</label>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Free above total
+                                units</label>
                             <input x-model.number="form.config.free_delivery_qty" type="number" min="1"
                                 step="1" placeholder="e.g. 3"
+                                class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Landing Discount Config (not applicable to listing type) --}}
+                <div x-show="form.type !== 'listing'" class="bg-white border border-gray-200 rounded-xl p-5">
+                    <h3 class="font-semibold text-gray-800 mb-1">Special Discount</h3>
+                    <p class="text-xs text-gray-400 mb-4">Applied after tier pricing, separate from coupons. Flat amount takes priority over percent if both are set.</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Flat discount
+                                <span class="font-bengali">&#2547;</span></label>
+                            <input x-model.number="form.config.discount_amount" type="number" min="0"
+                                step="1" placeholder="e.g. 100"
+                                class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Percent discount
+                                %</label>
+                            <input x-model.number="form.config.discount_percent" type="number" min="0" max="100"
+                                step="0.5" placeholder="e.g. 10"
                                 class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
                         </div>
                     </div>
@@ -256,7 +283,9 @@
                     is_active: false,
                     config: {
                         free_delivery_amount: null,
-                        free_delivery_qty: null
+                        free_delivery_qty: null,
+                        discount_amount: null,
+                        discount_percent: null,
                     },
                     items: [],
                 },
@@ -286,7 +315,7 @@
                     this.form.combo_id = null;
                     this.selectedProductName = '';
                     this.selectedComboName = '';
-                    if (this.form.type !== 'sales') {
+                    if (this.form.type !== 'sales' && this.form.type !== 'listing') {
                         this.form.items = [];
                     }
                 },
@@ -360,15 +389,15 @@
                     this.successMessage = '';
                     this.errorMessage = '';
 
-                    // Clean config: remove empty values
+                    // Clean config: only include fields with values
                     const config = {};
-                    if (this.form.config.free_delivery_amount) config.free_delivery_amount = this.form.config
-                        .free_delivery_amount;
-                    if (this.form.config.free_delivery_qty) config.free_delivery_qty = this.form.config
-                        .free_delivery_qty;
+                    if (this.form.config.free_delivery_amount) config.free_delivery_amount = this.form.config.free_delivery_amount;
+                    if (this.form.config.free_delivery_qty)    config.free_delivery_qty    = this.form.config.free_delivery_qty;
+                    if (this.form.config.discount_amount)      config.discount_amount      = this.form.config.discount_amount;
+                    if (this.form.config.discount_percent)     config.discount_percent     = this.form.config.discount_percent;
 
-                    // Clean items for sales type
-                    const items = this.form.type === 'sales' ?
+                    // Items for sales and listing types
+                    const items = (this.form.type === 'sales' || this.form.type === 'listing') ?
                         this.form.items.map((item, idx) => ({
                             product_variant_id: item.type === 'variant' ? item.product_variant_id : null,
                             combo_id: item.type === 'combo' ? item.combo_id : null,
@@ -379,7 +408,7 @@
                     const payload = {
                         ...this.form,
                         config: Object.keys(config).length > 0 ? config : null,
-                        items: items.length > 0 ? items : undefined,
+                        items: (this.form.type === 'sales' || this.form.type === 'listing') ? items : undefined,
                         blade_template: this.form.blade_template || (this.form.type + '-default'),
                     };
 

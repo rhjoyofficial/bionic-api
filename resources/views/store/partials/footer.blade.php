@@ -3,7 +3,8 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
 
-            <div class="space-y-6">
+            <div
+                class="space-y-6 flex flex-col items-center justify-center text-center md:justify-start md:items-start md:text-left">
                 <img src="{{ asset('assets/images/bionic-white-logo.png') }}" alt="Bionic Logo"
                     class="w-20 md:w-28 object-contain h-auto">
                 <p class="text-gray-200 text-sm leading-relaxed max-w-xs">
@@ -14,10 +15,10 @@
                     <div class="flex gap-3">
                         @php
                             $socials = [
-                                'facebook'  => 'https://www.facebook.com/BionicGardenOfficial', 
-                                'pinterest' => 'https://www.pinterest.com/bionicgardenofficial/', 
-                                'youtube'   => 'https://www.youtube.com/@BionicGardenOfficial', 
-                                'whatsapp'  => 'https://wa.me/8801334943785'
+                                'facebook' => 'https://www.facebook.com/BionicGardenOfficial',
+                                'pinterest' => 'https://www.pinterest.com/bionicgardenofficial/',
+                                'youtube' => 'https://www.youtube.com/@BionicGardenOfficial',
+                                'whatsapp' => 'https://wa.me/8801334943785',
                             ];
                         @endphp
                         @foreach ($socials as $key => $social)
@@ -59,7 +60,7 @@
                 <h4 class="font-heading font-bold text-lg mb-6">Quick Links</h4>
                 <ul class="space-y-4 text-gray-200 text-sm">
                     <li>
-                        <a href="#"
+                        <a href="{{ route('home') }}"
                             class="flex items-center gap-2 group hover:text-white transition-all duration-300">
                             <svg class="w-4 h-4 fill-current text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                 viewBox="0 0 320 512">
@@ -198,19 +199,15 @@
                 2026 Bionic. All rights reserved
             </p>
 
-            <div class="flex items-center gap-8 text-sm font-medium">
+            <div class="flex items-center justify-center gap-4 md:gap-8 text-sm font-medium">
                 <a href="#" class="hover:text-yellow-500 transition-colors">Terms</a>
                 <a href="#" class="hover:text-yellow-500 transition-colors">Privacy Policy</a>
                 <a href="#" class="hover:text-yellow-500 transition-colors">Legal Disclaimer</a>
             </div>
 
-            <div class="flex gap-4">
-                @foreach (['fb', 'ig', 'tw', 'yt'] as $bottomSocial)
-                    <a href="#"
-                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-primary hover:bg-yellow-500 transition-colors">
-                        <div class="w-4 h-4 bg-primary rounded-full"></div>
-                    </a>
-                @endforeach
+            <div class="w-full md:max-w-72 xl:max-w-96">
+                <img src="{{ asset('assets/images/footer-bank.png') }}" alt="Payment Methods"
+                    class="w-full h-full object-contain">
             </div>
         </div>
     </div>

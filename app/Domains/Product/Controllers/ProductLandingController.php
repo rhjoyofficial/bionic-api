@@ -2,24 +2,22 @@
 
 namespace App\Domains\Product\Controllers;
 
-use App\Domains\Product\Models\Product;
-use App\Domains\Product\Resources\ProductLandingResource;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * @deprecated  This legacy controller is superseded by the Landing domain.
+ *              The full system now uses LandingPageController + /product-page/{slug}.
+ *              Do NOT add new features here. Scheduled for removal once all
+ *              consumers are confirmed migrated.
+ */
 class ProductLandingController extends Controller
 {
     public function show($slug)
     {
-        $product = Product::where('landing_slug', $slug)
-            ->where('is_landing_enabled', true)
-            ->with(['variants.tierPrices', 'category'])
-            ->first();
+        Log::warning('Deprecated ProductLandingController hit.', ['slug' => $slug]);
 
-        if (!$product) {
-            return ApiResponse::error('Landing page not found', null, 404);
-        }
-
-        return ApiResponse::success(new ProductLandingResource($product));
+        return ApiResponse::error('This endpoint is deprecated. Use /product-page/{slug} instead.', null, 410);
     }
 }

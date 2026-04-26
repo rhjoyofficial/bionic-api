@@ -2,14 +2,13 @@
 
 namespace App\Domains\Auth\Controllers;
 
-use App\Domains\ActivityLog\Models\ActivityLog;
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
-use Spatie\Activitylog\ActivityLogger;
 
 /**
  * AdminAuthController — session-based authentication for the Blade admin panel.
@@ -132,22 +131,6 @@ class AdminAuthController extends Controller
 
     private function logAuthActivity(Request $request, $user, string $description): void
     {
-        try {
-            ActivityLog::query()->create([
-                'log_name' => 'admin-auth',
-                'description' => $description,
-                'causer_type' => $user ? get_class($user) : null,
-                'causer_id' => $user?->id,
-                'properties' => [
-                    'ip' => $request->ip(),
-                ],
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Admin activity logging failed', [
-                'description' => $description,
-                'user_id' => $user?->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        AdminLogger::log('admin-auth', $description, $user, ['ip' => $request->ip()]);
     }
 }

@@ -43,6 +43,8 @@ class ProductSeeder extends Seeder
                 'magnesium' => '1%',
                 'potassium' => '1%',
             ],
+            'is_landing_enabled' => true,
+            'landing_slug' => 'himalayan-pink-salt',
         ]);
 
         $variants = $pinkSalt->variants()->createMany([

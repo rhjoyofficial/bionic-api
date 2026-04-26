@@ -2,6 +2,7 @@
 
 namespace App\Domains\Product\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Combo extends Model
@@ -69,5 +70,23 @@ class Combo extends Model
     public function getImageUrlAttribute(): ?string
     {
         return $this->image ? asset('storage/' . $this->image) : null;
+    }
+
+    /**
+     * The amount saved vs. buying each item individually at full variant price.
+     * Used by combo-card and combo detail page to display a savings badge.
+     */
+    public function getTotalSavingsAttribute(): float
+    {
+        return max(0, $this->auto_price - $this->final_price);
+    }
+
+    /**
+     * Scope to retrieve only active combos.
+     * Mirrors Product::scopeActive() for consistent querying patterns.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
     }
 }

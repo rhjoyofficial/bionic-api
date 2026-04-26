@@ -13,7 +13,10 @@ class LandingPageController extends Controller
 {
     public function show(string $slug)
     {
-        $landing = Cache::remember("landing:meta:{$slug}", now()->addMinutes(30), fn () =>
+        $landing = Cache::remember(
+            "landing:meta:{$slug}",
+            now()->addMinutes(30),
+            fn() =>
             LandingPage::where('slug', $slug)->where('is_active', true)->first()
         );
 
@@ -21,16 +24,20 @@ class LandingPageController extends Controller
             abort(404);
         }
 
-        $zones = Cache::remember('shipping:zones:active', now()->addHours(24), fn () =>
+        $zones = Cache::remember(
+            'shipping:zones:active',
+            now()->addHours(24),
+            fn() =>
             ShippingZone::where('is_active', true)->orderBy('sort_order')
                 ->get(['id', 'name', 'base_charge', 'free_shipping_threshold'])
         );
 
         $cacheKey = "landing:data:{$slug}:{$landing->type}";
-        $data = Cache::remember($cacheKey, now()->addHours(2), fn () => match ($landing->type) {
+        $data = Cache::remember($cacheKey, now()->addHours(2), fn() => match ($landing->type) {
             LandingPage::TYPE_PRODUCT => $this->buildProductData($landing),
             LandingPage::TYPE_COMBO   => $this->buildComboData($landing),
             LandingPage::TYPE_SALES   => $this->buildSalesData($landing),
+            LandingPage::TYPE_LISTING => $this->buildListingData($landing),
             default                   => [],
         });
 
@@ -50,7 +57,7 @@ class LandingPageController extends Controller
         // page's own is_active flag is the authoritative gatekeeper (checked at
         // the top of show()). Filtering here would break landing pages that are
         // managed independently or accessed via their direct /product-page/ URL.
-        $product = Product::with(['variants.tierPrices', 'category'])
+        $product = Product::with(['variants.tierPrices', 'category', 'certifications'])
             ->where('id', $landing->product_id)
             ->where('is_active', true)
             ->firstOrFail();
@@ -60,19 +67,21 @@ class LandingPageController extends Controller
 
     /**
      * Combo landing: load the combo with its items and variant details.
+     * is_landing_enabled is intentionally NOT checked here — same reasoning
+     * as buildProductData: the landing page's own is_active flag is the gatekeeper.
      */
     private function buildComboData(LandingPage $landing): array
     {
         $combo = Combo::with(['items.variant.product'])
             ->where('id', $landing->combo_id)
-            ->where('is_landing_enabled', true)
+            ->where('is_active', true)
             ->firstOrFail();
 
         return ['combo' => $combo];
     }
 
     /**
-     * Sales landing: load all items (variants + combos) attached to this page.
+     * Sales landing: load all items (variants + combos) for direct checkout.
      */
     private function buildSalesData(LandingPage $landing): array
     {
@@ -83,5 +92,19 @@ class LandingPageController extends Controller
         ]);
 
         return ['salesItems' => $landing->items];
+    }
+
+    /**
+     * Listing landing: load items for browse + add-to-cart flow (no embedded checkout).
+     */
+    private function buildListingData(LandingPage $landing): array
+    {
+        $landing->load([
+            'items.variant.product',
+            'items.variant.tierPrices',
+            'items.combo.items.variant.product',
+        ]);
+
+        return ['listingItems' => $landing->items];
     }
 }

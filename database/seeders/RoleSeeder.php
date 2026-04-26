@@ -58,8 +58,11 @@ class RoleSeeder extends Seeder
 
             // Customer
             'customer.view',
+            'customer.create',
             'customer.update',
+            'customer.delete',
             'customer.deactivate',
+            'customer.change_password',
 
             // Notifications
             'notification.view',
@@ -76,6 +79,12 @@ class RoleSeeder extends Seeder
 
             // Access Control
             'role.manage',
+            'permission.manage',
+
+            // Admin Staff
+            'staff.create',
+            'staff.update',
+            'staff.delete',
         ];
 
         foreach ($permissions as $permission) {
@@ -142,8 +151,10 @@ class RoleSeeder extends Seeder
         $support->syncPermissions([
             'order.view',
             'customer.view',
+            'customer.create',
             'customer.update',
             'customer.deactivate',
+            'customer.change_password',
             'notification.view',
             'notification.send',
             'analytics.view',
@@ -154,6 +165,9 @@ class RoleSeeder extends Seeder
         $customer->syncPermissions([
             'product.view',
         ]);
+
+        // Order Manager — re-sync to pick up any new customer perms (none needed here)
+        // Marketing — no changes needed
 
         // ── Remove legacy permissions that were replaced ─────────────────────
         Permission::whereIn('name', ['coupon.manage', 'shipping.manage', 'user.manage'])

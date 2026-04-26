@@ -14,6 +14,7 @@ export default class CartManager {
 
         this.sidebar = document.getElementById("cartDrawer");
         this.badge = document.getElementById("cartCount");
+        this.cartBadge = document.getElementById("cartCountBadge");
 
         this.init();
     }
@@ -104,6 +105,10 @@ export default class CartManager {
             this.badge.innerText = this.state.totalQty;
         }
 
+        if (this.cartBadge) {
+            this.cartBadge.innerText = this.state.totalQty;
+        }
+
         window.dispatchEvent(new Event("cart:updated"));
     }
 
@@ -149,8 +154,9 @@ export default class CartManager {
             const res = await this.api(endpoint, data);
             this.setState(res.data);
             if (typeof flash === "function" && !res.data.prices_updated)
-                window.flash?.("Added to cart");
-            this.open();
+                window.flash?.("Item Added to cart", "success", 2000);
+            this.animateFlyToCart(button);
+            // this.open();
         } catch (e) {
             if (typeof flash === "function")
                 window.flash?.(e.message || "Action failed", "error");
@@ -219,5 +225,52 @@ export default class CartManager {
         overlay?.classList.remove("opacity-100");
         overlay?.classList.add("opacity-0", "invisible");
         document.body.classList.remove("overflow-hidden");
+    }
+
+    animateFlyToCart(button) {
+        const cart = document.querySelector("#floatingCartButton");
+
+        // Guard: skip on mobile where cart button is display:none (hidden md:flex)
+        // NOTE: offsetParent is always null for position:fixed — use getComputedStyle instead
+        if (!cart || !button || getComputedStyle(cart).display === "none") return;
+
+        const btnRect = button.getBoundingClientRect();
+        const cartRect = cart.getBoundingClientRect();
+
+        // Guard: skip if positions couldn't be resolved (e.g. button unmounted mid-flight)
+        if (!btnRect.width || !cartRect.width) return;
+
+        const particle = document.createElement("div");
+        particle.className = "cart-particle";
+        particle.style.left = `${btnRect.left + btnRect.width / 2 - 16}px`;
+        particle.style.top = `${btnRect.top + btnRect.height / 2 - 16}px`;
+        particle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="var(--primary)"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-5 11-2.5-2.5-3.5-6.5-3-10Z"/></svg>`;
+        document.body.appendChild(particle);
+
+        // Double rAF: first paints start position, second triggers the CSS transition
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                particle.style.left = `${cartRect.left + cartRect.width / 2}px`;
+                particle.style.top = `${cartRect.top + cartRect.height / 2}px`;
+                particle.style.transform = "scale(0.2)";
+                particle.style.opacity = "0";
+            });
+        });
+
+        particle.addEventListener("transitionend", () => {
+            particle.remove();
+
+            // Re-check cart still visible before applying impact classes
+            if (getComputedStyle(cart).display === "none") return;
+
+            cart.classList.add("animate-cart-hit");
+            const badge = document.getElementById("cartCountBadge");
+            badge?.classList.add("badge-shake");
+
+            setTimeout(() => {
+                cart.classList.remove("animate-cart-hit");
+                badge?.classList.remove("badge-shake");
+            }, 700);
+        }, { once: true });
     }
 }

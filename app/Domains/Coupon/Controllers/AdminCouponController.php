@@ -2,6 +2,7 @@
 
 namespace App\Domains\Coupon\Controllers;
 
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Requests\BulkGenerateCouponRequest;
 use App\Domains\Coupon\Requests\StoreCouponRequest;
@@ -89,6 +90,8 @@ class AdminCouponController extends Controller
 
             $coupon = Coupon::create($data);
 
+            AdminLogger::log('coupons', "Coupon {$coupon->code} created", $coupon, [], 'created');
+
             return ApiResponse::success(new CouponResource($coupon), 'Coupon created successfully', 201);
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to create coupon');
@@ -100,6 +103,8 @@ class AdminCouponController extends Controller
         try {
             $coupon->update($request->validated());
 
+            AdminLogger::log('coupons', "Coupon {$coupon->code} updated", $coupon, [], 'updated');
+
             return ApiResponse::success(new CouponResource($coupon), 'Coupon updated successfully');
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to update coupon');
@@ -109,7 +114,10 @@ class AdminCouponController extends Controller
     public function destroy(Coupon $coupon): JsonResponse
     {
         try {
+            $code = $coupon->code;
             $coupon->delete();
+
+            AdminLogger::log('coupons', "Coupon {$code} deleted", null, ['code' => $code], 'deleted');
 
             return ApiResponse::success(null, 'Coupon deleted successfully');
         } catch (Exception $e) {
@@ -164,6 +172,11 @@ class AdminCouponController extends Controller
             ]), $codes);
 
             DB::table('coupons')->insert($rows);
+
+            AdminLogger::log('coupons', "Bulk generated {$count} coupons with prefix {$prefix}", null, [
+                'prefix' => $prefix,
+                'count'  => count($codes),
+            ], 'bulk_generated');
 
             return ApiResponse::success(
                 ['codes' => $codes, 'count' => count($codes)],

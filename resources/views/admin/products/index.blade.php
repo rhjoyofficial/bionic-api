@@ -58,7 +58,7 @@
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase w-10"></th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase w-10">Image</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Product</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Variants</th>
@@ -76,7 +76,8 @@
                             <template x-for="i in 8" :key="i">
                                 <tr>
                                     <td class="px-5 py-4">
-                                        <div class="w-10 h-10 bg-gray-100 rounded-lg animate-pulse"></div>
+                                        <div class="w-10 h-10 bg-gray-100 rounded-lg animate-pulse">
+                                        </div>
                                     </td>
                                     <td class="px-5 py-4">
                                         <div class="h-4 bg-gray-100 rounded animate-pulse w-40"></div>
@@ -110,7 +111,7 @@
                                     <td class="px-5 py-3">
                                         <template x-if="product.image_url">
                                             <img :src="product.image_url"
-                                                class="w-10 h-10 rounded-lg object-cover border border-gray-100">
+                                                class="w-10 h-10 rounded-lg object-cover border border-gray-100  hover:scale-110 transform duration-300">
                                         </template>
                                         <template x-if="!product.image_url">
                                             <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -204,17 +205,14 @@
         </div>
 
         {{-- Landing Page Enable Modal --}}
-        <div x-show="showLandingEnableModal" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-4"
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0"
+        <div x-show="showLandingEnableModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4"
+            x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100">
 
             <div class="absolute inset-0 bg-black/50" @click="showLandingEnableModal = false"></div>
 
             <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
-                x-transition:enter="transition ease-out duration-150"
-                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95"
                 x-transition:enter-end="opacity-100 scale-100">
 
                 <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
@@ -228,22 +226,20 @@
 
                 {{-- Slug input --}}
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Landing Page Slug</label>
-                <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-600 mb-1">
-                    <span class="px-3 py-2 text-xs text-gray-400 bg-gray-50 border-r border-gray-200 whitespace-nowrap select-none">/product-page/</span>
-                    <input
-                        type="text"
-                        x-model="enableSlug"
-                        @input="slugError = ''"
-                        placeholder="e.g. mangrove-gold-honey"
-                        class="flex-1 px-3 py-2 text-sm outline-none bg-white"
-                    >
+                <div
+                    class="flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-600 mb-1">
+                    <span
+                        class="px-3 py-2 text-xs text-gray-400 bg-gray-50 border-r border-gray-200 whitespace-nowrap select-none">/product-page/</span>
+                    <input type="text" x-model="enableSlug" @input="slugError = ''"
+                        placeholder="e.g. mangrove-gold-honey" class="flex-1 px-3 py-2 text-sm outline-none bg-white">
                 </div>
                 <p class="text-xs text-red-500 mb-4 min-h-[1rem]" x-text="slugError"></p>
 
                 <p class="text-xs text-gray-400 mb-5">
                     Use lowercase letters, numbers and hyphens only.
                     <template x-if="enableTarget?.landing_slug">
-                        <span> Existing slug: <code class="font-mono bg-gray-100 px-1 rounded" x-text="enableTarget.landing_slug"></code></span>
+                        <span> Existing slug: <code class="font-mono bg-gray-100 px-1 rounded"
+                                x-text="enableTarget.landing_slug"></code></span>
                     </template>
                 </p>
 
@@ -252,8 +248,7 @@
                         class="flex-1 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
                         Cancel
                     </button>
-                    <button @click="confirmEnableLanding()"
-                        :disabled="landingLoading"
+                    <button @click="confirmEnableLanding()" :disabled="landingLoading"
                         class="flex-1 px-4 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-lg transition cursor-pointer">
                         <span x-show="!landingLoading">Enable</span>
                         <span x-show="landingLoading">Saving…</span>
@@ -420,7 +415,9 @@
                  */
                 async _sendLandingToggle(product, slug) {
                     try {
-                        const body = slug ? { landing_slug: slug } : {};
+                        const body = slug ? {
+                            landing_slug: slug
+                        } : {};
                         const r = await fetch(`/api/v1/admin/products/${product.id}/toggle-landing-status`, {
                             method: 'PATCH',
                             headers: {

@@ -3,25 +3,25 @@
 <div
     class="group/card bg-white rounded-xl border border-gray-100 overflow-hidden active:bg-gray-50 transition-all duration-300 hover:shadow-md hover:border-primary/20">
     <div class="flex flex-row items-stretch h-full">
-        <div class="w-2/5 sm:w-32 md:w-5/12 aspect-square shrink-0 overflow-hidden">
+        <div class="w-2/5 sm:w-32 md:w-5/12 aspect-square shrink-0 overflow-hidden relative">
             <img src="{{ $combo->image_url }}" alt="{{ $combo->title }}"
                 loading="lazy"
                 class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  @if ($combo->total_savings > 0)
+                        <span
+                            class="absolute top-0 left-0 font-bengali bg-primary/10 text-primary text-xs font-bold px-1.5 py-0.5 rounded-br-lg shrink-0">
+                            Save {{ number_format($combo->total_savings) }}৳
+                        </span>
+                    @endif
         </div>
 
         <div class="flex-1 p-3 flex flex-col min-w-0">
             <div class="grow">
-                <div class="flex items-start justify-between gap-2 mb-1 relative">
-                    <a href="#" title="{{ $combo->items->map(fn($item) => $item->variant->product->name)->implode(' • ') }}"
+                <div class="flex items-start justify-between gap-2 mb-1 ">
+                    <a href="{{ route('combos.show' , $combo->slug) }}" title="{{ $combo->items->map(fn($item) => $item->variant->product->name)->implode(' • ') }}"
                         class="font-bengali text-left text-gray-800 font-medium leading-snug line-clamp-2 min-h-8 group-hover/card:text-primary transition-colors truncate-2 hover:underline">
                         {{ $combo->title }}
-                    </a>
-                    @if ($combo->total_savings > 0)
-                        <span
-                            class="absolute top-0 right-0 font-bengali bg-primary/10 text-primary text-xs font-bold px-1.5 py-0.5 rounded shrink-0">
-                            -{{ number_format($combo->total_savings) }}৳
-                        </span>
-                    @endif
+                    </a>                  
                 </div>
 
                 <p class="text-xs text-gray-400 mb-2 truncate "
