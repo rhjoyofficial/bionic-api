@@ -2,6 +2,7 @@
 
 namespace App\Domains\Order\Controllers;
 
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Order\Enums\OrderStatus;
 use App\Domains\Order\Models\Order;
 use App\Domains\Order\Requests\UpdateOrderStatusRequest;
@@ -343,6 +344,11 @@ class AdminOrderController extends Controller
 
             event(new OrderPaymentUpdated($order, $oldStatus, $order->payment_status));
 
+            AdminLogger::log('order', "Order {$order->order_number} payment status updated to {$order->payment_status}", $order, [
+                'old_status' => $oldStatus,
+                'new_status' => $order->payment_status,
+            ], 'payment_status_updated');
+
             return ApiResponse::success(
                 ['payment_status' => $order->payment_status],
                 'Payment status updated to ' . $request->payment_status,
@@ -363,6 +369,8 @@ class AdminOrderController extends Controller
             ]);
 
             $note->load('admin');
+
+            AdminLogger::log('order', "Note added to Order {$order->order_number}", $order, ['note_id' => $note->id], 'note_added');
 
             return ApiResponse::success([
                 'id'         => $note->id,

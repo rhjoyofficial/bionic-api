@@ -2,6 +2,7 @@
 
 namespace App\Domains\Customer\Controllers;
 
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Customer\Resources\AdminCustomerResource;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
@@ -76,6 +77,8 @@ class AdminCustomerController extends Controller
 
             $user->assignRole('Customer');
 
+            AdminLogger::log('customers', "Customer {$user->name} created", $user, ['email' => $user->email], 'created');
+
             return ApiResponse::success(new AdminCustomerResource($user), 'Customer created', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return ApiResponse::error('Validation failed', $e->errors(), 422);
@@ -93,7 +96,14 @@ class AdminCustomerController extends Controller
                 'phone' => 'nullable|string|max:20',
             ]);
 
+            $oldData = $user->only(['name', 'email', 'phone']);
             $user->update($data);
+            $newData = $user->only(['name', 'email', 'phone']);
+
+            AdminLogger::log('customers', "Customer {$user->name} updated", $user, [
+                'old' => $oldData,
+                'new' => $newData,
+            ], 'updated');
 
             return ApiResponse::success(new AdminCustomerResource($user), 'Customer updated');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -114,7 +124,10 @@ class AdminCustomerController extends Controller
                 );
             }
 
+            $name = $user->name;
             $user->delete();
+
+            AdminLogger::log('customers', "Customer {$name} deleted", null, ['name' => $name, 'id' => $user->id], 'deleted');
 
             return ApiResponse::success(null, 'Customer deleted');
         } catch (Exception $e) {
@@ -132,6 +145,8 @@ class AdminCustomerController extends Controller
 
             $user->update(['password' => Hash::make($data['password'])]);
 
+            AdminLogger::log('customers', "Customer {$user->name} password changed", $user, [], 'password_changed');
+
             return ApiResponse::success(null, 'Password changed successfully');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return ApiResponse::error('Validation failed', $e->errors(), 422);
@@ -143,6 +158,8 @@ class AdminCustomerController extends Controller
     public function toggleActive(User $user): JsonResponse
     {
         $user->update(['is_active' => ! $user->is_active]);
+
+        AdminLogger::log('customers', "Customer {$user->name} status changed to " . ($user->is_active ? 'Active' : 'Inactive'), $user, ['is_active' => $user->is_active], 'status_changed');
 
         return ApiResponse::success(['is_active' => $user->is_active]);
     }

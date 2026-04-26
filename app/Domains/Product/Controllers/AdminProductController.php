@@ -2,6 +2,7 @@
 
 namespace App\Domains\Product\Controllers;
 
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Product\Models\Product;
 use App\Domains\Product\Requests\StoreProductRequest;
 use App\Domains\Product\Requests\UpdateProductRequest;
@@ -49,6 +50,8 @@ class AdminProductController extends Controller
         try {
             $product = $this->service->create($request->validated());
 
+            AdminLogger::log('products', "Product {$product->name} created", $product, [], 'created');
+
             return ApiResponse::success(
                 new ProductResource($product),
                 'Product created successfully',
@@ -66,6 +69,8 @@ class AdminProductController extends Controller
 
             $updated = $this->service->update($product, $request->validated());
 
+            AdminLogger::log('products', "Product {$product->name} updated", $product, [], 'updated');
+
             return ApiResponse::success(
                 new ProductResource($updated),
                 'Product updated successfully'
@@ -80,7 +85,10 @@ class AdminProductController extends Controller
         try {
             $this->authorize('product.delete');
 
+            $name = $product->name;
             $this->service->delete($product);
+
+            AdminLogger::log('products', "Product {$name} deleted", null, ['name' => $name], 'deleted');
 
             return ApiResponse::success(null, 'Product deleted successfully');
         } catch (Exception $e) {
@@ -129,6 +137,9 @@ class AdminProductController extends Controller
         try {
             $this->authorize('product.update');
             $updated = $this->service->toggleActiveStatus($product);
+
+            AdminLogger::log('products', "Product {$updated->name} status changed to " . ($updated->is_active ? 'Active' : 'Inactive'), $updated, ['is_active' => $updated->is_active], 'status_changed');
+
             return ApiResponse::success(
                 new ProductResource($updated),
                 'Product status updated successfully'
@@ -156,6 +167,8 @@ class AdminProductController extends Controller
                 $product,
                 $enabling ? $request->input('landing_slug') : null
             );
+
+            AdminLogger::log('products', "Product {$updated->name} landing status changed to " . ($updated->is_landing_enabled ? 'Enabled' : 'Disabled'), $updated, ['is_landing_enabled' => $updated->is_landing_enabled], 'landing_status_changed');
 
             return ApiResponse::success(
                 new ProductResource($updated),

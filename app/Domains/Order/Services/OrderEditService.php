@@ -2,7 +2,7 @@
 
 namespace App\Domains\Order\Services;
 
-use App\Domains\ActivityLog\Models\ActivityLog;
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Order\DTOs\CheckoutPricingResult;
 use App\Domains\Order\Models\Order;
 use App\Domains\Order\Models\OrderItem;
@@ -357,31 +357,24 @@ class OrderEditService
         array $newCustomer,
         CheckoutPricingResult $pricing
     ): void {
-        try {
-            ActivityLog::create([
-                'log_name'     => 'order',
-                'description'  => "Order {$order->order_number} edited by admin",
-                'subject_type' => Order::class,
-                'subject_id'   => $order->id,
-                'causer_type'  => \App\Models\User::class,
-                'causer_id'    => $adminId,
-                'event'        => 'order_edited',
-                'properties'   => [
-                    'old_totals'   => $oldTotals,
-                    'new_totals'   => [
-                        'subtotal'       => round($pricing->subtotal, 2),
-                        'discount_total' => round($pricing->tierDiscountTotal + $pricing->couponDiscount, 2),
-                        'shipping_cost'  => round($pricing->shippingCost, 2),
-                        'grand_total'    => round($pricing->grandTotal, 2),
-                    ],
-                    'old_customer'     => $oldCustomer,
-                    'new_customer'     => $newCustomer,
-                    'old_item_count'   => $oldItemCount,
-                    'new_item_count'   => count($pricing->lineItems),
+        AdminLogger::log(
+            'order',
+            "Order {$order->order_number} edited by admin",
+            $order,
+            [
+                'old_totals'   => $oldTotals,
+                'new_totals'   => [
+                    'subtotal'       => round($pricing->subtotal, 2),
+                    'discount_total' => round($pricing->tierDiscountTotal + $pricing->couponDiscount, 2),
+                    'shipping_cost'  => round($pricing->shippingCost, 2),
+                    'grand_total'    => round($pricing->grandTotal, 2),
                 ],
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Order edit activity log failed: ' . $e->getMessage());
-        }
+                'old_customer'     => $oldCustomer,
+                'new_customer'     => $newCustomer,
+                'old_item_count'   => $oldItemCount,
+                'new_item_count'   => count($pricing->lineItems),
+            ],
+            'order_edited'
+        );
     }
 }

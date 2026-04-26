@@ -2,6 +2,7 @@
 
 namespace App\Domains\Admin\Controllers;
 
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Admin\Models\Setting;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
@@ -58,6 +59,8 @@ class AdminSettingsController extends Controller
             }
 
             Setting::bustCache();
+
+            AdminLogger::log('settings', "Updated {$updated} settings", null, ['updated_count' => $updated], 'updated');
 
             return ApiResponse::success(
                 ['updated_count' => $updated],

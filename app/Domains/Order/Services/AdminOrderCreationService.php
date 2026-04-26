@@ -2,7 +2,7 @@
 
 namespace App\Domains\Order\Services;
 
-use App\Domains\ActivityLog\Models\ActivityLog;
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Coupon\Models\Coupon;
 use App\Domains\Coupon\Models\CouponUsage;
 use App\Domains\Order\Models\Order;
@@ -116,26 +116,19 @@ class AdminOrderCreationService
             }
 
             // 7. Activity log
-            try {
-                ActivityLog::create([
-                    'log_name'     => 'order',
-                    'description'  => "Order {$order->order_number} created by admin",
-                    'subject_type' => Order::class,
-                    'subject_id'   => $order->id,
-                    'causer_type'  => \App\Models\User::class,
-                    'causer_id'    => $adminId,
-                    'event'        => 'order_created_by_admin',
-                    'properties'   => [
-                        'grand_total'    => round($pricing->grandTotal, 2),
-                        'item_count'     => count($pricing->lineItems),
-                        'payment_method' => $data['payment_method'],
-                        'coupon_code'    => $pricing->coupon?->code,
-                        'linked_user_id' => $linkedUser?->id,
-                    ],
-                ]);
-            } catch (\Throwable $e) {
-                Log::warning('Admin order creation activity log failed: ' . $e->getMessage());
-            }
+            AdminLogger::log(
+                'order',
+                "Order {$order->order_number} created by admin",
+                $order,
+                [
+                    'grand_total'    => round($pricing->grandTotal, 2),
+                    'item_count'     => count($pricing->lineItems),
+                    'payment_method' => $data['payment_method'],
+                    'coupon_code'    => $pricing->coupon?->code,
+                    'linked_user_id' => $linkedUser?->id,
+                ],
+                'order_created_by_admin'
+            );
 
             return $order->load(['items', 'zone', 'shippingAddress']);
         });

@@ -2,7 +2,7 @@
 
 namespace App\Domains\Courier\Controllers;
 
-use App\Domains\ActivityLog\Models\ActivityLog;
+use App\Domains\ActivityLog\Services\AdminLogger;
 use App\Domains\Courier\Models\CourierShipment;
 use App\Domains\Courier\Services\ShipmentService;
 use App\Domains\Order\Models\Order;
@@ -271,19 +271,12 @@ class AdminCourierController extends Controller
 
     private function logActivity(string $event, ?Order $order, array $properties = []): void
     {
-        try {
-            ActivityLog::create([
-                'log_name'     => 'courier',
-                'description'  => str_replace('_', ' ', ucfirst($event)),
-                'subject_type' => $order ? Order::class : null,
-                'subject_id'   => $order?->id,
-                'causer_type'  => get_class(auth()->user()),
-                'causer_id'    => auth()->id(),
-                'event'        => $event,
-                'properties'   => $properties,
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Activity log failed: ' . $e->getMessage());
-        }
+        AdminLogger::log(
+            'courier',
+            str_replace('_', ' ', ucfirst($event)),
+            $order,
+            $properties,
+            $event
+        );
     }
 }
