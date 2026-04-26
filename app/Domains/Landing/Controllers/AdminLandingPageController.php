@@ -26,7 +26,7 @@ class AdminLandingPageController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = LandingPage::query()
-            ->with(['product:id,name,thumbnail', 'combo:id,name,image']);
+            ->with(['product:id,name,thumbnail', 'combo:id,title,image']);
 
         if ($request->filled('type')) {
             $query->where('type', $request->type);
