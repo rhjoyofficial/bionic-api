@@ -7,6 +7,7 @@ use App\Domains\Auth\Requests\RegisterRequest;
 use App\Domains\Auth\Resources\UserResource;
 use App\Domains\Auth\Services\AuthService;
 use App\Domains\Cart\Services\CartMergeService;
+use App\Events\CustomerRegistered;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendWelcomeMailJob;
@@ -122,6 +123,8 @@ class WebAuthController extends Controller
             //   2. A transient mail-server failure retries automatically (3× / 60s backoff).
             //   3. A mail failure CANNOT roll back or affect the registration.
             SendWelcomeMailJob::dispatch($user);
+
+            CustomerRegistered::dispatch($user);
 
             return ApiResponse::success([
                 'user'  => new UserResource($user),

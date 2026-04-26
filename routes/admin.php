@@ -198,9 +198,11 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // --- System / Webhooks ---
     Route::group(['middleware' => 'permission:system.webhooks'], function () {
-        Route::get('/webhooks', [AdminWebhookController::class, 'index']);
-        Route::post('/webhooks', [AdminWebhookController::class, 'store']);
-        Route::delete('/webhooks/{webhook}', [AdminWebhookController::class, 'destroy']);
+        Route::get('/webhooks',                          [AdminWebhookController::class, 'index']);
+        Route::post('/webhooks',                         [AdminWebhookController::class, 'store']);
+        Route::patch('/webhooks/{webhook}/toggle',       [AdminWebhookController::class, 'toggle']);
+        Route::post('/webhooks/{webhook}/test',          [AdminWebhookController::class, 'test']);
+        Route::delete('/webhooks/{webhook}',             [AdminWebhookController::class, 'destroy']);
     });
 
     // --- Access Control (Roles & Permissions) ---

@@ -11,6 +11,7 @@ use App\Domains\Order\Services\OrderEditService;
 use App\Domains\Order\Services\OrderStatusService;
 use App\Domains\Product\Models\Combo;
 use App\Domains\Product\Models\ProductVariant;
+use App\Events\OrderPaymentUpdated;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResponse;
 use App\Models\User;
@@ -337,7 +338,10 @@ class AdminOrderController extends Controller
         ]);
 
         try {
+            $oldStatus = $order->payment_status;
             $order->update(['payment_status' => $request->payment_status]);
+
+            event(new OrderPaymentUpdated($order, $oldStatus, $order->payment_status));
 
             return ApiResponse::success(
                 ['payment_status' => $order->payment_status],

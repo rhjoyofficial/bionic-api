@@ -219,7 +219,7 @@
             <div
                 class="col-span-12 lg:col-span-3 lg:row-span-2 lg:col-start-10 lg:row-start-3 rounded-3xl relative overflow-hidden bg-white group/vid">
                 <div class="w-full h-full">
-                    <video id="hero-promo-video" src="{{ asset('assets/offer/products5.mp4') }}"
+                    <video id="hero-promo-video" src="{{ asset('assets/offer/products.mp4') }}"
                         class="w-full h-full aspect-4/5 object-cover rounded-lg" autoplay loop muted playsinline>
                         Your browser does not support the video tag.
                     </video>
