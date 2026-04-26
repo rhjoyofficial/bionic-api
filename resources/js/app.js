@@ -2,6 +2,7 @@ import "./bootstrap";
 import "./flash";
 import "./search-suggestion";
 import "./filter/categoryFilter";
+import CatalogFilter from "./filter/catalogFilter";
 import VideoManager from "./managers/video-manager";
 
 /* ===========================
@@ -118,6 +119,17 @@ document.addEventListener("DOMContentLoaded", () => {
         window.Checkout = new CheckoutManager();
     }
 });
+
+/* ===========================
+   CATALOG FILTER (products / category pages only)
+   Boots only when the catalog filter panel is present in the DOM.
+=========================== */
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById("catalogFilterPanel")) {
+        window.CatalogFilterInstance = new CatalogFilter();
+    }
+});
+
 
 /* Global Flash helpers */
 window.triggerFlash = function (

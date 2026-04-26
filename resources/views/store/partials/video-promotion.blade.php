@@ -11,16 +11,10 @@
               html5    → data-video-src is a direct video file URL
               iframe   → data-video-src is any embed URL
         --}}
-        <div
-            data-video
-            data-video-type="youtube"
-            data-video-src="543FzXHt8es"
-            data-video-thumbnail="{{ asset('assets/video/video-thumbnail.png') }}"
-            data-video-badge="Brand Film"
-            data-video-title="Experience the Bionic Garden"
-            data-video-subtitle="100% Organic &amp; Naturally Sourced"
-            data-video-lazy="true"
-            style="border-radius:1.5rem;">
+        <div data-video data-video-type="youtube" data-video-src="543FzXHt8es"
+            data-video-thumbnail="{{ asset('assets/video/video-thumbnail.jpg') }}" data-video-badge="Brand Film"
+            data-video-title="Experience the Bionic Garden" data-video-subtitle="100% Organic &amp; Naturally Sourced"
+            data-video-lazy="true" style="border-radius:1.5rem;">
         </div>
 
     </div>

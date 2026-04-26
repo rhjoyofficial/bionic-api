@@ -33,6 +33,7 @@ Route::get('/products', [CatalogController::class, 'index'])->name('products.ind
 Route::get('/category/{slug}', [CatalogController::class, 'category'])->name('category.view');
 Route::get('/product/{slug}', [ProductPageController::class, 'show'])->name('product.show');
 Route::get('/combos', [ComboPageController::class, 'index'])->name('combos.index');
+Route::get('/combos/{slug}', [ComboPageController::class, 'show'])->name('combos.show');
 
 // Product/combo landing pages (direct checkout, no cart)
 Route::get('/product-page/{slug}', [LandingPageController::class, 'show'])->name('landing.page');

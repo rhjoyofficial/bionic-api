@@ -302,3 +302,91 @@
         badge-shake 0.6s ease-out forwards,
         badge-flash 0.65s ease-in-out forwards;
 }
+
+/* ---------------------------
+   Catalog Filter — Dual Range Slider
+   Two <input type="range"> elements are stacked on top of each other.
+   Pointer events are disabled on the track; only the thumbs are interactive.
+--------------------------- */
+.catalog-range-wrapper {
+    position: relative;
+    height: 20px;
+}
+
+.catalog-range-wrapper .range-track {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 9999px;
+}
+
+.catalog-range-wrapper .range-highlight {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 4px;
+    background: var(--primary);
+    border-radius: 9999px;
+    pointer-events: none;
+}
+
+.catalog-range-wrapper .range-input {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 4px;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: none;
+    outline: none;
+}
+
+/* Webkit thumb */
+.catalog-range-wrapper .range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: all;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.catalog-range-wrapper .range-input::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 6px rgba(29, 99, 39, 0.15);
+    transform: scale(1.1);
+}
+
+/* Firefox thumb */
+.catalog-range-wrapper .range-input::-moz-range-thumb {
+    pointer-events: all;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+}
+
+.catalog-range-wrapper .range-input::-moz-range-thumb:hover {
+    box-shadow: 0 0 0 6px rgba(29, 99, 39, 0.15);
+}
+
+/* ---------------------------
+   Catalog Filter — Mobile Drawer
+--------------------------- */
+#filterDrawer aside {
+    transition: transform 0.3s ease;
+}
+
