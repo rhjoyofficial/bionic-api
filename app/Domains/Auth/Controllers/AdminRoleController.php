@@ -9,7 +9,9 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -33,7 +35,9 @@ class AdminRoleController extends Controller
         'notification' => ['notification.view', 'notification.send', 'notification.manage'],
         'system'       => ['system.settings', 'system.webhooks', 'system.activity_log'],
         'analytics'    => ['analytics.view'],
-        'role'         => ['role.manage'],
+        'role'         => ['role.manage', 'permission.manage'],
+        'staff'        => ['staff.create', 'staff.update', 'staff.delete'],
+        'customer_mgmt' => ['customer.create', 'customer.delete', 'customer.change_password'],
     ];
 
     // ── Role List ─────────────────────────────────────────────────────────────
@@ -331,6 +335,101 @@ class AdminRoleController extends Controller
             return ApiResponse::error('Validation failed', $e->errors(), 422);
         } catch (Exception $e) {
             return $this->handleError($e, 'Failed to assign role');
+        }
+    }
+
+    // ── Admin Staff CRUD ──────────────────────────────────────────────────────
+
+    public function storeAdmin(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'name'     => 'required|string|max:191',
+                'email'    => 'required|email|max:191|unique:users,email',
+                'phone'    => 'nullable|string|max:20',
+                'password' => 'required|string|min:8',
+                'role'     => 'required|string|exists:roles,name',
+            ]);
+
+            if ($data['role'] === 'Customer') {
+                return ApiResponse::error("Cannot create admin staff with 'Customer' role.", null, 422);
+            }
+
+            $user = User::create([
+                'name'          => $data['name'],
+                'email'         => $data['email'],
+                'phone'         => $data['phone'] ?? null,
+                'password'      => Hash::make($data['password']),
+                'is_active'     => true,
+                'is_guest'      => false,
+                'referral_code' => strtoupper(Str::random(8)),
+            ]);
+
+            $user->assignRole($data['role']);
+
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+            return ApiResponse::success([
+                'id'           => $user->id,
+                'name'         => $user->name,
+                'email'        => $user->email,
+                'phone'        => $user->phone,
+                'is_active'    => $user->is_active,
+                'primary_role' => $data['role'],
+                'roles'        => [$data['role']],
+                'created_at'   => $user->created_at?->toISOString(),
+            ], 'Admin staff created', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::error('Validation failed', $e->errors(), 422);
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Failed to create admin staff');
+        }
+    }
+
+    public function updateAdmin(Request $request, User $user): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'name'  => 'sometimes|required|string|max:191',
+                'email' => "sometimes|required|email|max:191|unique:users,email,{$user->id}",
+                'phone' => 'nullable|string|max:20',
+            ]);
+
+            $user->update($data);
+
+            return ApiResponse::success([
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+            ], 'Admin staff updated');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::error('Validation failed', $e->errors(), 422);
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Failed to update admin staff');
+        }
+    }
+
+    public function destroyAdmin(Request $request, User $user): JsonResponse
+    {
+        try {
+            // Prevent self-deletion
+            if ($request->user()?->id === $user->id) {
+                return ApiResponse::error('You cannot delete your own account.', null, 422);
+            }
+
+            // Prevent deleting Super Admin users
+            if ($user->hasRole('Super Admin')) {
+                return ApiResponse::error('Super Admin accounts cannot be deleted.', null, 422);
+            }
+
+            $user->delete();
+
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+            return ApiResponse::success(null, "Admin staff '{$user->name}' deleted");
+        } catch (Exception $e) {
+            return $this->handleError($e, 'Failed to delete admin staff');
         }
     }
 

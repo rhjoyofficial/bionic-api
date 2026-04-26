@@ -2,6 +2,7 @@
 
 use App\Domains\Admin\Controllers\AdminSettingsController;
 use App\Domains\Store\Controllers\AdminHeroBannerController;
+use App\Domains\Auth\Controllers\AdminPermissionController;
 use App\Domains\Auth\Controllers\AdminRoleController;
 use App\Domains\Category\Controllers\AdminCategoryController;
 use App\Domains\Courier\Controllers\AdminCourierController;
@@ -166,8 +167,16 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         Route::get('customers', [AdminCustomerController::class, 'index']);
         Route::get('customers/{user}', [AdminCustomerController::class, 'show']);
     });
+    Route::post('customers', [AdminCustomerController::class, 'store'])
+        ->middleware('permission:customer.create');
+    Route::put('customers/{user}', [AdminCustomerController::class, 'update'])
+        ->middleware('permission:customer.update');
+    Route::delete('customers/{user}', [AdminCustomerController::class, 'destroy'])
+        ->middleware('permission:customer.delete');
     Route::patch('customers/{user}/toggle-active', [AdminCustomerController::class, 'toggleActive'])
         ->middleware('permission:customer.deactivate');
+    Route::patch('customers/{user}/change-password', [AdminCustomerController::class, 'changePassword'])
+        ->middleware('permission:customer.change_password');
 
     // --- Notifications ---
     Route::group(['prefix' => 'notifications'], function () {
@@ -214,6 +223,17 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         // Admin staff list + role assignment
         Route::get('/admin-users',            [AdminRoleController::class, 'adminUsers']);
         Route::patch('/admin-users/{user}/role', [AdminRoleController::class, 'assignRole']);
+
+        // Admin staff CRUD
+        Route::post('/admin-users',           [AdminRoleController::class, 'storeAdmin'])->middleware('permission:staff.create');
+        Route::put('/admin-users/{user}',     [AdminRoleController::class, 'updateAdmin'])->middleware('permission:staff.update');
+        Route::delete('/admin-users/{user}',  [AdminRoleController::class, 'destroyAdmin'])->middleware('permission:staff.delete');
+
+        // Permission CRUD
+        Route::get('/permissions',                      [AdminPermissionController::class, 'index'])->middleware('permission:permission.manage');
+        Route::post('/permissions',                     [AdminPermissionController::class, 'store'])->middleware('permission:permission.manage');
+        Route::put('/permissions/{permission}',         [AdminPermissionController::class, 'update'])->middleware('permission:permission.manage');
+        Route::delete('/permissions/{permission}',      [AdminPermissionController::class, 'destroy'])->middleware('permission:permission.manage');
     });
 
     // --- Landing Pages ---

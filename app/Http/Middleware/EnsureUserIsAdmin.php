@@ -39,7 +39,7 @@ class EnsureUserIsAdmin
                 return response()->json(['message' => 'Forbidden.'], 403);
             }
 
-            abort(403, 'You do not have access to the admin panel.');
+            return redirect('/');
         }
 
         return $next($request);

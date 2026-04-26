@@ -98,7 +98,7 @@
                                 <span class="text-sm font-medium text-slate-700">Track Order</span>
                             </a>
 
-                            <a href="#"
+                            <a href="{{ route('customer.orders') }}"
                                 class="flex items-center gap-3 p-3 bg-white hover:bg-green-50 rounded-xl transition-colors group/item">
                                 <i class="fa-solid fa-cart-shopping text-slate-400 group-hover/item:text-green-700"></i>
                                 <span class="text-sm font-medium text-slate-700">My Order</span>

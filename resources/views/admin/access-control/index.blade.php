@@ -9,18 +9,28 @@
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Access Control</h1>
-                <p class="text-sm text-gray-500 mt-0.5">Manage roles, permission matrix, and staff assignments</p>
+                <p class="text-sm text-gray-500 mt-0.5">Manage roles, permission matrix, staff accounts, and permissions</p>
             </div>
-            <button x-show="tab === 'roles'" @click="createModal.open = true"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition cursor-pointer">
-                <i class="fas fa-plus"></i> New Role
-            </button>
+            <div class="flex gap-2">
+                <button x-show="tab === 'roles'" @click="createModal.open = true"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition cursor-pointer">
+                    <i class="fas fa-plus"></i> New Role
+                </button>
+                <button x-show="tab === 'staff'" @click="openCreateStaffModal()"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition cursor-pointer">
+                    <i class="fas fa-plus"></i> New Staff
+                </button>
+                <button x-show="tab === 'permissions'" @click="openCreatePermModal()"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition cursor-pointer">
+                    <i class="fas fa-plus"></i> New Permission
+                </button>
+            </div>
         </div>
 
         {{-- Tabs --}}
         <div class="border-b border-gray-200 mb-6">
             <nav class="-mb-px flex gap-6">
-                @foreach ([['roles', 'fa-shield-halved', 'Roles'], ['matrix', 'fa-table-cells', 'Permission Matrix'], ['staff', 'fa-user-tie', 'Admin Staff']] as [$t, $icon, $label])
+                @foreach ([['roles', 'fa-shield-halved', 'Roles'], ['matrix', 'fa-table-cells', 'Permission Matrix'], ['staff', 'fa-user-tie', 'Admin Staff'], ['permissions', 'fa-key', 'Permissions']] as [$t, $icon, $label])
                     <button @click="switchTab('{{ $t }}')"
                         :class="tab === '{{ $t }}' ? 'border-indigo-600 text-indigo-600' :
                             'border-transparent text-gray-500 hover:text-gray-700'"
@@ -256,7 +266,7 @@
                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
                     <input x-model="staffSearch" @input.debounce.400ms="staffPage=1; loadStaff()" type="text"
                         placeholder="Search by name or email…"
-                        class="pl-9 pr-4 py-2 w-full text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        class="pl-9 pr-4 py-2 w-full text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
                 </div>
             </div>
 
@@ -273,6 +283,7 @@
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Last Login</th>
                             <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Assign Role</th>
+                            <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -310,7 +321,7 @@
                                 <td class="px-5 py-3.5 text-right">
                                     <div class="flex items-center justify-end gap-2">
                                         <select :id="'role-' + user.id"
-                                            class="text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-indigo-500"
+                                            class="text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                                             @change.stop>
                                             <option value="">— select —</option>
                                             <template x-for="r in allRoles" :key="r">
@@ -325,10 +336,22 @@
                                         </button>
                                     </div>
                                 </td>
+                                <td class="px-5 py-3.5 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button @click="openEditStaffModal(user)" title="Edit"
+                                            class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition cursor-pointer">
+                                            <i class="fas fa-pencil text-xs"></i>
+                                        </button>
+                                        <button @click="confirmDeleteStaff(user)" title="Delete"
+                                            class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition cursor-pointer">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         </template>
                         <tr x-show="!staffLoading && staffUsers.length === 0">
-                            <td colspan="5" class="px-5 py-12 text-center text-gray-400">
+                            <td colspan="6" class="px-5 py-12 text-center text-gray-400">
                                 <i class="fas fa-user-slash text-3xl mb-3 block"></i> No admin users found
                             </td>
                         </tr>
@@ -355,7 +378,79 @@
             </div>
         </div>
 
-        {{-- ───────────────── Modals ────────────────────────────── --}}
+        {{-- ───────────────────────────────────────────────────── --}}
+        {{-- TAB: Permissions                                      --}}
+        {{-- ───────────────────────────────────────────────────── --}}
+        <div x-show="tab === 'permissions'">
+            <div x-show="permsLoading" class="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto"></div>
+                <p class="text-sm text-gray-500 mt-3">Loading permissions…</p>
+            </div>
+
+            <div x-show="!permsLoading" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Permission Name</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Assigned to Roles</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Created</th>
+                            <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <template x-for="perm in permissions" :key="perm.id">
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-5 py-3.5">
+                                    <span class="font-mono text-sm text-gray-800 bg-gray-100 px-2 py-0.5 rounded"
+                                        x-text="perm.name"></span>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <span x-show="perm.roles_count > 0"
+                                        class="text-sm text-gray-700 font-medium"
+                                        x-text="perm.roles_count + ' role' + (perm.roles_count !== 1 ? 's' : '')"></span>
+                                    <span x-show="perm.roles_count === 0"
+                                        class="text-xs text-gray-400 italic">Unassigned</span>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <span x-show="perm.is_protected"
+                                        class="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">System</span>
+                                    <span x-show="!perm.is_protected"
+                                        class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Custom</span>
+                                </td>
+                                <td class="px-5 py-3.5 text-sm text-gray-500"
+                                    x-text="perm.created_at ? fmtDate(perm.created_at) : '—'"></td>
+                                <td class="px-5 py-3.5 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button @click="openEditPermModal(perm)" title="Rename"
+                                            :disabled="perm.is_protected"
+                                            :class="perm.is_protected ? 'opacity-30 cursor-not-allowed' : 'hover:text-indigo-600 hover:bg-indigo-50 cursor-pointer'"
+                                            class="p-1.5 text-gray-400 rounded transition">
+                                            <i class="fas fa-pencil text-xs"></i>
+                                        </button>
+                                        <button @click="confirmDeletePerm(perm)" title="Delete"
+                                            :disabled="perm.is_protected || perm.roles_count > 0"
+                                            :class="(perm.is_protected || perm.roles_count > 0) ? 'opacity-30 cursor-not-allowed' : 'hover:text-red-600 hover:bg-red-50 cursor-pointer'"
+                                            class="p-1.5 text-gray-400 rounded transition">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="!permsLoading && permissions.length === 0">
+                            <td colspan="5" class="px-5 py-12 text-center text-gray-400">
+                                <i class="fas fa-key text-3xl mb-3 block"></i> No permissions found
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- ═══════════════════════════════════════════════════════ --}}
+        {{-- MODALS                                                  --}}
+        {{-- ═══════════════════════════════════════════════════════ --}}
 
         {{-- Create Role Modal --}}
         <div x-show="createModal.open" x-transition.opacity
@@ -366,7 +461,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role Name</label>
                     <input x-model="createModal.name" @keyup.enter="createRole()" type="text"
                         placeholder="e.g. Content Manager"
-                        class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
                     <p x-show="createModal.error" class="text-xs text-red-500 mt-1" x-text="createModal.error"></p>
                 </div>
                 <div class="flex justify-end gap-2 mt-5">
@@ -392,7 +487,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">New Name</label>
                     <input x-model="editModal.name" @keyup.enter="saveRoleName()" type="text"
-                        class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
                     <p x-show="editModal.error" class="text-xs text-red-500 mt-1" x-text="editModal.error"></p>
                 </div>
                 <div class="flex justify-end gap-2 mt-5">
@@ -461,8 +556,7 @@
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Name</th>
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Email</th>
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Last Login
-                                </th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Last Login</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -503,6 +597,216 @@
             </div>
         </div>
 
+        {{-- ─── Create Staff Modal ──────────────────────────────── --}}
+        <div x-show="createStaffModal.open" x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+            <div @click.outside="createStaffModal.open = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4">Create Admin Staff</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+                        <input x-model="createStaffModal.name" type="text" placeholder="John Doe"
+                            class="w-full text-sm border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                            :class="createStaffModal.errors.name ? 'border-red-400' : 'border-gray-200'">
+                        <p x-show="createStaffModal.errors.name" class="text-xs text-red-500 mt-1" x-text="createStaffModal.errors.name?.[0]"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                        <input x-model="createStaffModal.email" type="email" placeholder="staff@example.com"
+                            class="w-full text-sm border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                            :class="createStaffModal.errors.email ? 'border-red-400' : 'border-gray-200'">
+                        <p x-show="createStaffModal.errors.email" class="text-xs text-red-500 mt-1" x-text="createStaffModal.errors.email?.[0]"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input x-model="createStaffModal.phone" type="text" placeholder="01XXXXXXXXX"
+                            class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
+                        <input x-model="createStaffModal.password" type="password" placeholder="Min. 8 characters"
+                            class="w-full text-sm border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                            :class="createStaffModal.errors.password ? 'border-red-400' : 'border-gray-200'">
+                        <p x-show="createStaffModal.errors.password" class="text-xs text-red-500 mt-1" x-text="createStaffModal.errors.password?.[0]"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
+                        <select x-model="createStaffModal.role"
+                            class="w-full text-sm border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                            :class="createStaffModal.errors.role ? 'border-red-400' : 'border-gray-200'">
+                            <option value="">— select role —</option>
+                            <template x-for="r in allRoles" :key="r">
+                                <option :value="r" x-text="r"></option>
+                            </template>
+                        </select>
+                        <p x-show="createStaffModal.errors.role" class="text-xs text-red-500 mt-1" x-text="createStaffModal.errors.role?.[0]"></p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-5">
+                    <button @click="createStaffModal.open = false"
+                        class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button @click="createStaff()" :disabled="createStaffModal.loading"
+                        class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition cursor-pointer">
+                        <i class="fas mr-1" :class="createStaffModal.loading ? 'fa-circle-notch fa-spin' : 'fa-plus'"></i>
+                        <span x-text="createStaffModal.loading ? 'Creating…' : 'Create Staff'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- ─── Edit Staff Modal ────────────────────────────────── --}}
+        <div x-show="editStaffModal.open" x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+            <div @click.outside="editStaffModal.open = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4">Edit Staff Member</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+                        <input x-model="editStaffModal.name" type="text"
+                            class="w-full text-sm border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                            :class="editStaffModal.errors.name ? 'border-red-400' : 'border-gray-200'">
+                        <p x-show="editStaffModal.errors.name" class="text-xs text-red-500 mt-1" x-text="editStaffModal.errors.name?.[0]"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                        <input x-model="editStaffModal.email" type="email"
+                            class="w-full text-sm border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                            :class="editStaffModal.errors.email ? 'border-red-400' : 'border-gray-200'">
+                        <p x-show="editStaffModal.errors.email" class="text-xs text-red-500 mt-1" x-text="editStaffModal.errors.email?.[0]"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input x-model="editStaffModal.phone" type="text"
+                            class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-5">
+                    <button @click="editStaffModal.open = false"
+                        class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button @click="updateStaff()" :disabled="editStaffModal.loading"
+                        class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition cursor-pointer">
+                        <span x-text="editStaffModal.loading ? 'Saving…' : 'Save Changes'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- ─── Delete Staff Modal ──────────────────────────────── --}}
+        <div x-show="deleteStaffModal.open" x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+            <div @click.outside="deleteStaffModal.open = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                        <i class="fas fa-trash text-red-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">Delete Staff Member?</h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            This will permanently remove
+                            <strong class="text-gray-700" x-text="deleteStaffModal.user?.name"></strong>.
+                            This cannot be undone.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button @click="deleteStaffModal.open = false"
+                        class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button @click="deleteStaff()" :disabled="deleteStaffModal.loading"
+                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition cursor-pointer">
+                        <span x-text="deleteStaffModal.loading ? 'Deleting…' : 'Delete'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- ─── Create Permission Modal ─────────────────────────── --}}
+        <div x-show="createPermModal.open" x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+            <div @click.outside="createPermModal.open = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-1">Create Permission</h3>
+                <p class="text-xs text-gray-500 mb-4">Use lowercase with dots or dashes only. e.g. <code class="bg-gray-100 px-1 rounded">report.export</code></p>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Permission Name <span class="text-red-500">*</span></label>
+                    <input x-model="createPermModal.name" type="text" placeholder="module.action"
+                        class="w-full text-sm border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono"
+                        :class="createPermModal.errors.name ? 'border-red-400' : 'border-gray-200'">
+                    <p x-show="createPermModal.errors.name" class="text-xs text-red-500 mt-1" x-text="createPermModal.errors.name?.[0]"></p>
+                </div>
+                <div class="flex justify-end gap-2 mt-5">
+                    <button @click="createPermModal.open = false"
+                        class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button @click="createPermission()" :disabled="createPermModal.loading || !createPermModal.name.trim()"
+                        class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition cursor-pointer">
+                        <i class="fas mr-1" :class="createPermModal.loading ? 'fa-circle-notch fa-spin' : 'fa-plus'"></i>
+                        <span x-text="createPermModal.loading ? 'Creating…' : 'Create Permission'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- ─── Edit Permission Modal ───────────────────────────── --}}
+        <div x-show="editPermModal.open" x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+            <div @click.outside="editPermModal.open = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4">Rename Permission</h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">New Name <span class="text-red-500">*</span></label>
+                    <input x-model="editPermModal.name" type="text"
+                        class="w-full text-sm border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono"
+                        :class="editPermModal.errors.name ? 'border-red-400' : 'border-gray-200'">
+                    <p x-show="editPermModal.errors.name" class="text-xs text-red-500 mt-1" x-text="editPermModal.errors.name?.[0]"></p>
+                </div>
+                <div class="flex justify-end gap-2 mt-5">
+                    <button @click="editPermModal.open = false"
+                        class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button @click="updatePermission()" :disabled="editPermModal.loading || !editPermModal.name.trim()"
+                        class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition cursor-pointer">
+                        <span x-text="editPermModal.loading ? 'Saving…' : 'Save'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- ─── Delete Permission Modal ─────────────────────────── --}}
+        <div x-show="deletePermModal.open" x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+            <div @click.outside="deletePermModal.open = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                        <i class="fas fa-trash text-red-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">Delete Permission?</h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            This will permanently remove
+                            <code class="text-gray-700 bg-gray-100 px-1 rounded text-xs" x-text="deletePermModal.perm?.name"></code>.
+                            This cannot be undone.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button @click="deletePermModal.open = false"
+                        class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button @click="deletePermission()" :disabled="deletePermModal.loading"
+                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition cursor-pointer">
+                        <span x-text="deletePermModal.loading ? 'Deleting…' : 'Delete'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 @endsection
 
@@ -515,32 +819,10 @@
                 // ── Roles tab state ───────────────────────────────────────────────
                 roles: [],
                 rolesLoading: false,
-                createModal: {
-                    open: false,
-                    name: '',
-                    loading: false,
-                    error: null
-                },
-                editModal: {
-                    open: false,
-                    role: null,
-                    name: '',
-                    loading: false,
-                    error: null
-                },
-                deleteModal: {
-                    open: false,
-                    role: null,
-                    loading: false
-                },
-                usersModal: {
-                    open: false,
-                    role: null,
-                    users: [],
-                    meta: {},
-                    page: 1,
-                    loading: false
-                },
+                createModal:  { open: false, name: '', loading: false, error: null },
+                editModal:    { open: false, role: null, name: '', loading: false, error: null },
+                deleteModal:  { open: false, role: null, loading: false },
+                usersModal:   { open: false, role: null, users: [], meta: {}, page: 1, loading: false },
 
                 // ── Matrix tab state ──────────────────────────────────────────────
                 matrixLoading: false,
@@ -552,27 +834,40 @@
                 savedRoles: {},
                 saveTimers: {},
                 groupColors: {
-                    category: 'text-blue-600',
-                    product: 'text-green-600',
-                    order: 'text-purple-600',
-                    coupon: 'text-pink-600',
-                    shipping: 'text-orange-600',
-                    customer: 'text-teal-600',
-                    landing: 'text-orange-600',
+                    category:     'text-blue-600',
+                    product:      'text-green-600',
+                    order:        'text-purple-600',
+                    coupon:       'text-pink-600',
+                    shipping:     'text-orange-600',
+                    customer:     'text-teal-600',
+                    landing:      'text-orange-600',
                     notification: 'text-indigo-600',
-                    system: 'text-gray-600',
-                    analytics: 'text-cyan-600',
-                    role: 'text-red-600',
+                    system:       'text-gray-600',
+                    analytics:    'text-cyan-600',
+                    role:         'text-red-600',
+                    staff:        'text-violet-600',
+                    customer_mgmt:'text-emerald-600',
                 },
 
                 // ── Staff tab state ───────────────────────────────────────────────
-                staffUsers: [],
-                staffMeta: {},
+                staffUsers:   [],
+                staffMeta:    {},
                 staffLoading: false,
-                staffSearch: '',
-                staffPage: 1,
-                allRoles: [],
-                savingRole: {},
+                staffSearch:  '',
+                staffPage:    1,
+                allRoles:     [],
+                savingRole:   {},
+
+                createStaffModal: { open: false, name: '', email: '', phone: '', password: '', role: '', loading: false, errors: {} },
+                editStaffModal:   { open: false, user: null, name: '', email: '', phone: '', loading: false, errors: {} },
+                deleteStaffModal: { open: false, user: null, loading: false },
+
+                // ── Permissions tab state ─────────────────────────────────────────
+                permissions:     [],
+                permsLoading:    false,
+                createPermModal: { open: false, name: '', loading: false, errors: {} },
+                editPermModal:   { open: false, perm: null, name: '', loading: false, errors: {} },
+                deletePermModal: { open: false, perm: null, loading: false },
 
                 // ── Init ──────────────────────────────────────────────────────────
                 async init() {
@@ -583,38 +878,29 @@
                     this.tab = tab;
                     if (tab === 'matrix' && this.matrixRoles.length === 0) this.loadMatrix();
                     if (tab === 'staff' && this.staffUsers.length === 0) this.loadStaff();
+                    if (tab === 'permissions' && this.permissions.length === 0) this.loadPermissions();
                 },
 
                 // ── Roles ─────────────────────────────────────────────────────────
                 async loadRoles() {
                     this.rolesLoading = true;
                     try {
-                        const r = await fetch('/api/v1/admin/access-control/roles', {
-                            headers: this.h()
-                        });
+                        const r = await fetch('/api/v1/admin/access-control/roles', { headers: this.h() });
                         const d = await r.json();
                         if (d.success) this.roles = d.data.roles;
-                    } catch (e) {
-                        console.error(e);
-                    } finally {
-                        this.rolesLoading = false;
-                    }
+                    } catch (e) { console.error(e); }
+                    finally { this.rolesLoading = false; }
                 },
 
                 async createRole() {
                     if (!this.createModal.name.trim()) return;
                     this.createModal.loading = true;
-                    this.createModal.error = null;
+                    this.createModal.error   = null;
                     try {
                         const r = await fetch('/api/v1/admin/access-control/roles', {
                             method: 'POST',
-                            headers: {
-                                ...this.h(),
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                name: this.createModal.name.trim()
-                            }),
+                            headers: { ...this.h(), 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: this.createModal.name.trim() }),
                         });
                         const d = await r.json();
                         if (r.ok && d.success) {
@@ -625,40 +911,28 @@
                         } else {
                             this.createModal.error = d.errors?.name?.[0] ?? d.message ?? 'Failed to create role';
                         }
-                    } catch (e) {
-                        this.createModal.error = 'Network error';
-                    } finally {
-                        this.createModal.loading = false;
-                    }
+                    } catch (e) { this.createModal.error = 'Network error'; }
+                    finally { this.createModal.loading = false; }
                 },
 
                 openEditModal(role) {
-                    this.editModal.role = role;
-                    this.editModal.name = role.name;
-                    this.editModal.error = null;
-                    this.editModal.open = true;
+                    this.editModal = { open: true, role, name: role.name, loading: false, error: null };
                 },
 
                 async saveRoleName() {
                     if (!this.editModal.name.trim()) return;
                     this.editModal.loading = true;
-                    this.editModal.error = null;
+                    this.editModal.error   = null;
                     try {
                         const r = await fetch(`/api/v1/admin/access-control/roles/${this.editModal.role.id}`, {
                             method: 'PUT',
-                            headers: {
-                                ...this.h(),
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                name: this.editModal.name.trim()
-                            }),
+                            headers: { ...this.h(), 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: this.editModal.name.trim() }),
                         });
                         const d = await r.json();
                         if (r.ok && d.success) {
                             const idx = this.roles.findIndex(r => r.id === this.editModal.role.id);
                             if (idx > -1) this.roles[idx].name = d.data.name;
-                            // Update matrix role name too
                             const mi = this.matrixRoles.findIndex(r => r.id === this.editModal.role.id);
                             if (mi > -1) this.matrixRoles[mi].name = d.data.name;
                             this.editModal.open = false;
@@ -666,11 +940,8 @@
                         } else {
                             this.editModal.error = d.errors?.name?.[0] ?? d.message ?? 'Failed';
                         }
-                    } catch (e) {
-                        this.editModal.error = 'Network error';
-                    } finally {
-                        this.editModal.loading = false;
-                    }
+                    } catch (e) { this.editModal.error = 'Network error'; }
+                    finally { this.editModal.loading = false; }
                 },
 
                 async deleteRole() {
@@ -682,7 +953,7 @@
                         });
                         const d = await r.json();
                         if (r.ok && d.success) {
-                            this.roles = this.roles.filter(r => r.id !== this.deleteModal.role.id);
+                            this.roles       = this.roles.filter(r => r.id !== this.deleteModal.role.id);
                             this.matrixRoles = this.matrixRoles.filter(r => r.id !== this.deleteModal.role.id);
                             delete this.matrix[this.deleteModal.role.id];
                             this.deleteModal.open = false;
@@ -691,11 +962,8 @@
                             this.toast(d.message || 'Failed to delete role', 'error');
                             this.deleteModal.open = false;
                         }
-                    } catch (e) {
-                        this.toast('Network error', 'error');
-                    } finally {
-                        this.deleteModal.loading = false;
-                    }
+                    } catch (e) { this.toast('Network error', 'error'); }
+                    finally { this.deleteModal.loading = false; }
                 },
 
                 async openUsersModal(role) {
@@ -706,44 +974,35 @@
                 },
 
                 async loadRoleUsers(page) {
-                    this.usersModal.page = page;
+                    this.usersModal.page    = page;
                     this.usersModal.loading = true;
                     try {
                         const r = await fetch(
-                            `/api/v1/admin/access-control/roles/${this.usersModal.role.id}/users?page=${page}`, {
-                                headers: this.h()
-                            }
+                            `/api/v1/admin/access-control/roles/${this.usersModal.role.id}/users?page=${page}`,
+                            { headers: this.h() }
                         );
                         const d = await r.json();
                         if (d.success) {
                             this.usersModal.users = d.data.data;
-                            this.usersModal.meta = d.data.meta;
+                            this.usersModal.meta  = d.data.meta;
                         }
-                    } catch (e) {
-                        console.error(e);
-                    } finally {
-                        this.usersModal.loading = false;
-                    }
+                    } catch (e) { console.error(e); }
+                    finally { this.usersModal.loading = false; }
                 },
 
                 // ── Matrix ────────────────────────────────────────────────────────
                 async loadMatrix() {
                     this.matrixLoading = true;
                     try {
-                        const r = await fetch('/api/v1/admin/access-control/matrix', {
-                            headers: this.h()
-                        });
+                        const r = await fetch('/api/v1/admin/access-control/matrix', { headers: this.h() });
                         const d = await r.json();
                         if (d.success) {
-                            this.matrixRoles = d.data.roles;
+                            this.matrixRoles  = d.data.roles;
                             this.matrixGroups = d.data.groups;
-                            this.matrix = d.data.matrix;
+                            this.matrix       = d.data.matrix;
                         }
-                    } catch (e) {
-                        console.error(e);
-                    } finally {
-                        this.matrixLoading = false;
-                    }
+                    } catch (e) { console.error(e); }
+                    finally { this.matrixLoading = false; }
                 },
 
                 toggleCell(roleId, perm) {
@@ -780,48 +1039,30 @@
                     try {
                         const r = await fetch(`/api/v1/admin/access-control/roles/${roleId}/permissions`, {
                             method: 'PUT',
-                            headers: {
-                                ...this.h(),
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                permissions: granted
-                            }),
+                            headers: { ...this.h(), 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ permissions: granted }),
                         });
                         const d = await r.json();
                         if (r.ok && d.success) {
                             this.savedRoles[roleId] = true;
                             window.flash?.('Permissions updated for role', 'success');
-                            // Also update roles tab permission_count
                             const ri = this.roles.findIndex(r => r.id == roleId);
                             if (ri > -1) this.roles[ri].permissions_count = d.data.permissions_count ?? granted.length;
-                            setTimeout(() => {
-                                delete this.savedRoles[roleId];
-                            }, 2500);
+                            setTimeout(() => { delete this.savedRoles[roleId]; }, 2500);
                         } else {
                             this.toast(d.message || 'Failed to save permissions', 'error');
                         }
-                    } catch (e) {
-                        this.toast('Network error saving permissions', 'error');
-                    } finally {
-                        this.savingRoles[roleId] = false;
-                    }
+                    } catch (e) { this.toast('Network error saving permissions', 'error'); }
+                    finally { this.savingRoles[roleId] = false; }
                 },
 
                 permLabel(perm) {
                     const action = perm.split('.')[1] ?? perm;
                     const labels = {
-                        view: 'View',
-                        create: 'Create',
-                        update: 'Edit',
-                        delete: 'Delete',
-                        export: 'Export',
-                        send: 'Send',
-                        manage: 'Manage',
-                        settings: 'Settings',
-                        webhooks: 'Webhooks',
-                        activity_log: 'Activity',
-                        deactivate: 'Deactivate',
+                        view: 'View', create: 'Create', update: 'Edit', delete: 'Delete',
+                        export: 'Export', send: 'Send', manage: 'Manage',
+                        settings: 'Settings', webhooks: 'Webhooks', activity_log: 'Activity',
+                        deactivate: 'Deactivate', change_password: 'Pwd',
                     };
                     return labels[action] ?? action;
                 },
@@ -832,24 +1073,17 @@
                     try {
                         const p = new URLSearchParams({
                             page: this.staffPage,
-                            ...(this.staffSearch && {
-                                q: this.staffSearch
-                            }),
+                            ...(this.staffSearch && { q: this.staffSearch }),
                         });
-                        const r = await fetch(`/api/v1/admin/access-control/admin-users?${p}`, {
-                            headers: this.h()
-                        });
+                        const r = await fetch(`/api/v1/admin/access-control/admin-users?${p}`, { headers: this.h() });
                         const d = await r.json();
                         if (d.success) {
                             this.staffUsers = d.data.data;
-                            this.staffMeta = d.data.meta;
-                            this.allRoles = d.data.all_roles;
+                            this.staffMeta  = d.data.meta;
+                            this.allRoles   = d.data.all_roles;
                         }
-                    } catch (e) {
-                        console.error(e);
-                    } finally {
-                        this.staffLoading = false;
-                    }
+                    } catch (e) { console.error(e); }
+                    finally { this.staffLoading = false; }
                 },
 
                 async assignRole(user) {
@@ -860,13 +1094,8 @@
                     try {
                         const r = await fetch(`/api/v1/admin/access-control/admin-users/${user.id}/role`, {
                             method: 'PATCH',
-                            headers: {
-                                ...this.h(),
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                role: newRole
-                            }),
+                            headers: { ...this.h(), 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ role: newRole }),
                         });
                         const d = await r.json();
                         if (r.ok && d.success) {
@@ -876,36 +1105,225 @@
                         } else {
                             this.toast(d.message || 'Failed to assign role', 'error');
                         }
-                    } catch (e) {
-                        this.toast('Network error', 'error');
-                    } finally {
-                        this.savingRole[user.id] = false;
-                    }
+                    } catch (e) { this.toast('Network error', 'error'); }
+                    finally { this.savingRole[user.id] = false; }
+                },
+
+                openCreateStaffModal() {
+                    if (this.allRoles.length === 0) this.loadStaff();
+                    this.createStaffModal = { open: true, name: '', email: '', phone: '', password: '', role: '', loading: false, errors: {} };
+                },
+
+                async createStaff() {
+                    this.createStaffModal.loading = true;
+                    this.createStaffModal.errors  = {};
+                    try {
+                        const r = await fetch('/api/v1/admin/access-control/admin-users', {
+                            method: 'POST',
+                            headers: { ...this.h(), 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name:     this.createStaffModal.name,
+                                email:    this.createStaffModal.email,
+                                phone:    this.createStaffModal.phone || null,
+                                password: this.createStaffModal.password,
+                                role:     this.createStaffModal.role,
+                            }),
+                        });
+                        const d = await r.json();
+                        if (r.ok && d.success) {
+                            this.createStaffModal.open = false;
+                            this.toast('Staff member created', 'success');
+                            this.staffPage = 1;
+                            this.loadStaff();
+                        } else {
+                            this.createStaffModal.errors = d.errors ?? {};
+                            if (!Object.keys(this.createStaffModal.errors).length) {
+                                this.toast(d.message || 'Failed to create staff', 'error');
+                            }
+                        }
+                    } catch (e) { this.toast('Network error', 'error'); }
+                    finally { this.createStaffModal.loading = false; }
+                },
+
+                openEditStaffModal(user) {
+                    this.editStaffModal = {
+                        open: true, user,
+                        name:  user.name,
+                        email: user.email,
+                        phone: user.phone ?? '',
+                        loading: false, errors: {},
+                    };
+                },
+
+                async updateStaff() {
+                    this.editStaffModal.loading = true;
+                    this.editStaffModal.errors  = {};
+                    try {
+                        const r = await fetch(`/api/v1/admin/access-control/admin-users/${this.editStaffModal.user.id}`, {
+                            method: 'PUT',
+                            headers: { ...this.h(), 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name:  this.editStaffModal.name,
+                                email: this.editStaffModal.email,
+                                phone: this.editStaffModal.phone || null,
+                            }),
+                        });
+                        const d = await r.json();
+                        if (r.ok && d.success) {
+                            const idx = this.staffUsers.findIndex(u => u.id === this.editStaffModal.user.id);
+                            if (idx > -1) {
+                                this.staffUsers[idx].name  = d.data.name;
+                                this.staffUsers[idx].email = d.data.email;
+                                this.staffUsers[idx].phone = d.data.phone;
+                            }
+                            this.editStaffModal.open = false;
+                            this.toast('Staff member updated', 'success');
+                        } else {
+                            this.editStaffModal.errors = d.errors ?? {};
+                            if (!Object.keys(this.editStaffModal.errors).length) {
+                                this.toast(d.message || 'Failed to update staff', 'error');
+                            }
+                        }
+                    } catch (e) { this.toast('Network error', 'error'); }
+                    finally { this.editStaffModal.loading = false; }
+                },
+
+                confirmDeleteStaff(user) {
+                    this.deleteStaffModal = { open: true, user, loading: false };
+                },
+
+                async deleteStaff() {
+                    this.deleteStaffModal.loading = true;
+                    try {
+                        const r = await fetch(`/api/v1/admin/access-control/admin-users/${this.deleteStaffModal.user.id}`, {
+                            method: 'DELETE',
+                            headers: this.h(),
+                        });
+                        const d = await r.json();
+                        if (r.ok && d.success) {
+                            this.staffUsers = this.staffUsers.filter(u => u.id !== this.deleteStaffModal.user.id);
+                            this.deleteStaffModal.open = false;
+                            this.toast('Staff member deleted', 'success');
+                        } else {
+                            this.deleteStaffModal.open = false;
+                            this.toast(d.message || 'Failed to delete staff', 'error');
+                        }
+                    } catch (e) { this.toast('Network error', 'error'); }
+                    finally { this.deleteStaffModal.loading = false; }
+                },
+
+                // ── Permissions ───────────────────────────────────────────────────
+                async loadPermissions() {
+                    this.permsLoading = true;
+                    try {
+                        const r = await fetch('/api/v1/admin/access-control/permissions', { headers: this.h() });
+                        const d = await r.json();
+                        if (d.success) this.permissions = d.data.permissions;
+                    } catch (e) { console.error(e); }
+                    finally { this.permsLoading = false; }
+                },
+
+                openCreatePermModal() {
+                    this.createPermModal = { open: true, name: '', loading: false, errors: {} };
+                },
+
+                async createPermission() {
+                    if (!this.createPermModal.name.trim()) return;
+                    this.createPermModal.loading = true;
+                    this.createPermModal.errors  = {};
+                    try {
+                        const r = await fetch('/api/v1/admin/access-control/permissions', {
+                            method: 'POST',
+                            headers: { ...this.h(), 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: this.createPermModal.name.trim() }),
+                        });
+                        const d = await r.json();
+                        if (r.ok && d.success) {
+                            this.permissions.push(d.data);
+                            this.createPermModal.open = false;
+                            this.toast('Permission created', 'success');
+                        } else {
+                            this.createPermModal.errors = d.errors ?? {};
+                            if (!Object.keys(this.createPermModal.errors).length) {
+                                this.toast(d.message || 'Failed to create permission', 'error');
+                            }
+                        }
+                    } catch (e) { this.toast('Network error', 'error'); }
+                    finally { this.createPermModal.loading = false; }
+                },
+
+                openEditPermModal(perm) {
+                    this.editPermModal = { open: true, perm, name: perm.name, loading: false, errors: {} };
+                },
+
+                async updatePermission() {
+                    if (!this.editPermModal.name.trim()) return;
+                    this.editPermModal.loading = true;
+                    this.editPermModal.errors  = {};
+                    try {
+                        const r = await fetch(`/api/v1/admin/access-control/permissions/${this.editPermModal.perm.id}`, {
+                            method: 'PUT',
+                            headers: { ...this.h(), 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: this.editPermModal.name.trim() }),
+                        });
+                        const d = await r.json();
+                        if (r.ok && d.success) {
+                            const idx = this.permissions.findIndex(p => p.id === this.editPermModal.perm.id);
+                            if (idx > -1) this.permissions[idx].name = d.data.name;
+                            this.editPermModal.open = false;
+                            this.toast('Permission renamed', 'success');
+                        } else {
+                            this.editPermModal.errors = d.errors ?? {};
+                            if (!Object.keys(this.editPermModal.errors).length) {
+                                this.toast(d.message || 'Failed to rename permission', 'error');
+                            }
+                        }
+                    } catch (e) { this.toast('Network error', 'error'); }
+                    finally { this.editPermModal.loading = false; }
+                },
+
+                confirmDeletePerm(perm) {
+                    this.deletePermModal = { open: true, perm, loading: false };
+                },
+
+                async deletePermission() {
+                    this.deletePermModal.loading = true;
+                    try {
+                        const r = await fetch(`/api/v1/admin/access-control/permissions/${this.deletePermModal.perm.id}`, {
+                            method: 'DELETE',
+                            headers: this.h(),
+                        });
+                        const d = await r.json();
+                        if (r.ok && d.success) {
+                            this.permissions = this.permissions.filter(p => p.id !== this.deletePermModal.perm.id);
+                            this.deletePermModal.open = false;
+                            this.toast('Permission deleted', 'success');
+                        } else {
+                            this.deletePermModal.open = false;
+                            this.toast(d.message || 'Failed to delete permission', 'error');
+                        }
+                    } catch (e) { this.toast('Network error', 'error'); }
+                    finally { this.deletePermModal.loading = false; }
                 },
 
                 // ── Helpers ───────────────────────────────────────────────────────
                 h() {
                     return {
-                        'Accept': 'application/json',
+                        'Accept':       'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                     };
                 },
 
                 fmtDate(d) {
                     if (!d) return '—';
-                    return new Date(d).toLocaleDateString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                    });
+                    return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                 },
 
                 toast(msg, type = 'success') {
                     const el = document.createElement('div');
                     el.className = `fixed bottom-5 right-5 z-[9999] px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2
-                ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
-                    el.innerHTML =
-                        `<i class="fas ${type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark'}"></i> ${msg}`;
+                        ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+                    el.innerHTML = `<i class="fas ${type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark'}"></i> ${msg}`;
                     document.body.appendChild(el);
                     setTimeout(() => el.remove(), 3500);
                 },

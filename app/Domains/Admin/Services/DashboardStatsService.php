@@ -30,7 +30,7 @@ class DashboardStatsService
             'revenue_month'    => Order::where('placed_at', '>=', $startOfMonth)->whereNotIn('order_status', ['cancelled', 'returned'])->sum('grand_total'),
             'orders_today'     => Order::whereDate('placed_at', $today)->count(),
             'orders_month'     => Order::where('placed_at', '>=', $startOfMonth)->count(),
-            'customers_total'  => User::where('is_guest', false)->count(),
+            'customers_total'  => User::role('Customer')->count(),
             'products_active'  => Product::where('is_active', true)->count(),
         ];
     }

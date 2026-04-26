@@ -15,7 +15,7 @@ class AdminDashboardController extends Controller
     {
         return view('admin.dashboard', [
             'kpi'           => $this->stats->kpiCards(),
-            'ordersByStatus'=> $this->stats->ordersByStatus(),
+            'ordersByStatus' => $this->stats->ordersByStatus(),
             'recentOrders'  => $this->stats->recentOrders(),
             'dailyRevenue'  => $this->stats->dailyRevenue(),
             'lateOrders'    => $this->stats->lateOrders(),
