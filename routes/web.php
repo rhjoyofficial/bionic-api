@@ -13,6 +13,7 @@ use App\Domains\Order\Controllers\OrderController;
 use App\Domains\Store\Controllers\CatalogController;
 use App\Domains\Store\Controllers\ComboPageController;
 use App\Domains\Store\Controllers\HomeController;
+use App\Domains\Store\Controllers\PageController;
 use App\Domains\Store\Controllers\ProductPageController;
 use Illuminate\Support\Facades\Route;
 
@@ -123,26 +124,14 @@ Route::post('/logout', [WebAuthController::class, 'logout'])
 |--------------------------------------------------------------------------
 */
 
-Route::get('/about', function () {
-    return view('pages.about');
-})->name('about');
-
-Route::get('/contact', function () {
-    return view('pages.contact');
-})->name('contact');
-
-Route::get('/faq', function () {
-    return view('pages.faq');
-})->name('faq');
-
-Route::get('/privacy-policy', function () {
-    return view('pages.privacy');
-})->name('privacy');
-
-Route::get('/terms', function () {
-    return view('pages.terms');
-})->name('terms');
-
+Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+Route::get('/faq', [PageController::class, 'faq'])->name('faq');
+Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [PageController::class, 'terms'])->name('terms');
+Route::get('/disclaimer', [PageController::class, 'disclaimer'])->name('disclaimer');
+Route::get('/blog', [PageController::class, 'blog'])->name('blog');
+Route::get('/gallery', [PageController::class, 'gallery'])->name('gallery');
 
 /*
 |--------------------------------------------------------------------------

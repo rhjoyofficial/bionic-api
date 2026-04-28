@@ -52,7 +52,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:wght@200..800&family=Noto+Sans+Bengali:wght@100..900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:wght@200..800&family=Noto+Sans+Bengali:wght@100..900&family=Playfair+Display:ital,opsz,wght@0,42..52,400..900;1,42..52,400..900&display=swap"
         rel="stylesheet">
 
     {{-- Load Swiper CSS only if NOT on auth pages --}}
