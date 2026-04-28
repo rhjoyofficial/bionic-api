@@ -14,7 +14,7 @@
                 <img src="https://images.unsplash.com/photo-1596524430615-b46475ddff6e?auto=format&fit=crop&q=80&w=2000"
                     class="w-full h-full object-cover opacity-20 scale-110 group-hover:scale-100 transition-transform duration-[10s]"
                     alt="Contact Us">
-                <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent"></div>
+                <div class="absolute inset-0 bg-linear-to-t from-primary via-primary/40 to-transparent"></div>
                 <div class="absolute inset-0 bg-linear-to-b from-primary/20 via-transparent to-transparent"></div>
             </div>
 

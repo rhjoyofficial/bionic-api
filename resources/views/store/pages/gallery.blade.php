@@ -15,7 +15,7 @@
                     class="w-full h-full object-cover opacity-20 scale-110 group-hover:scale-100 transition-transform duration-[7s] ease-out"
                     alt="Gallery">
 
-                <div class="absolute inset-0 bg-gradient-to-tr from-primary via-transparent to-primary/30"></div>
+                <div class="absolute inset-0 bg-linear-to-tr from-primary via-transparent to-primary/30"></div>
                 <div class="absolute inset-0 bg-linear-to-b from-transparent via-primary/60 to-primary"></div>
             </div>
 
@@ -82,7 +82,7 @@
 
                                 <!-- Info Overlay -->
                                 <div
-                                    class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10 translate-y-4 group-hover:translate-y-0">
+                                    class="absolute bottom-0 left-0 right-0 p-8 bg-linear-to-t from-slate-900 via-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10 translate-y-4 group-hover:translate-y-0">
                                     <span
                                         class="text-[9px] uppercase tracking-[0.2em] text-yellow-400 mb-2 block">{{ $item['badge'] }}</span>
                                     <h3 class="text-white font-playfair text-xl leading-snug">{{ $item['title'] }}</h3>
@@ -98,7 +98,7 @@
 
                                 <!-- Info Overlay -->
                                 <div
-                                    class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10 translate-y-4 group-hover:translate-y-0">
+                                    class="absolute bottom-0 left-0 right-0 p-8 bg-linear-to-t from-slate-900 via-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10 translate-y-4 group-hover:translate-y-0">
                                     <span
                                         class="text-[9px] uppercase tracking-[0.2em] text-yellow-400 mb-2 block">{{ $item['badge'] }}</span>
                                     <h3 class="text-white font-playfair text-xl leading-snug">{{ $item['title'] }}</h3>

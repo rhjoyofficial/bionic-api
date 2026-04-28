@@ -49,7 +49,7 @@ class PageController extends Controller
                 'short_name' => 'CM Moin',
                 'designation' => 'Clinical Certified Nutritionist, Founder & Growth Mentor',
                 'bio' => 'CM Moin is a clinical Certified Nutritionist, motivational speaker, businessman, founder, teacher, content creator, and growth mentor. His leadership is grounded in the intersection of Wellness & Spirituality.',
-                'image' => 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800', // A more professional, luxurious placeholder
+                'image' => '', // A more professional, luxurious placeholder
                 'expertise' => ['Leadership', 'Wellness', 'Spirituality']
             ],
             'gallery_link' => route('gallery'),

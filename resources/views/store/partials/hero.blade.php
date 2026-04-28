@@ -228,7 +228,7 @@
                 {{-- Hover controls — visible only on hover, no layout impact --}}
                 <div
                     class="absolute inset-x-0 bottom-0 flex items-center justify-between px-3 py-2.5
-                            bg-gradient-to-t from-black/55 to-transparent
+                            bg-linear-to-t from-black/55 to-transparent
                             opacity-0 group-hover/vid:opacity-100 transition-opacity duration-300">
 
                     {{-- Play / Pause --}}

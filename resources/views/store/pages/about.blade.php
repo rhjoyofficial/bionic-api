@@ -11,7 +11,7 @@
             class="relative h-100 flex items-center justify-center border-b border-slate-200 bg-primary overflow-hidden">
             <div class="absolute inset-0 z-0">
                 <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2000"
-                    class="w-full h-full object-cover opacity-20 scale-105" alt="Nature">
+                    loading="lazy" class="w-full h-full object-cover opacity-20 scale-105" alt="Nature">
                 <div class="absolute inset-0 bg-linear-to-b from-transparent via-primary/80 to-primary"></div>
             </div>
 
@@ -81,8 +81,8 @@
             <section class="relative">
                 <div class="grid md:grid-cols-12 gap-12 items-center">
                     <div class="md:col-span-5 relative group">
-                        <div class="aspect-[3/4] overflow-hidden shadow-xl">
-                            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800"
+                        <div class="aspect-3/4 overflow-hidden shadow-xl">
+                            <img src="{{ asset('assets/images/brand.jpg') }}" loading="lazy"
                                 class="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-[2s] scale-105 group-hover:scale-100"
                                 alt="Bor de Guna Vision">
                         </div>
@@ -119,10 +119,10 @@
                     @foreach ($data['pillars'] as $pillar)
                         <div class="text-center group cursor-default">
                             <p
-                                class="text-lg text-primary/50 tracking-[0.1em] mb-2 font-mono group-hover:text-primary transition-colors duration-500">
+                                class="text-lg text-primary/50 tracking-widest mb-2 font-mono group-hover:text-primary transition-colors duration-500">
                                 0{{ $loop->iteration }}</p>
                             <h3
-                                class="text-lg uppercase tracking-[0.1em] font-semibold text-slate-700 group-hover:text-slate-900 transition-colors duration-500">
+                                class="text-lg uppercase tracking-widest font-semibold text-slate-700 group-hover:text-slate-900 transition-colors duration-500">
                                 {{ $pillar }}</h3>
                         </div>
                     @endforeach
@@ -146,7 +146,7 @@
                         <div class="flex flex-wrap gap-3 mb-12">
                             @foreach ($data['founder']['expertise'] as $skill)
                                 <span
-                                    class="px-5 py-2.5 border border-slate-200 text-sm font-medium uppercase tracking-[0.1em] text-slate-500 hover:border-primary hover:text-primary transition-all duration-300">
+                                    class="px-5 py-2.5 border border-slate-200 text-sm font-medium uppercase tracking-widest text-slate-500 hover:border-primary hover:text-primary transition-all duration-300">
                                     {{ $skill }}
                                 </span>
                             @endforeach
@@ -159,12 +159,12 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-6 aspect-[3/4] lg:aspect-auto relative overflow-hidden group">
-                        <img src="{{ $data['founder']['image'] }}"
+                    <div class="lg:col-span-6 aspect-3/4 lg:aspect-auto relative overflow-hidden group">
+                        <img src="{{ asset('assets/images/cmmoin.jpg') }}" loading="lazy"
                             class="w-full h-full object-cover object-center grayscale contrast-125 opacity-90 group-hover:scale-105 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-[3s]"
                             alt="{{ $data['founder']['name'] }}">
                         <div
-                            class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent lg:hidden">
+                            class="absolute inset-0 bg-linear-to-t from-slate-900/60 via-transparent to-transparent lg:hidden">
                         </div>
                     </div>
                 </div>
@@ -210,6 +210,7 @@
                 class="relative py-24 border border-slate-200 overflow-hidden flex items-center justify-center text-center group bg-primary rounded-xl">
                 <div class="absolute inset-0 z-0 opacity-20 group-hover:opacity-40 transition-opacity duration-[2s]">
                     <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2000"
+                        loading="lazy"
                         class="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-[5s]"
                         alt="Background">
                     <div class="absolute inset-0 bg-primary/60"></div>
